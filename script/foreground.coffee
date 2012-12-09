@@ -57,6 +57,16 @@ smoothScroll = (element) ->
     # Interval.
     10
 
+notifyID = (element) ->
+  id = element.id
+  if id?
+    request =
+      request: "saveID"
+      id:       id
+      host:     window.location.host
+      pathname: window.location.pathname
+    chrome.extension.sendMessage request
+
 #
 # Highlight an element and scroll it into view.
 #
@@ -69,6 +79,7 @@ highlight = (element) ->
     previousElement = element
     element.classList.add "justjk_highlighted"
     smoothScroll element
+    notifyID element
 
 # Navigate.
 #
@@ -99,6 +110,25 @@ onKeypress = (xPath) -> (event) ->
   return true # Propagate.
 
 # ####################################################################
+# Start up.
+# Try returning to last known position.
+
+lastKnownPosition = (xPath) ->
+  request =
+    request: "lastID"
+    host:     window.location.host
+    pathname: window.location.pathname
+  chrome.extension.sendMessage request, (response) ->
+    if response and response.id
+      console.log "lastID: #{response.id}" if debug
+      for element in evaluateXPath xPath
+        console.log "lastID: check #{element.id}" if debug
+        if element.id and element.id is response.id
+          console.log "lastID: highlighting #{response.id}" if debug
+          highlight element
+          break
+
+# ####################################################################
 # Main: install listener?
 
 request =
@@ -111,6 +141,7 @@ chrome.extension.sendMessage request, (response) ->
   if xPath
     console.log "justJK: #{xPath}" if debug
     document.addEventListener "keypress", onKeypress(xPath), true
+    lastKnownPosition xPath
   else
     console.log "justJK inactive" if debug
 

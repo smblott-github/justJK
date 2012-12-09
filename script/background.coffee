@@ -44,19 +44,39 @@ lookupXPath = (host,pathname) ->
       for page in sites[host]
         if page.regexp.test pathname
           console.log "hit #{host} #{pathname} #{page.xPath}" if debug
-          return page.xPath
+          response =
+            xPath: page.xPath
+          return response
   console.log "miss #{host} #{pathname}" if debug
   return null
+
+# ####################################################################
+# Save most recent @id.
+
+saveID = (id, host, pathname) ->
+  key = "#{host}#{pathname}"
+  localStorage[key] = id
+  console.log "#{id} <- #{key}" if debug
+  null
+
+lastID = (host,pathname) ->
+  key = "#{host}#{pathname}"
+  console.log "lastID: #{key}" if debug
+  if key of localStorage
+    console.log "lastID: #{key} hit #{localStorage[key]}" if debug
+    response =
+      id: localStorage[key]
+  else
+    null
 
 # ####################################################################
 # Listener.
 
 chrome.extension.onMessage.addListener (request, sender, callback) ->
   switch request.request
-    when "start"
-      response =
-        xPath: lookupXPath request?.host, request?.pathname
-      callback response
+    when "start" then  callback lookupXPath request?.host, request?.pathname
+    when "saveID" then callback saveID request?.id, request?.host, request?.pathname
+    when "lastID" then callback lastID request?.host, request?.pathname
     else
       callback null
 
