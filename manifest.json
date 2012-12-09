@@ -1,0 +1,25 @@
+{
+   "name": "SMBlott",
+   "version": "1.0",
+   "manifest_version": 2,
+   "description": "Execute selected background Javascript operations on all tabs.",
+
+   "permissions": [
+      "tabs",
+      "bookmarks",
+      "<all_urls>"
+   ],
+
+   "background": { "scripts": [ "script/background.js" ] },
+
+   "content_scripts": [
+      {
+         "matches"    : [ "<all_urls>" ],
+         "css"        : [ "css/highlight.css" ],
+         "js"         : [ "script/foreground.js" ],
+         "run_at"     : "document_end",
+         "all_frames" :  true
+      }
+   ]
+}
+
