@@ -35,7 +35,7 @@ getOffsetTop = (element) ->
 
 smoothScroll = (element) ->
   offSetTop = getOffsetTop element
-  target    = Math.max 0, offSetTop - 10
+  target    = Math.max 0, offSetTop - 50
   offset    = window.pageYOffset
   delta     = target - offset
   duration  = 300
@@ -102,6 +102,7 @@ onKeypress = (xPath) -> (event) ->
 # Main: install listener?
 
 request =
+  request: "start"
   host:     window.location.host
   pathname: window.location.pathname
 

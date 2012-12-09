@@ -9,9 +9,10 @@ debug = true
 # DOMAIN           PATH                         XPath
 # #                #                            #
 siteList = """
-  www.facebook.com .*                           //div[@id='contentArea']//li[contains(@class,'uiUnifiedStory')]
-  www.boards.ie    ^/vbulletin/forumdisplay.php //tbody/tr/td[starts-with(@id,'td_threadtitle')]/..
-  www.boards.ie    ^/vbulletin/showthread.php   //div[@id='posts']//table[starts-with(@id,'post')]/tbody/tr/td[starts-with(@id,'td_post')]/../../..
+  www.facebook.com ^/$                          //div[@id='contentArea']//li[contains(@class,'uiUnifiedStory')]
+  plus.google.com  ^/$                          //div[starts-with(@id,'update-')]
+  www.boards.ie    ^/vbulletin/forumdisplay.php //tbody/tr/td[starts-with(@id,'td_threadtitle')]
+  www.boards.ie    ^/vbulletin/showthread.php   //div[@id='posts']//table[starts-with(@id,'post')]/tbody/tr/td[starts-with(@id,'td_post')]
   """
 # #                #                            #
 # DOMAIN           PATH                         XPath
@@ -51,7 +52,11 @@ lookupXPath = (host,pathname) ->
 # Listener.
 
 chrome.extension.onMessage.addListener (request, sender, callback) ->
-  response =
-    xPath: lookupXPath request?.host, request?.pathname
-  callback response
+  switch request.request
+    when "start"
+      response =
+        xPath: lookupXPath request?.host, request?.pathname
+      callback response
+    else
+      callback null
 
