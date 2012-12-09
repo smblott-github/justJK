@@ -3,19 +3,22 @@ debug = false
 
 # ####################################################################
 # Customisation for sites.
+# Fields may not contain whitespace characters.
 
+# DOMAIN           PATH                         XPath
 siteList = """
   www.facebook.com .*                           //div[@id='contentArea']//li[contains(@class,'uiUnifiedStory')]
   www.boards.ie    ^/vbulletin/forumdisplay.php //tbody/tr/td[contains(@id,'td_threadtitle')]
   """
+# DOMAIN           PATH                         XPath
 
 # ####################################################################
 # Build sites.
 
-siteBuild = siteList.split "\n"
-siteBuild = siteBuild.map (s) -> s.trim()
-siteBuild = siteBuild.map (s) -> s.split /\s+/
-siteBuild = siteBuild.filter (s) -> s.length == 3
+siteBuild = siteList.split "\n"                    # split lines
+siteBuild = siteBuild.map (s) -> s.trim()          # trim whitespace
+siteBuild = siteBuild.map (s) -> s.split /\s+/     # parse
+siteBuild = siteBuild.filter (s) -> s.length == 3  # filter out bogus-looking lines
 
 sites = {}
 
