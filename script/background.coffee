@@ -1,5 +1,6 @@
 
 debug = false
+debug = true
 
 # ####################################################################
 # Customisation for sites.
@@ -9,7 +10,8 @@ debug = false
 # #                #                            #
 siteList = """
   www.facebook.com .*                           //div[@id='contentArea']//li[contains(@class,'uiUnifiedStory')]
-  www.boards.ie    ^/vbulletin/forumdisplay.php //tbody/tr/td[contains(@id,'td_threadtitle')]
+  www.boards.ie    ^/vbulletin/forumdisplay.php //tbody/tr/td[starts-with(@id,'td_threadtitle')]/..
+  www.boards.ie    ^/vbulletin/showthread.php   //div[@id='posts']//table[starts-with(@id,'post')]/tbody/tr/td[starts-with(@id,'td_post')]/../../..
   """
 # #                #                            #
 # DOMAIN           PATH                         XPath
@@ -40,8 +42,9 @@ lookupXPath = (host,pathname) ->
     if host of sites
       for page in sites[host]
         if page.regexp.test pathname
-          console.log "#{host} #{pathname} #{page.xPath}" if debug
+          console.log "hit #{host} #{pathname} #{page.xPath}" if debug
           return page.xPath
+  console.log "miss #{host} #{pathname}" if debug
   return null
 
 # ####################################################################
