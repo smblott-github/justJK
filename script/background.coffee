@@ -27,14 +27,8 @@ for site in siteBuild
   sites[host] ||= []
   sites[host].push
     pathname: pathname
+    regexp:   new RegExp pathname
     xPath:    xPath
-
-# ####################################################################
-# Prebuild RegExps.
-
-for site of sites
-  for page in sites[site]
-    page.regexp = new RegExp page.pathname if page.pathname
 
 # ####################################################################
 # Search.
@@ -43,7 +37,7 @@ lookupSite = (host,pathname) ->
   if host? and pathname?
     if host of sites
       for page in sites[host]
-        if page.regexp and page.regexp.test pathname
+        if page.regexp.test pathname
           console.log "#{host} #{pathname} #{page.xPath}" if debug
           return page.xPath
   return null
