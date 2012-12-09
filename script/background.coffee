@@ -4,22 +4,27 @@ debug = false
 # ####################################################################
 # Customisation for sites.
 
-sites =
-  "www.facebook.com":
-    [
-      {
-        pathname: ".*"
-        xPath: "//div[@id='contentArea']//li[contains(@class,'uiUnifiedStory')]"
-      }
-    ]
+siteList = """
+  www.facebook.com .*                           //div[@id='contentArea']//li[contains(@class,'uiUnifiedStory')]
+  www.boards.ie    ^/vbulletin/forumdisplay.php //tbody/tr/td[contains(@id,'td_threadtitle')]
+  """
 
-  "www.boards.ie":
-    [
-      {
-        pathname: "^/vbulletin/forumdisplay.php\?"
-        xPath:    "//tbody/tr/td[contains(@id,'td_threadtitle')]"
-      }
-    ]
+# ####################################################################
+# Build sites.
+
+siteBuild = siteList.split "\n"
+siteBuild = siteBuild.map (s) -> s.trim()
+siteBuild = siteBuild.map (s) -> s.split /\s+/
+siteBuild = siteBuild.filter (s) -> s.length == 3
+
+sites = {}
+
+for site in siteBuild
+  [ host, pathname, xPath ] = site
+  sites[host] ||= []
+  sites[host].push
+    pathname: pathname
+    xPath:    xPath
 
 # ####################################################################
 # Prebuild RegExps.
