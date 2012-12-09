@@ -53,9 +53,9 @@ previous = null
 #
 highlight = (node) ->
   if previous != null
-    previous.classList.remove "smblott_highlighted"
+    previous.classList.remove "justjk_highlighted"
   previous = node
-  node.classList.add "smblott_highlighted"
+  node.classList.add "justjk_highlighted"
   # node.scrollIntoView true
   # window.scrollTo window.scrollX, Math.max 0, window.scrollY - 50
   smoothScroll node
