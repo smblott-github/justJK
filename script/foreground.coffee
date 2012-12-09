@@ -48,17 +48,15 @@ smoothScroll = (element) ->
 #
 previous = null
 
-# Highlight a node.
-# Change it's backgroundColor and scroll it into the current viewport.
+# Highlight a node and scroll it into view.
 #
 highlight = (node) ->
-  if previous != null
-    previous.classList.remove "justjk_highlighted"
-  previous = node
-  node.classList.add "justjk_highlighted"
-  # node.scrollIntoView true
-  # window.scrollTo window.scrollX, Math.max 0, window.scrollY - 50
-  smoothScroll node
+  if node isnt null
+    if previous isnt null
+      previous.classList.remove "justjk_highlighted"
+    previous = node
+    node.classList.add "justjk_highlighted"
+    smoothScroll node
 
 # Navigate.
 #
@@ -72,8 +70,10 @@ navigate = (xPath, mover) ->
       highlight nodes[0]
     else
       highlight nodes[mover index[0], n]
+  #
+  true
 
-# OnKeyPress handler.
+# KeyPress handler.
 #
 onKeypress = (xPath) -> (event) ->
   if document.activeElement.nodeName == "BODY"
@@ -82,9 +82,10 @@ onKeypress = (xPath) -> (event) ->
       when "j" then navigate xPath, (i,n) -> Math.min i+1, n-1
       when "k" then navigate xPath, (i,n) -> Math.max i-1, 0
       when "z" then navigate xPath, (i,n) -> 0
+      else false
 
 # ####################################################################
-# Customisation of individual sites.
+# Customisation for sites.
 
 testRexExp = (re,str) ->
   (new RegExp(re)).test str
@@ -108,18 +109,9 @@ sites =
 
 lookupSite = (host,pathname) ->
   if host of sites
-    for area in sites[host]
-      if testRexExp area.pathname, pathname
-        return area.xPath
-
-      # sites = (host,pathname) ->
-      #   switch host
-      #     when "www.facebook.com"
-      #       return "//div[@id='contentArea']//li[contains(@class,'uiUnifiedStory')]"
-      #     when "www.boards.ie"
-      #       if testRexExp "^/vbulletin/forumdisplay.php\?", pathname
-      #         return "//tbody/tr/td[contains(@id,'td_threadtitle')]"
-      #   return null
+    for page in sites[host]
+      if testRexExp page.pathname, pathname
+        return page.xPath
 
 # ####################################################################
 # Main.

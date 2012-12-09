@@ -60,12 +60,14 @@
   previous = null;
 
   highlight = function(node) {
-    if (previous !== null) {
-      previous.classList.remove("smblott_highlighted");
+    if (node !== null) {
+      if (previous !== null) {
+        previous.classList.remove("justjk_highlighted");
+      }
+      previous = node;
+      node.classList.add("justjk_highlighted");
+      return smoothScroll(node);
     }
-    previous = node;
-    node.classList.add("smblott_highlighted");
-    return smoothScroll(node);
   };
 
   navigate = function(xPath, mover) {
@@ -81,11 +83,12 @@
         return previous !== null && nodes[i] === previous;
       });
       if (index.length === 0) {
-        return highlight(nodes[0]);
+        highlight(nodes[0]);
       } else {
-        return highlight(nodes[mover(index[0], n)]);
+        highlight(nodes[mover(index[0], n)]);
       }
     }
+    return true;
   };
 
   onKeypress = function(xPath) {
@@ -105,6 +108,8 @@
             return navigate(xPath, function(i, n) {
               return 0;
             });
+          default:
+            return false;
         }
       }
     };
@@ -130,13 +135,13 @@
   };
 
   lookupSite = function(host, pathname) {
-    var area, _i, _len, _ref;
+    var page, _i, _len, _ref;
     if (host in sites) {
       _ref = sites[host];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        area = _ref[_i];
-        if (testRexExp(area.pathname, pathname)) {
-          return area.xPath;
+        page = _ref[_i];
+        if (testRexExp(page.pathname, pathname)) {
+          return page.xPath;
         }
       }
     }
