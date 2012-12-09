@@ -6,10 +6,12 @@ debug = false
 # Fields may not contain whitespace characters.
 
 # DOMAIN           PATH                         XPath
+# #                #                            #
 siteList = """
   www.facebook.com .*                           //div[@id='contentArea']//li[contains(@class,'uiUnifiedStory')]
   www.boards.ie    ^/vbulletin/forumdisplay.php //tbody/tr/td[contains(@id,'td_threadtitle')]
   """
+# #                #                            #
 # DOMAIN           PATH                         XPath
 
 # ####################################################################
