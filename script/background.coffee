@@ -35,7 +35,7 @@ for site in siteBuild
 # ####################################################################
 # Search.
 
-lookupSite = (host,pathname) ->
+lookupXPath = (host,pathname) ->
   if host? and pathname?
     if host of sites
       for page in sites[host]
@@ -49,6 +49,6 @@ lookupSite = (host,pathname) ->
 
 chrome.extension.onMessage.addListener (request, sender, callback) ->
   response =
-    xPath: lookupSite request?.host, request?.pathname
+    xPath: lookupXPath request?.host, request?.pathname
   callback response
 
