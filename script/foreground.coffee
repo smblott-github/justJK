@@ -85,38 +85,14 @@ onKeypress = (xPath) -> (event) ->
       else false
 
 # ####################################################################
-# Customisation for sites.
-
-testRexExp = (re,str) ->
-  (new RegExp(re)).test str
-
-sites =
-  "www.facebook.com":
-    [
-      {
-        pathname: ".*"
-        xPath: "//div[@id='contentArea']//li[contains(@class,'uiUnifiedStory')]"
-      }
-    ]
-
-  "www.boards.ie":
-    [
-      {
-        pathname: "^/vbulletin/forumdisplay.php\?"
-        xPath:    "//tbody/tr/td[contains(@id,'td_threadtitle')]"
-      }
-    ]
-
-lookupSite = (host,pathname) ->
-  if host of sites
-    for page in sites[host]
-      if testRexExp page.pathname, pathname
-        return page.xPath
-
-# ####################################################################
 # Main.
 
-xPath = lookupSite window.location.host, window.location.pathname
-if xPath
-  document.addEventListener "keypress", onKeypress(xPath), true
+request =
+  host:     window.location.host
+  pathname: window.location.pathname
+
+chrome.extension.sendMessage request, (response) ->
+  xPath = response?.xPath
+  if xPath
+    document.addEventListener "keypress", onKeypress(xPath), true
 
