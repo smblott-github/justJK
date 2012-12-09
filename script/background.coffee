@@ -77,6 +77,5 @@ chrome.extension.onMessage.addListener (request, sender, callback) ->
     when "start" then  callback lookupXPath request?.host, request?.pathname
     when "saveID" then callback saveID request?.id, request?.host, request?.pathname
     when "lastID" then callback lastID request?.host, request?.pathname
-    else
-      callback null
+    else callback null
 

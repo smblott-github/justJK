@@ -2,6 +2,10 @@
 debug = false
 debug = true
 
+
+# ####################################################################
+# XPath.
+
 # Return a list of elements under `element` matching `xPath`.
 # Adapted from Vimium.
 #
@@ -21,6 +25,9 @@ evaluateXPath = (xPath, element=document) ->
     #
   finally
     return ( element while xPathResult and element = xPathResult.iterateNext() )
+
+# ####################################################################
+# Scrolling.
 
 # Smooth scrolling.
 # Adapted from: `http://codereview.stackexchange.com/questions/13111/smooth-page-scrolling-in-javascript`.
@@ -57,9 +64,34 @@ smoothScroll = (element) ->
     # Interval.
     10
 
-extractID = (element) ->
+# ####################################################################
+# Element identifiers.
+
+# Hack for Facebook.
+#
+# The Facebook id attribute changes each time the page is reloaded.  So here - for Facebook only - we pick out
+# a different id, one that is static.
+#
+# Attribute data-ft is JSON.
+# Therein, mf_story_key is static.
+#
+extractIDFacebook = (element) ->
+  dataFT = element.getAttribute "data-ft"
+  if dataFT
+    dataFT = JSON.parse dataFT
+    if dataFT.mf_story_key
+      return dataFT.mf_story_key
   element.id
 
+# Extract an ID for `element`.
+#
+extractID = (element) ->
+  switch window.location.host
+    when "www.facebook.com" then extractIDFacebook element
+    else element.id
+
+# Notify the background script of the current ID.
+#
 notifyID = (element) ->
   id = extractID element
   if id?
@@ -69,6 +101,9 @@ notifyID = (element) ->
       host:     window.location.host
       pathname: window.location.pathname
     chrome.extension.sendMessage request
+
+# ####################################################################
+# Highlighting.
 
 #
 # Highlight an element and scroll it into view.
@@ -107,14 +142,14 @@ onKeypress = (xPath) -> (event) ->
   event.stopPropagation()
   #
   switch String.fromCharCode event.charCode
-    when "j" then return navigate xPath, (i,n) -> Math.min i+1, n-1
-    when "k" then return navigate xPath, (i,n) -> Math.max i-1, 0
-    when "z" then return navigate xPath, (i,n) -> 0
-  return true # Propagate.
+    when "j" then navigate xPath, (i,n) -> Math.min i+1, n-1
+    when "k" then navigate xPath, (i,n) -> Math.max i-1, 0
+    when "z" then navigate xPath, (i,n) -> 0
+    else true # Propagate.
 
 # ####################################################################
 # Start up.
-# Try returning to last known position.
+# Try to return to last known position (based on element IDs).
 
 lastKnownPosition = (xPath) ->
   request =
