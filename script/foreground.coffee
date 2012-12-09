@@ -57,8 +57,11 @@ smoothScroll = (element) ->
     # Interval.
     10
 
+extractID = (element) ->
+  element.id
+
 notifyID = (element) ->
-  id = element.id
+  id = extractID element
   if id?
     request =
       request: "saveID"
@@ -123,7 +126,7 @@ lastKnownPosition = (xPath) ->
       console.log "lastID: #{response.id}" if debug
       for element in evaluateXPath xPath
         console.log "lastID: check #{element.id}" if debug
-        if element.id and element.id is response.id
+        if element.id and response.id is extractID element
           console.log "lastID: highlighting #{response.id}" if debug
           highlight element
           break
