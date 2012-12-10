@@ -14,9 +14,8 @@ evaluateXPath = (xPath) ->
   catch error
     console.log "justJK xPath error: #{xPath}"
     return []
-    #
-  finally
-    return ( element while xPathResult and element = xPathResult.iterateNext() )
+  #
+  return ( element while xPathResult and element = xPathResult.iterateNext() )
 
 # ####################################################################
 # Scrolling.
@@ -29,12 +28,12 @@ ssStart  = null
 ssFactor = null
 ssOffset = 50 # This many pixels from top of window.
 
-getOffsetTop = (element) ->
+ssGetOffsetTop = (element) ->
   return 0 unless element != null
-  return element.offsetTop + getOffsetTop element.offsetParent
+  return element.offsetTop + ssGetOffsetTop element.offsetParent
 
 smoothScroll = (element) ->
-  offSetTop = getOffsetTop element
+  offSetTop = ssGetOffsetTop element
   target    = Math.max 0, offSetTop - ssOffset
   offset    = window.pageYOffset
   delta     = target - offset
@@ -61,8 +60,8 @@ smoothScroll = (element) ->
 
 # Hack for Facebook.
 #
-# The Facebook id attribute changes each time the page is reloaded.  So here - for Facebook only - we pick out
-# a different id, one that is static.
+# The Facebook id attribute for a post  changes each time the page is reloaded.  So here - for Facebook only -
+# we pick out a different id, one that is static.
 #
 # Attribute data-ft is JSON;  therein, mf_story_key is static.
 #
@@ -104,10 +103,12 @@ highlight = (element) ->
   if element isnt null
     if currentElement isnt null
       currentElement.classList.remove highlightCSS
+    #
     currentElement = element
     currentElement.classList.add highlightCSS
+    #
     smoothScroll currentElement
-    notifyID currentElement
+    notifyID     currentElement
 
 # Navigate.
 #
@@ -124,7 +125,7 @@ navigate = (xPath, mover) ->
       highlight elements[mover index[0], n]
 
 # ####################################################################
-# Some key handling routines
+# Key handling routines.
 
 extractKey = (event) ->
   event.which.toString()
@@ -173,13 +174,16 @@ onKeypress = (eventName, xPath) -> (event) ->
     return true # Propagate.
   #
   switch extractKey event
+    # Lower case.
     when "106" then return killKeyEvent event, navigate xPath, (i,n) -> Math.min i+1, n-1 # j
     when "107" then return killKeyEvent event, navigate xPath, (i,n) -> Math.max i-1, 0   # k
     when "122" then return killKeyEvent event, navigate xPath, (i,n) -> 0                 # z
-    when "13"  then return killKeyEvent event, followLink xPath                           # <enter>
+    # Upper case.
     when "74"  then return killKeyEvent event, navigate xPath, (i,n) -> Math.min i+1, n-1 # J
     when "75"  then return killKeyEvent event, navigate xPath, (i,n) -> Math.max i-1, 0   # K
     when "90"  then return killKeyEvent event, navigate xPath, (i,n) -> 0                 # Z
+    # And <enter>.
+    when "13"  then return killKeyEvent event, followLink xPath                           # <enter>
   return true # Propagate.
 
 # ####################################################################
@@ -193,10 +197,13 @@ startUpAtLastKnownPosition = (xPath) ->
     host:     window.location.host
     pathname: window.location.pathname
   chrome.extension.sendMessage request, (response) ->
-    if response and response.id
+    if response?.id
       for element in evaluateXPath xPath
         if element.id and response.id is extractID element
           return highlight element
+    # Not found.
+    # Go to first element.
+    #
     navigate xPath, (i,n) -> 0
 
 # ####################################################################
@@ -208,8 +215,7 @@ request =
   pathname: window.location.pathname
 
 chrome.extension.sendMessage request, (response) ->
-  xPath = response?.xPath
-  if xPath
+  if xPath = response?.xPath
     document.addEventListener "keypress", onKeypress("keypress", xPath), true
     document.addEventListener "keydown", onKeypress("keydown", xPath), true
     document.addEventListener "keyup", killKeyEventHandler, true

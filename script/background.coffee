@@ -6,19 +6,19 @@ siteList = ""
 siteListURL = chrome.extension.getURL "sites.txt"
 
 # From: `https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest/Using_XMLHttpRequest`.
-request = new XMLHttpRequest()
-request.open 'GET', siteListURL, false
-request.send()
-if request.status is 200
-  siteList =  request.responseText
+siteRequest = new XMLHttpRequest()
+siteRequest.open 'GET', siteListURL, false
+siteRequest.send()
+if siteRequest.status is 200
+  siteList =  siteRequest.responseText
 
 # ####################################################################
 # Build sites.
 
-siteBuild = siteList.split "\n"                           # split lines
-siteBuild = siteBuild.map (s) -> s.trim()                 # trim whitespace
-siteBuild = siteBuild.filter (s) -> 0 isnt s.indexOf("#") # trim comments
-siteBuild = siteBuild.map (s) -> s.split /\s+/            # parse
+siteBuild = siteList.split   "\n"                         # split lines
+siteBuild = siteBuild.map    (s) -> s.trim()              # trim whitespace
+siteBuild = siteBuild.filter (s) -> 0 isnt s.indexOf("#") # strip comments
+siteBuild = siteBuild.map    (s) -> s.split /\s+/         # parse
 siteBuild = siteBuild.filter (s) -> s.length == 3         # filter out bogus-looking lines
 
 sites = {}
@@ -39,9 +39,7 @@ lookupXPath = (host,pathname) ->
     if host of sites
       for page in sites[host]
         if page.regexp.test pathname
-          response =
-            xPath: page.xPath
-          return response
+          return { xPath: page.xPath }
   return null
 
 # ####################################################################
@@ -57,9 +55,7 @@ lastID = (host,pathname) ->
   if host? and pathname?
     key = mkKey host, pathname
     if key of localStorage
-      response =
-        id: localStorage[key]
-      return response
+      return { id: localStorage[key] }
   null
 
 # ####################################################################
