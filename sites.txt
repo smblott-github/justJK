@@ -3,7 +3,8 @@
 # #                #                            #
 # #                #                            #
   www.facebook.com ^/                           //div[@id='contentArea']//li[contains(@class,'uiUnifiedStory')]
-  plus.google.com  ^/                           //div[starts-with(@id,'update-')]
+# plus.google.com  ^/                           //div[starts-with(@id,'update-')]
+  plus.google.com  ^/                           /doesNotMatchAnything
   
   slashdot.org     ^/                           //article[starts-with(@id,'firehose-')]
   

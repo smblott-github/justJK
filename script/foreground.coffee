@@ -92,17 +92,6 @@ notifyID = (element) ->
       # No callback.
 
 # ####################################################################
-# Google Plus hack.
-#
-# Google Plus activates the first post and uses this to capture keystrokes.
-# Disable this.
-#
-googlePlusHack = ->
-  # if window.location.host is "plus.google.com"
-  #   document.activeElement.blur()
-  #   setTimeout (-> document.activeElement.blur()), 1000
-
-# ####################################################################
 # Highlighting.
 
 # Highlight an element and scroll it into view.
@@ -128,6 +117,10 @@ highlight = (element) ->
     notifyID     currentElement
     #
     document.activeElement.blur()
+    #
+    true # Do not propagate.
+  else
+    false # Propagate.
 
 # Navigate.
 #
@@ -141,8 +134,9 @@ navigate = (xPath, mover) ->
     if index.length == 0
       highlight elements[0]
     else
-      console.log ">>>>>>>>>>>>>>>>>>>>> #{mover index[0], n}/#{elements.length}"
       highlight elements[mover index[0], n]
+  else
+    false # Propagate.
 
 # ####################################################################
 # Key handling routines.
@@ -150,20 +144,24 @@ navigate = (xPath, mover) ->
 extractKey = (event) ->
   event.which.toString()
 
-killKeyEvent = (event, ignored) ->
-  event.stopPropagation()
-  event.preventDefault()
-  false # Do not propagate.
+killKeyEvent = (event, killEvent=false) ->
+  if killEvent
+    event.stopPropagation()
+    event.preventDefault()
+    false # Do not propagate.
+  else
+    true # Propagate.
 
 killKeyEventHandler = (event) ->
   switch extractKey event
     # Lower, upper case.
-    when "106", "74" then return killKeyEvent event # j, J
-    when "107", "75" then return killKeyEvent event # k, K
-    when "122", "90" then return killKeyEvent event # z, Z
+    when "106", "74" then killKeyEvent event, true # j, J
+    when "107", "75" then killKeyEvent event, true # k, K
+    when "122", "90" then killKeyEvent event, true # z, Z
     # And <enter>.
-    when "13"        then return killKeyEvent event # <enter>
-  return true # Propagate.
+    when "13"        then killKeyEvent event, true # <enter>
+    #
+    else killKeyEvent event, false
 
 # ####################################################################
 # Handle <enter>.
@@ -184,44 +182,45 @@ scoreHRef = (href) ->
 # Sort into reverse order, so we can pick the best one off the front of the list.
 compareHRef = (a,b) -> scoreHRef(b) - scoreHRef(a)
 
-# Enable/disable following of links.
-# For testing only.
-#
-justShowLinks = true
-justShowLinks = false
-
-# Follow link or focus first element.
+# Follow link.
 #
 followLink = (xPath) ->
+  element = if window.location.host is "plus.google.com" then document.activeElement else currentElement
   #
-  if currentElement is null
-    return navigate xPath, (i,n) -> 0
-  anchors = currentElement.getElementsByTagName "a"
+  anchors = element.getElementsByTagName "a"
   anchors = Array.prototype.slice.call anchors, 0
   anchors = anchors.map (a) -> a.href
   anchors = anchors.sort compareHRef
-  if justShowLinks
-    console.log "------------------------------------------------"
-    console.log "#{scoreHRef a} #{a}" for a in anchors
+  if 0 < anchors.length
+    request =
+      request: "open"
+      url:      anchors[0]
+    chrome.extension.sendMessage request
+    true
   else
-    if 0 < anchors.length
-      request =
-        request: "open"
-        url:      anchors[0]
-      chrome.extension.sendMessage request
+    false
 
 # ####################################################################
 # Handle j, k, z (and forward <enter>).
 # Incomplete.
 
+#          j   k   z   J    K    Z
+jkKeys = [ 74, 75, 90, 106, 107, 122 ].map (k) -> k.toString()
+
 # KeyPress handler.
 #
 onKeypress = (eventName, xPath) -> (event) ->
-  if document.activeElement.nodeName.trim() isnt "BODY"
+  unless document.activeElement.nodeName.trim() in [ "BODY", "DIV" ]
     return true # Propagate.
   #
   console.log "justJK (#{eventName}): key=#{extractKey event}"
-  switch extractKey event
+  #
+  # Just let Google Plus do its own j/k thing.
+  key = extractKey event
+  if window.location.host is "plus.google.com" and key in jkKeys
+    return true # Propagate.
+  #
+  switch key
     # Lower, upper case.
     when "106", "74" then return killKeyEvent event, navigate xPath, (i,n) -> Math.min i+1, n-1 # j, J
     when "107", "75" then return killKeyEvent event, navigate xPath, (i,n) -> Math.max i-1, 0   # k, K
@@ -236,6 +235,11 @@ onKeypress = (eventName, xPath) -> (event) ->
 # Otherwise, navigate to first element.
 
 startUpAtLastKnownPosition = (xPath) ->
+  # Disable on Google Plus.
+  #
+  if window.location.host is "plus.google.com"
+    return true # Propagate.
+  #
   request =
     request: "lastID"
     host:     window.location.host
@@ -265,19 +269,18 @@ chrome.extension.sendMessage request, (response) ->
     document.addEventListener "keydown", onKeypress("keydown", xPath), true
     document.addEventListener "keyup", killKeyEventHandler, true
     startUpAtLastKnownPosition xPath
-    googlePlusHack()
   else
     console.log "justJK inactive #{window.location.host} #{window.location.pathname}"
 
 # ####################################################################
 # Temporary tests.
 
-chrome.extension.sendMessage { request: "count" }, (response) ->
-  count = response.count
-  previous = null
-  echoCurrentFocus = ->
-    if previous != document.activeElement
-      console.log "#{count} #{document.activeElement}"
-      console.log document.activeElement
-      previous = document.activeElement
-  setInterval echoCurrentFocus, 500
+# chrome.extension.sendMessage { request: "count" }, (response) ->
+#   count = response.count
+#   previous = null
+#   echoCurrentFocus = ->
+#     if previous != document.activeElement
+#       console.log "#{count} #{document.activeElement}"
+#       console.log document.activeElement
+#       previous = document.activeElement
+#   setInterval echoCurrentFocus, 500
