@@ -9,9 +9,10 @@ debug = true
 # DOMAIN           PATH                         XPath
 # #                #                            #
 siteList = """
-  www.facebook.com ^/$                          //div[@id='contentArea']//li[contains(@class,'uiUnifiedStory')]
-  plus.google.com  ^/$                          //div[starts-with(@id,'update-')]
-  www.boards.ie    ^/vbulletin/forumdisplay.php //tbody/tr/td[starts-with(@id,'td_threadtitle')]
+  www.facebook.com ^/                           //div[@id='contentArea']//li[contains(@class,'uiUnifiedStory')]
+  plus.google.com  ^/                           //div[starts-with(@id,'update-')]
+  slashdot.org     ^/                           //div[starts-with(@id,'update-')]
+  www.boards.ie    ^/vbulletin/forumdisplay.php //article[starts-with(@id,'firehose-')]
   www.boards.ie    ^/vbulletin/showthread.php   //div[@id='posts']//table[starts-with(@id,'post')]/tbody/tr/td[starts-with(@id,'td_post')]
   """
 # #                #                            #

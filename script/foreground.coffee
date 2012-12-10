@@ -1,12 +1,8 @@
 
-debug = false
-debug = true
-
-
 # ####################################################################
 # XPath.
 
-# Return a list of elements under `element` matching `xPath`.
+# Return a list of elements matching `xPath`.
 # Adapted from Vimium.
 #
 
@@ -14,9 +10,9 @@ resultType = XPathResult.ANY_TYPE
 namespaceResolver = (namespace) ->
   if (namespace == "xhtml") then "http://www.w3.org/1999/xhtml" else null
 
-evaluateXPath = (xPath, element=document) ->
+evaluateXPath = (xPath) ->
   try
-    xPathResult = document.evaluate xPath, element, namespaceResolver, resultType
+    xPathResult = document.evaluate xPath, document, namespaceResolver, resultType
     #
   catch error
     console.log "justJK xPath error: #{xPath}"
@@ -72,16 +68,16 @@ smoothScroll = (element) ->
 # The Facebook id attribute changes each time the page is reloaded.  So here - for Facebook only - we pick out
 # a different id, one that is static.
 #
-# Attribute data-ft is JSON.
-# Therein, mf_story_key is static.
+# Attribute data-ft is JSON;  therein, mf_story_key is static.
 #
 extractIDFacebook = (element) ->
-  dataFT = element.getAttribute "data-ft"
-  if dataFT
-    dataFT = JSON.parse dataFT
-    if dataFT.mf_story_key
-      return dataFT.mf_story_key
-  element.id
+  try
+    if dataFT = JSON.parse element.getAttribute "data-ft"
+      if dataFT.mf_story_key
+        return dataFT.mf_story_key
+  catch error
+    true # no-op
+  return element.id
 
 # Extract an ID for `element`.
 #
@@ -94,13 +90,12 @@ extractID = (element) ->
 #
 notifyID = (element) ->
   id = extractID element
-  if id?
-    request =
+  if id isnt null
+    chrome.extension.sendMessage
       request: "saveID"
       id:       id
       host:     window.location.host
       pathname: window.location.pathname
-    chrome.extension.sendMessage request
 
 # ####################################################################
 # Highlighting.
@@ -108,16 +103,17 @@ notifyID = (element) ->
 #
 # Highlight an element and scroll it into view.
 #
-previousElement = null
+currentElement = null
+highlightCSS   = "justjk_highlighted"
 
 highlight = (element) ->
   if element isnt null
-    if previousElement isnt null
-      previousElement.classList.remove "justjk_highlighted"
-    previousElement = element
-    element.classList.add "justjk_highlighted"
-    smoothScroll element
-    notifyID element
+    if currentElement isnt null
+      currentElement.classList.remove highlightCSS
+    currentElement = element
+    currentElement.classList.add highlightCSS
+    smoothScroll currentElement
+    notifyID currentElement
 
 # Navigate.
 #
@@ -126,12 +122,25 @@ navigate = (xPath, mover) ->
   n = elements.length
   #
   if 0 < n
-    index = [0...n].filter (i) -> previousElement != null and elements[i] is previousElement
+    index = [0...n].filter (i) -> currentElement != null and elements[i] is currentElement
     if index.length == 0
       highlight elements[0]
     else
       highlight elements[mover index[0], n]
   return false # Do not propagate.
+
+# ####################################################################
+# Handle <ENTER>.
+# Incomplete.
+
+# Follow link or focus first element.
+#
+followLink = (xPath) ->
+  if currentElement is null
+    return navigate xPath, (i,n) -> 0
+  for element in currentElement.getElementsByTagName "a"
+    href = element.getAttribute "href"
+    console.log href
 
 # KeyPress handler.
 #
@@ -141,15 +150,20 @@ onKeypress = (xPath) -> (event) ->
   #
   event.stopPropagation()
   #
-  switch String.fromCharCode event.charCode
-    when "j" then navigate xPath, (i,n) -> Math.min i+1, n-1
-    when "k" then navigate xPath, (i,n) -> Math.max i-1, 0
-    when "z" then navigate xPath, (i,n) -> 0
+  key = event.which.toString()
+  key = String.fromCharCode event.charCode unless key is "13"
+  switch key
+    when "j"  then navigate xPath, (i,n) -> Math.min i+1, n-1
+    when "k"  then navigate xPath, (i,n) -> Math.max i-1, 0
+    when "z"  then navigate xPath, (i,n) -> 0
+    when "13" then followLink xPath
     else true # Propagate.
+  return true
 
 # ####################################################################
 # Start up.
 # Try to return to last known position (based on element IDs).
+# Otherwise, navigate to first element.
 
 lastKnownPosition = (xPath) ->
   request =
@@ -158,16 +172,14 @@ lastKnownPosition = (xPath) ->
     pathname: window.location.pathname
   chrome.extension.sendMessage request, (response) ->
     if response and response.id
-      console.log "lastID: #{response.id}" if debug
       for element in evaluateXPath xPath
-        console.log "lastID: check #{element.id}" if debug
         if element.id and response.id is extractID element
-          console.log "lastID: highlighting #{response.id}" if debug
           highlight element
-          break
+          return
+    navigate xPath, (i,n) -> 0
 
 # ####################################################################
-# Main: install listener?
+# Main: install listener and highlight previous element (or first).
 
 request =
   request: "start"
@@ -177,9 +189,6 @@ request =
 chrome.extension.sendMessage request, (response) ->
   xPath = response?.xPath
   if xPath
-    console.log "justJK: #{xPath}" if debug
     document.addEventListener "keypress", onKeypress(xPath), true
     lastKnownPosition xPath
-  else
-    console.log "justJK inactive" if debug
 
