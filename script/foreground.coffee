@@ -2,21 +2,17 @@
 # ####################################################################
 # XPath.
 
+resultType        = XPathResult.ANY_TYPE
+namespaceResolver = (namespace) -> if (namespace == "xhtml") then "http://www.w3.org/1999/xhtml" else null
+
 # Return a list of elements matching `xPath`.
-# Adapted from Vimium.
 #
-
-resultType = XPathResult.ANY_TYPE
-namespaceResolver = (namespace) ->
-  if (namespace == "xhtml") then "http://www.w3.org/1999/xhtml" else null
-
 evaluateXPath = (xPath) ->
   try
     xPathResult = document.evaluate xPath, document, namespaceResolver, resultType
     #
   catch error
     console.log "justJK xPath error: #{xPath}"
-    console.log "justJK xPath error: #{error}"
     return []
     #
   finally
@@ -28,9 +24,10 @@ evaluateXPath = (xPath) ->
 # Smooth scrolling.
 # Adapted from: `http://codereview.stackexchange.com/questions/13111/smooth-page-scrolling-in-javascript`.
 #
-timer  = null
-start  = null
-factor = null
+ssTimer  = null
+ssStart  = null
+ssFactor = null
+ssOffset = 50 # This many pixels from top of window.
 
 getOffsetTop = (element) ->
   return 0 unless element != null
@@ -38,24 +35,23 @@ getOffsetTop = (element) ->
 
 smoothScroll = (element) ->
   offSetTop = getOffsetTop element
-  target    = Math.max 0, offSetTop - 50
+  target    = Math.max 0, offSetTop - ssOffset
   offset    = window.pageYOffset
   delta     = target - offset
   duration  = 300
   #
-  start     = Date.now()
-  factor    = 0
+  ssStart   = Date.now()
+  ssFactor  = 0
 
-  if timer
-    clearInterval timer
+  clearInterval ssTimer if ssTimer
 
-  timer = setInterval ->
-      factor = (Date.now() - start) / duration
-      if 1 <= factor
-        clearInterval timer
-        timer = null
-        factor = 1
-      y = factor * delta + offset
+  ssTimer = setInterval ->
+      ssFactor = (Date.now() - ssStart) / duration
+      if 1 <= ssFactor
+        clearInterval ssTimer
+        ssTimer = null
+        ssFactor = 1
+      y = ssFactor * delta + offset
       window.scrollBy 0, y - window.pageYOffset
     # Interval.
     10
@@ -75,8 +71,6 @@ extractIDFacebook = (element) ->
     if dataFT = JSON.parse element.getAttribute "data-ft"
       if dataFT.mf_story_key
         return dataFT.mf_story_key
-  catch error
-    true # no-op
   return element.id
 
 # Extract an ID for `element`.
@@ -86,21 +80,21 @@ extractID = (element) ->
     when "www.facebook.com" then extractIDFacebook element
     else element.id
 
-# Notify the background script of the current ID.
+# Notify the background script of the current ID for this page.
 #
 notifyID = (element) ->
   id = extractID element
-  if id isnt null
+  if id isnt null and 0 < id.length
     chrome.extension.sendMessage
       request: "saveID"
       id:       id
       host:     window.location.host
       pathname: window.location.pathname
+      # No callback.
 
 # ####################################################################
 # Highlighting.
 
-#
 # Highlight an element and scroll it into view.
 #
 currentElement = null
@@ -118,54 +112,87 @@ highlight = (element) ->
 # Navigate.
 #
 navigate = (xPath, mover) ->
+  #
   elements = evaluateXPath xPath
   n = elements.length
   #
   if 0 < n
     index = [0...n].filter (i) -> currentElement != null and elements[i] is currentElement
     if index.length == 0
+      console.log "justJK navigate: 0"
       highlight elements[0]
     else
+      console.log "justJK navigate: #{index[0]}"
       highlight elements[mover index[0], n]
-  return false # Do not propagate.
 
 # ####################################################################
-# Handle <ENTER>.
+# Some key handling routines
+
+extractKey = (event) ->
+  event.which.toString()
+
+killKeyEvent = (event, ignored) ->
+  event.stopPropagation()
+  event.preventDefault()
+  false # Do not propagate.
+
+killKeyEventHandler = (event) ->
+  #
+  key = extractKey event
+  console.log "justJK killer: [#{key}]"
+  switch key
+    # Lower case.
+    when "106" then return killKeyEvent event # j
+    when "107" then return killKeyEvent event # k
+    when "122" then return killKeyEvent event # z
+    # Upper case.
+    when "74"  then return killKeyEvent event # J
+    when "75"  then return killKeyEvent event # K
+    when "90"  then return killKeyEvent event # Z
+    # And <enter>.
+    when "13"  then return killKeyEvent event # <enter>
+  return true # Propagate.
+
+# ####################################################################
+# Handle <enter>.
 # Incomplete.
 
 # Follow link or focus first element.
 #
 followLink = (xPath) ->
+  #
   if currentElement is null
     return navigate xPath, (i,n) -> 0
   for element in currentElement.getElementsByTagName "a"
     href = element.getAttribute "href"
     console.log href
 
+# ####################################################################
+# Handle j, k, z (and forward <enter>).
+# Incomplete.
+
 # KeyPress handler.
 #
-onKeypress = (xPath) -> (event) ->
+onKeypress = (eventName, xPath) -> (event) ->
   if document.activeElement.nodeName.trim() isnt "BODY"
     return true # Propagate.
   #
-  event.stopPropagation()
-  #
-  key = event.which.toString()
-  key = String.fromCharCode event.charCode unless key is "13"
-  switch key
-    when "j"  then navigate xPath, (i,n) -> Math.min i+1, n-1
-    when "k"  then navigate xPath, (i,n) -> Math.max i-1, 0
-    when "z"  then navigate xPath, (i,n) -> 0
-    when "13" then followLink xPath
-    else true # Propagate.
-  return true
+  switch extractKey event
+    when "106" then return killKeyEvent event, navigate xPath, (i,n) -> Math.min i+1, n-1 # j
+    when "107" then return killKeyEvent event, navigate xPath, (i,n) -> Math.max i-1, 0   # k
+    when "122" then return killKeyEvent event, navigate xPath, (i,n) -> 0                 # z
+    when "13"  then return killKeyEvent event, followLink xPath                           # <enter>
+    when "74"  then return killKeyEvent event, navigate xPath, (i,n) -> Math.min i+1, n-1 # J
+    when "75"  then return killKeyEvent event, navigate xPath, (i,n) -> Math.max i-1, 0   # K
+    when "90"  then return killKeyEvent event, navigate xPath, (i,n) -> 0                 # Z
+  return true # Propagate.
 
 # ####################################################################
 # Start up.
 # Try to return to last known position (based on element IDs).
 # Otherwise, navigate to first element.
 
-lastKnownPosition = (xPath) ->
+startUpAtLastKnownPosition = (xPath) ->
   request =
     request: "lastID"
     host:     window.location.host
@@ -174,8 +201,7 @@ lastKnownPosition = (xPath) ->
     if response and response.id
       for element in evaluateXPath xPath
         if element.id and response.id is extractID element
-          highlight element
-          return
+          return highlight element
     navigate xPath, (i,n) -> 0
 
 # ####################################################################
@@ -189,6 +215,8 @@ request =
 chrome.extension.sendMessage request, (response) ->
   xPath = response?.xPath
   if xPath
-    document.addEventListener "keypress", onKeypress(xPath), true
-    lastKnownPosition xPath
+    document.addEventListener "keypress", onKeypress("keypress", xPath), true
+    document.addEventListener "keydown", onKeypress("keydown", xPath), true
+    document.addEventListener "keyup", killKeyEventHandler, true
+    startUpAtLastKnownPosition xPath
 
