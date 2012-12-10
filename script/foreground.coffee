@@ -119,10 +119,8 @@ navigate = (xPath, mover) ->
   if 0 < n
     index = [0...n].filter (i) -> currentElement != null and elements[i] is currentElement
     if index.length == 0
-      console.log "justJK navigate: 0"
       highlight elements[0]
     else
-      console.log "justJK navigate: #{index[0]}"
       highlight elements[mover index[0], n]
 
 # ####################################################################
@@ -137,10 +135,7 @@ killKeyEvent = (event, ignored) ->
   false # Do not propagate.
 
 killKeyEventHandler = (event) ->
-  #
-  key = extractKey event
-  console.log "justJK killer: [#{key}]"
-  switch key
+  switch extractKey event
     # Lower case.
     when "106" then return killKeyEvent event # j
     when "107" then return killKeyEvent event # k

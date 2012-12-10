@@ -4,19 +4,16 @@ debug = true
 
 # ####################################################################
 # Customisation for sites.
-# Fields may not contain whitespace characters.
 
-# DOMAIN           PATH                         XPath
-# #                #                            #
-siteList = """
-  www.facebook.com ^/                           //div[@id='contentArea']//li[contains(@class,'uiUnifiedStory')]
-  plus.google.com  ^/                           //div[starts-with(@id,'update-')]
-  slashdot.org     ^/                           //article[starts-with(@id,'firehose-')]
-  www.boards.ie    ^/vbulletin/forumdisplay.php //tbody/tr/td[starts-with(@id,'td_threadtitle')]
-  www.boards.ie    ^/vbulletin/showthread.php   //div[@id='posts']//table[starts-with(@id,'post')]/tbody/tr/td[starts-with(@id,'td_post')]
-  """
-# #                #                            #
-# DOMAIN           PATH                         XPath
+siteList = ""
+siteListURL = chrome.extension.getURL "sites.txt"
+
+# From: `https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest/Using_XMLHttpRequest`.
+request = new XMLHttpRequest()
+request.open 'GET', siteListURL, false
+request.send()
+if request.status is 200
+  siteList =  request.responseText
 
 # ####################################################################
 # Build sites.
