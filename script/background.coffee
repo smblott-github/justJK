@@ -1,7 +1,4 @@
 
-debug = false
-debug = true
-
 # ####################################################################
 # Customisation for sites.
 
@@ -31,8 +28,8 @@ for site in siteBuild
   sites[host] ||= []
   sites[host].push
     pathname: pathname
-    regexp:   new RegExp pathname
     xPath:    xPath
+    regexp:   new RegExp pathname
 
 # ####################################################################
 # Search.
@@ -42,39 +39,36 @@ lookupXPath = (host,pathname) ->
     if host of sites
       for page in sites[host]
         if page.regexp.test pathname
-          console.log "hit #{host} #{pathname} #{page.xPath}" if debug
           response =
             xPath: page.xPath
           return response
-  console.log "miss #{host} #{pathname}" if debug
   return null
 
 # ####################################################################
-# Save most recent @id.
+# Save and look up most recent @id for a page.
 
-saveID = (id, host, pathname) ->
-  key = "#{host}#{pathname}"
-  localStorage[key] = id
-  console.log "#{id} <- #{key}" if debug
-  null
+mkKey = (host,pathname) -> "#{host}#{pathname}"
+
+saveID = (host, pathname, id) ->
+  if host? and pathname? and id?
+    localStorage[mkKey host, pathname] = id
 
 lastID = (host,pathname) ->
-  key = "#{host}#{pathname}"
-  console.log "lastID: #{key}" if debug
-  if key of localStorage
-    console.log "lastID: #{key} hit #{localStorage[key]}" if debug
-    response =
-      id: localStorage[key]
-  else
-    null
+  if host? and pathname?
+    key = mkKey host, pathname
+    if key of localStorage
+      response =
+        id: localStorage[key]
+      return response
+  null
 
 # ####################################################################
 # Listener.
 
 chrome.extension.onMessage.addListener (request, sender, callback) ->
   switch request.request
-    when "start" then  callback lookupXPath request?.host, request?.pathname
-    when "saveID" then callback saveID request?.id, request?.host, request?.pathname
-    when "lastID" then callback lastID request?.host, request?.pathname
+    when "start"  then callback lookupXPath request?.host, request?.pathname
+    when "saveID" then callback saveID      request?.host, request?.pathname, request?.id
+    when "lastID" then callback lastID      request?.host, request?.pathname
     else callback null
 
