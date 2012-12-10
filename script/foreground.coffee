@@ -137,22 +137,19 @@ killKeyEvent = (event, ignored) ->
 
 killKeyEventHandler = (event) ->
   switch extractKey event
-    # Lower case.
-    when "106" then return killKeyEvent event # j
-    when "107" then return killKeyEvent event # k
-    when "122" then return killKeyEvent event # z
-    # Upper case.
-    when "74"  then return killKeyEvent event # J
-    when "75"  then return killKeyEvent event # K
-    when "90"  then return killKeyEvent event # Z
+    # Lower, upper case.
+    when "106", "74" then return killKeyEvent event # j, J
+    when "107", "75" then return killKeyEvent event # k, K
+    when "122", "90" then return killKeyEvent event # z, Z
     # And <enter>.
-    when "13"  then return killKeyEvent event # <enter>
+    when "13"        then return killKeyEvent event # <enter>
   return true # Propagate.
 
 # ####################################################################
 # Handle <enter>.
 # Incomplete.
 
+# Score an HRef.  Higher is better.
 scoreHRef = (href) ->
   score = 0
   # URLs containing redirects get a high score.
@@ -160,9 +157,9 @@ scoreHRef = (href) ->
   # Facebook photos.
   score += 3 if 0 < href.indexOf "/photo.php?fbid="
   #
-  return score
+  score
 
-# Sorts into reverse order, so we can just pick the best one of the front of the list.
+# Sort into reverse order, so we can pick the best one off the front of the list.
 compareHRef = (a,b) -> scoreHRef(b) - scoreHRef(a)
 
 # Follow link or focus first element.
@@ -173,7 +170,7 @@ followLink = (xPath) ->
     return navigate xPath, (i,n) -> 0
   anchors = currentElement.getElementsByTagName "a"
   anchors = Array.prototype.slice.call anchors, 0
-  anchors = anchors.map (a) -> a.toString()
+  anchors = anchors.map (a) -> a.href
   anchors = anchors.sort compareHRef
   if 0 < anchors.length
     request =
@@ -192,16 +189,12 @@ onKeypress = (eventName, xPath) -> (event) ->
     return true # Propagate.
   #
   switch extractKey event
-    # Lower case.
-    when "106" then return killKeyEvent event, navigate xPath, (i,n) -> Math.min i+1, n-1 # j
-    when "107" then return killKeyEvent event, navigate xPath, (i,n) -> Math.max i-1, 0   # k
-    when "122" then return killKeyEvent event, navigate xPath, (i,n) -> 0                 # z
-    # Upper case.
-    when "74"  then return killKeyEvent event, navigate xPath, (i,n) -> Math.min i+1, n-1 # J
-    when "75"  then return killKeyEvent event, navigate xPath, (i,n) -> Math.max i-1, 0   # K
-    when "90"  then return killKeyEvent event, navigate xPath, (i,n) -> 0                 # Z
+    # Lower, upper case.
+    when "106", "74" then return killKeyEvent event, navigate xPath, (i,n) -> Math.min i+1, n-1 # j, J
+    when "107", "75" then return killKeyEvent event, navigate xPath, (i,n) -> Math.max i-1, 0   # k, K
+    when "122", "90" then return killKeyEvent event, navigate xPath, (i,n) -> 0                 # z, Z
     # And <enter>.
-    when "13"  then return killKeyEvent event, followLink xPath                           # <enter>
+    when "13"        then return killKeyEvent event, followLink xPath                           # <enter>
   return true # Propagate.
 
 # ####################################################################
@@ -228,7 +221,7 @@ startUpAtLastKnownPosition = (xPath) ->
 # Main: install listener and highlight previous element (or first).
 
 request =
-  request: "start"
+  request: "lookup"
   host:     window.location.host
   pathname: window.location.pathname
 
