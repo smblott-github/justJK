@@ -59,6 +59,14 @@ lastID = (host,pathname) ->
   null
 
 # ####################################################################
+# Open a URL in a new tab.
+
+openURL = (url) ->
+  if url? and 0 < url.length
+    chrome.tabs.getSelected null, (tab) ->
+      chrome.tabs.create { url: url, index: tab.index, selected: true }
+
+# ####################################################################
 # Listener.
 
 chrome.extension.onMessage.addListener (request, sender, callback) ->
@@ -66,5 +74,6 @@ chrome.extension.onMessage.addListener (request, sender, callback) ->
     when "start"  then callback lookupXPath request?.host, request?.pathname
     when "saveID" then callback saveID      request?.host, request?.pathname, request?.id
     when "lastID" then callback lastID      request?.host, request?.pathname
+    when "open"   then callback openURL     request?.url
     else callback null
 

@@ -153,15 +153,33 @@ killKeyEventHandler = (event) ->
 # Handle <enter>.
 # Incomplete.
 
+scoreHRef = (href) ->
+  score = 0
+  # URLs containing redirects get a high score.
+  score += 5 if 0 < href.indexOf "%3A%2F%2"
+  # Facebook photos.
+  score += 3 if 0 < href.indexOf "/photo.php?fbid="
+  #
+  return score
+
+# Sorts into reverse order, so we can just pick the best one of the front of the list.
+compareHRef = (a,b) -> scoreHRef(b) - scoreHRef(a)
+
 # Follow link or focus first element.
 #
 followLink = (xPath) ->
   #
   if currentElement is null
     return navigate xPath, (i,n) -> 0
-  for element in currentElement.getElementsByTagName "a"
-    href = element.getAttribute "href"
-    console.log href
+  anchors = currentElement.getElementsByTagName "a"
+  anchors = Array.prototype.slice.call anchors, 0
+  anchors = anchors.map (a) -> a.toString()
+  anchors = anchors.sort compareHRef
+  if 0 < anchors.length
+    request =
+      request: "open"
+      url:      anchors[0]
+    chrome.extension.sendMessage request
 
 # ####################################################################
 # Handle j, k, z (and forward <enter>).
