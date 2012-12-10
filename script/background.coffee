@@ -69,6 +69,15 @@ openURL = (url) ->
       chrome.tabs.create { url: url, index: tab.index, selected: true }
 
 # ####################################################################
+# Counter:
+
+count = 0
+
+counter = ->
+  value = count++
+  { count: value.toString() }
+
+# ####################################################################
 # Listener.
 
 chrome.extension.onMessage.addListener (request, sender, callback) ->
@@ -77,5 +86,6 @@ chrome.extension.onMessage.addListener (request, sender, callback) ->
     when "saveID" then callback saveID      request?.host, request?.pathname, request?.id
     when "lastID" then callback lastID      request?.host, request?.pathname
     when "open"   then callback openURL     request?.url
+    when "count"  then callback counter()
     else callback null
 

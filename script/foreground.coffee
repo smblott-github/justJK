@@ -92,12 +92,28 @@ notifyID = (element) ->
       # No callback.
 
 # ####################################################################
+# Google Plus hack.
+#
+# Google Plus activates the first post and uses this to capture keystrokes.
+# Disable this.
+#
+googlePlusHack = ->
+  # if window.location.host is "plus.google.com"
+  #   document.activeElement.blur()
+  #   setTimeout (-> document.activeElement.blur()), 1000
+
+# ####################################################################
 # Highlighting.
 
 # Highlight an element and scroll it into view.
 #
 currentElement = null
 highlightCSS   = "justjk_highlighted"
+
+# focusAll = (element) ->
+#   if element
+#     focusAll element.parentNode
+#     element.focus() if element?.focus
 
 highlight = (element) ->
   if element isnt null
@@ -106,9 +122,12 @@ highlight = (element) ->
     #
     currentElement = element
     currentElement.classList.add highlightCSS
+    # focusAll currentElement
     #
     smoothScroll currentElement
     notifyID     currentElement
+    #
+    document.activeElement.blur()
 
 # Navigate.
 #
@@ -122,6 +141,7 @@ navigate = (xPath, mover) ->
     if index.length == 0
       highlight elements[0]
     else
+      console.log ">>>>>>>>>>>>>>>>>>>>> #{mover index[0], n}/#{elements.length}"
       highlight elements[mover index[0], n]
 
 # ####################################################################
@@ -155,12 +175,20 @@ scoreHRef = (href) ->
   # URLs containing redirects get a high score.
   score += 5 if 0 < href.indexOf "%3A%2F%2"
   # Facebook photos.
-  score += 3 if 0 < href.indexOf "/photo.php?fbid="
+  score += 2 if 0 < href.indexOf "/photo.php?fbid="
+  # Prefer external links.
+  score += 3 unless 0 < href.indexOf window.location.host
   #
   score
 
 # Sort into reverse order, so we can pick the best one off the front of the list.
 compareHRef = (a,b) -> scoreHRef(b) - scoreHRef(a)
+
+# Enable/disable following of links.
+# For testing only.
+#
+justShowLinks = true
+justShowLinks = false
 
 # Follow link or focus first element.
 #
@@ -172,11 +200,15 @@ followLink = (xPath) ->
   anchors = Array.prototype.slice.call anchors, 0
   anchors = anchors.map (a) -> a.href
   anchors = anchors.sort compareHRef
-  if 0 < anchors.length
-    request =
-      request: "open"
-      url:      anchors[0]
-    chrome.extension.sendMessage request
+  if justShowLinks
+    console.log "------------------------------------------------"
+    console.log "#{scoreHRef a} #{a}" for a in anchors
+  else
+    if 0 < anchors.length
+      request =
+        request: "open"
+        url:      anchors[0]
+      chrome.extension.sendMessage request
 
 # ####################################################################
 # Handle j, k, z (and forward <enter>).
@@ -188,6 +220,7 @@ onKeypress = (eventName, xPath) -> (event) ->
   if document.activeElement.nodeName.trim() isnt "BODY"
     return true # Propagate.
   #
+  console.log "justJK (#{eventName}): key=#{extractKey event}"
   switch extractKey event
     # Lower, upper case.
     when "106", "74" then return killKeyEvent event, navigate xPath, (i,n) -> Math.min i+1, n-1 # j, J
@@ -227,8 +260,24 @@ request =
 
 chrome.extension.sendMessage request, (response) ->
   if xPath = response?.xPath
+    console.log "justJK activated #{window.location.host} #{window.location.pathname}"
     document.addEventListener "keypress", onKeypress("keypress", xPath), true
     document.addEventListener "keydown", onKeypress("keydown", xPath), true
     document.addEventListener "keyup", killKeyEventHandler, true
     startUpAtLastKnownPosition xPath
+    googlePlusHack()
+  else
+    console.log "justJK inactive #{window.location.host} #{window.location.pathname}"
 
+# ####################################################################
+# Temporary tests.
+
+chrome.extension.sendMessage { request: "count" }, (response) ->
+  count = response.count
+  previous = null
+  echoCurrentFocus = ->
+    if previous != document.activeElement
+      console.log "#{count} #{document.activeElement}"
+      console.log document.activeElement
+      previous = document.activeElement
+  setInterval echoCurrentFocus, 500
