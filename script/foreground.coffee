@@ -29,8 +29,8 @@ ssFactor = null
 ssOffset = 50 # This many pixels from top of window.
 
 ssGetOffsetTop = (element) ->
-  return 0 unless element != null
-  return element.offsetTop + ssGetOffsetTop element.offsetParent
+  e = element
+  (e.offsetTop while e = e.offsetParent).reduce ( (p,c) -> p + c ), element.offsetTop
 
 smoothScroll = (element) ->
   offSetTop = ssGetOffsetTop element
