@@ -171,6 +171,10 @@ updateElementCache = (xPath) ->
 # ####################################################################
 # Navigation.
 #
+# xPath is the XPath query for selecting elements.
+# mover is a function.  It expects the current index and list length as arguments and returns a new index
+# (usually i-1, i+1 or 0).
+#
 navigate = (xPath, mover) ->
   #
   unless elementCache? and elementCache.length
@@ -188,7 +192,7 @@ navigate = (xPath, mover) ->
       # Update the element cache (to pick up any new entries) if we're in danger of falling of either end of
       # the lits.
       #
-      updateElementCache xPath if index in [ 0, n-1 ]
+      updateElementCache xPath if index == 0 or index == n-1
       #
       return highlight elements[index]
   #
