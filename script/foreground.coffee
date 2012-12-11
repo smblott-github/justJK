@@ -160,20 +160,37 @@ highlight = (element) ->
   return false # Propagate.
 
 # ####################################################################
+# Navigation: element cache.
+#
+
+elementCache = null
+
+updateElementCache = (xPath) ->
+  elementCache = evaluateXPath xPath
+
+# ####################################################################
 # Navigation.
 #
 navigate = (xPath, mover) ->
   #
-  elements = evaluateXPath xPath
+  unless elementCache? and elementCache.length
+    updateElementCache xPath
+  #
+  elements = elementCache
   n = elements.length
-  console.log n
   #
   if 0 < n
     index = (i for e, i in elements when e.classList.contains highlightCSS)
     if index.length == 0
       return highlight elements[0]
     else
-      return highlight elements[mover index[0], n]
+      index = mover index[0], n
+      # Update the element cache (to pick up any new entries) if we're in danger of falling of either end of
+      # the lits.
+      #
+      updateElementCache xPath if index in [ 0, n-1 ]
+      #
+      return highlight elements[index]
   #
   return false # Propagate.
 
