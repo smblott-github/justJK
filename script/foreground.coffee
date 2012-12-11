@@ -130,7 +130,7 @@ navigate = (xPath, mover) ->
   n = elements.length
   #
   if 0 < n
-    index = [0...n].filter (i) -> currentElement != null and elements[i] is currentElement
+    index = [0...n].filter (i) -> elements[i].classList.contains highlightCSS
     if index.length == 0
       highlight elements[0]
     else
@@ -212,8 +212,6 @@ jkKeys = [ 74, 75, 90, 106, 107, 122 ].map (k) -> k.toString()
 onKeypress = (eventName, xPath) -> (event) ->
   unless document.activeElement.nodeName.trim() in [ "BODY", "DIV" ]
     return true # Propagate.
-  #
-  console.log "justJK (#{eventName}): key=#{extractKey event}"
   #
   # Just let Google Plus do its own j/k thing.
   key = extractKey event
