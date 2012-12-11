@@ -2,22 +2,24 @@
 # ####################################################################
 # Utilities and constants.
 
-stringContains = (haystack, needle) -> (haystack.indexOf(needle) != -1)
+stringContains    = (haystack, needle) -> haystack.indexOf(needle) != -1
+extractKey        = (event)            -> event.which.toString()
+namespaceResolver = (namespace)        -> if (namespace == "xhtml") then "http://www.w3.org/1999/xhtml" else null
 
-googlePlus = "XXplus.google.com"
-facebook   = "www.facebook.com"
+xPathResultType   =  XPathResult.ANY_TYPE
+highlightCSS      = "justjk_highlighted"
+
+#                                  j   k   z   J    K    Z
+jkKeys = ( k.toString() for k in [ 74, 75, 90, 106, 107, 122 ] )
 
 # ####################################################################
 # XPath.
 #
-resultType = XPathResult.ANY_TYPE
-namespaceResolver = (namespace) -> if (namespace == "xhtml") then "http://www.w3.org/1999/xhtml" else null
-
 # Return a list of document elements matching `xPath`.
 #
 evaluateXPath = (xPath) ->
   try
-    xPathResult = document.evaluate xPath, document, namespaceResolver, resultType
+    xPathResult = document.evaluate xPath, document, namespaceResolver, xPathResultType
     #
   catch error
     console.log "justJK xPath error: #{xPath}"
@@ -27,7 +29,8 @@ evaluateXPath = (xPath) ->
 
 # ####################################################################
 # Header offsets.
-# Try to adjust the scroll offset for pages known to have static headers.  We don't want to scroll content up
+#
+# Try to adjust the scroll offset for pages known to have static headers.  Content must no scroll up
 # underneath such headers.
 # 
 # Basically, provide an XPath specification here.  The bottom of the indicated element (which must be
@@ -46,13 +49,11 @@ ssOffsetAdjustment = ->
     if banners = evaluateXPath xPath
       if banners and banners.length == 1
         banner = banners[0]
-        if banner.offsetTop == 0 and banner.offsetHeight? and banner.offsetHeight
+        if banner.offsetTop == 0 and banner.offsetHeight
           return banner.offsetHeight
   return 0
 
 # ####################################################################
-# Scrolling.
-
 # Smooth scrolling.
 # Adapted from: `http://codereview.stackexchange.com/questions/13111/smooth-page-scrolling-in-javascript`.
 #
@@ -75,35 +76,46 @@ smoothScroll = (element) ->
   target    = Math.max 0, offSetTop - ( ssOffset + ssOffsetAdjustment() )
   offset    = window.pageYOffset
   delta     = target - offset
-  duration  = 300
+  duration  = 400
   #
   ssStart   = Date.now()
   ssFactor  = 0
-
+  #
   clearInterval ssTimer if ssTimer
-
-  timerFunc = ->
+  #
+  intervalFunc = ->
     ssFactor = (Date.now() - ssStart) / duration
+    #
     if 1 <= ssFactor
       clearInterval ssTimer
       ssTimer = null
       ssFactor = 1
+    else
+      # Scroll faster at the start, slowing down towards the end.
+      ssFactor = Math.sqrt ssFactor
+    #
     y = ssFactor * delta + offset
     window.scrollBy 0, y - window.pageYOffset
-
-  timerFunc()
-  ssTimer = setInterval timerFunc, 10
+  #
+  ssTimer = setInterval intervalFunc, 10
+  #
+  element
 
 # ####################################################################
 # Element identifiers.
 #
-extractIDFacebook = (element) ->                                                                                                                               
-  try                                                                                                                                                          
-    if dataFT = JSON.parse element.getAttribute "data-ft"                                                                                                      
-      if dataFT.mf_story_key                                                                                                                                   
-        return dataFT.mf_story_key                                                                                                                             
+# For Facebook, use the mf_story_key field of the JSON date-ft attribute.
+# This seems to be stable.
+#
+extractIDFacebook = (element) ->
+  try
+    if dataFT = JSON.parse element.getAttribute "data-ft"
+      if dataFT.mf_story_key
+        return dataFT.mf_story_key
   return element.id
 
+# For all other sites, just use element.id, if it is defined.
+#
 extractID = (element) ->
   switch window.location.host
     when "www.facebook.com" then extractIDFacebook element
@@ -111,7 +123,7 @@ extractID = (element) ->
 
 # Notify the background script of the current ID for this page.
 #
-notifyID = (element) ->
+saveID = (element) ->
   if id = extractID element
     chrome.extension.sendMessage
       request: "saveID"
@@ -119,35 +131,36 @@ notifyID = (element) ->
       host:     window.location.host
       pathname: window.location.pathname
       # No callback.
+  #
+  element
 
 # ####################################################################
 # Highlighting.
+#
+currentElement = null
 
 # Highlight an element and scroll it into view.
 #
-currentElement = null
-highlightCSS   = "justjk_highlighted"
-
 highlight = (element) ->
-  if element isnt null
+  if element
     if currentElement
       currentElement.classList.remove highlightCSS
     #
-    console.log element
-    currentElement = element
-    currentElement.classList.add highlightCSS
+    (currentElement = element).classList.add highlightCSS
     #
-    smoothScroll currentElement
-    notifyID currentElement
+    saveID smoothScroll currentElement
     #
-    # No element should have the focus.  This is necessary for Google Plus.
+    # No element should have the focus.  Google Plus likes to grab the focus, which interferes with keystroke
+    # handling.
+    #
     document.activeElement.blur()
     #
     return true # Do not propagate.
   #
   return false # Propagate.
 
-# Navigate: forward or backward.
+# ####################################################################
+# Navigation.
 #
 navigate = (xPath, mover) ->
   #
@@ -158,17 +171,14 @@ navigate = (xPath, mover) ->
   if 0 < n
     index = (i for e, i in elements when e.classList.contains highlightCSS)
     if index.length == 0
-      highlight elements[0]
+      return highlight elements[0]
     else
-      highlight elements[mover index[0], n]
-  else
-    false # Propagate.
+      return highlight elements[mover index[0], n]
+  #
+  return false # Propagate.
 
 # ####################################################################
 # Key handling routines.
-
-extractKey = (event) ->
-  event.which.toString()
 
 killKeyEvent = (event, killEvent=false) ->
   if killEvent
@@ -247,51 +257,42 @@ compareHRef = (a,b) -> scoreHRef(b) - scoreHRef(a)
 # Handle <enter>.
 #
 followLink = (xPath) ->
-  element = currentElement
+  if currentElement
+    #
+    anchors = currentElement.getElementsByTagName "a"
+    anchors = Array.prototype.slice.call anchors, 0
+    anchors = anchors.map (a) -> a.href
+    anchors = anchors.sort compareHRef
+    #
+    if 0 < anchors.length
+      request =
+        request: "open"
+        url:      anchors[0]
+      chrome.extension.sendMessage request
+      return true
   #
-  anchors = element.getElementsByTagName "a"
-  anchors = Array.prototype.slice.call anchors, 0
-  anchors = anchors.map (a) -> a.href
-  anchors = anchors.sort compareHRef
-  #
-  for a in anchors
-    console.log ">>>>>>> #{scoreHRef a} #{a}"
-  #
-  if 0 < anchors.length
-    request =
-      request: "open"
-      url:      anchors[0]
-    chrome.extension.sendMessage request
-    true
-  else
-    false
+  return false
 
 # ####################################################################
-# Handle j, k, z (and forward <enter>).
-# Incomplete.
-
-#          j   k   z   J    K    Z
-jkKeys = [ 74, 75, 90, 106, 107, 122 ].map (k) -> k.toString()
-
-# KeyPress handler.
+# Handle j, k, z, and <enter>.
 #
-onKeypress = (eventName, xPath) -> (event) ->
-  unless document.activeElement.nodeName.trim() in [ "BODY", "DIV" ]
-    return true # Propagate.
+onKeypress = (xPath) -> (event) ->
   #
-  switch extractKey event
-    # Lower, upper case.
-    when "106", "74" then return killKeyEvent event, navigate xPath, (i,n) -> Math.min i+1, n-1 # j, J
-    when "107", "75" then return killKeyEvent event, navigate xPath, (i,n) -> Math.max i-1, 0   # k, K
-    when "122", "90" then return killKeyEvent event, navigate xPath, (i,n) -> 0                 # z, Z
-    # And <enter>.
-    when "13"        then return killKeyEvent event, followLink xPath                           # <enter>
+  if document.activeElement.nodeName in [ "BODY", "DIV" ]
+    switch extractKey event
+      # Lower, upper case.
+      when "106", "74" then return killKeyEvent event, navigate xPath, (i,n) -> Math.min i+1, n-1 # j, J
+      when "107", "75" then return killKeyEvent event, navigate xPath, (i,n) -> Math.max i-1, 0   # k, K
+      when "122", "90" then return killKeyEvent event, navigate xPath, (i,n) -> 0                 # z, Z
+      # And <enter>.
+      when "13"        then return killKeyEvent event, followLink xPath                           # <enter>
+  #
   return true # Propagate.
 
 # ####################################################################
 # Start up.
-# Try to return to last known position (based on element IDs).
-# Otherwise, navigate to first element.
+# Try to return to last known position (based on saved IDs).
+# Otherwise, go to first element.
 
 startUpAtLastKnownPosition = (xPath) ->
   request =
@@ -303,6 +304,7 @@ startUpAtLastKnownPosition = (xPath) ->
       for element in evaluateXPath xPath
         if element.id and response.id is extractID element
           return highlight element
+    #
     # Not found.
     # Go to first element.
     #
@@ -319,13 +321,15 @@ request =
 chrome.extension.sendMessage request, (response) ->
   if xPath = response?.xPath
     console.log "justJK activated #{window.location.host} #{window.location.pathname}"
-    document.addEventListener "keypress", onKeypress("keypress", xPath), true
-    document.addEventListener "keydown", onKeypress("keydown", xPath), true
-    document.addEventListener "keyup", killKeyEventHandler, true
+    #
+    document.addEventListener "keypress", onKeypress(xPath),   true
+    document.addEventListener "keydown",  onKeypress(xPath),   true
+    document.addEventListener "keyup",    killKeyEventHandler, true
     startUpAtLastKnownPosition xPath
   else
+    #
     console.log "justJK inactive #{window.location.host} #{window.location.pathname}"
 
 # ####################################################################
-# Temporary tests.
+# Done.
 
