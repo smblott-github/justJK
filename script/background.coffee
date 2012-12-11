@@ -2,30 +2,25 @@
 # ####################################################################
 # Customisation for sites.
 
-siteList = ""
 siteListURL = chrome.extension.getURL "sites.txt"
 
 # From: `https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest/Using_XMLHttpRequest`.
 siteRequest = new XMLHttpRequest()
 siteRequest.open 'GET', siteListURL, false
 siteRequest.send()
-if siteRequest.status is 200
-  siteList =  siteRequest.responseText
+siteList = if siteRequest.status is 200 then siteRequest.responseText else ""
 
 # ####################################################################
-# Build sites.
+# Parse sites.
 
-siteBuild = siteList.split   "\n"                         # split lines
-siteBuild = siteBuild.map    (s) -> s.trim()              # trim whitespace
-siteBuild = siteBuild.filter (s) -> 0 isnt s.indexOf("#") # strip comments
-siteBuild = siteBuild.map    (s) -> s.split /\s+/         # parse
-siteBuild = siteBuild.filter (s) -> s.length == 3         # filter out bogus-looking lines
+siteParse = ( s.trim()      for s in siteList.split "\n"                  )
+siteParse = ( s.split /\s+/ for s in siteParse when s.indexOf("#") isnt 0 )
+siteParse = ( s             for s in siteParse when s.length is 3         )
 
 sites = {}
-
-for site in siteBuild
+for site in siteParse
   [ host, pathname, xPath ] = site
-  sites[host] ||= []
+  sites[host] ?= []
   sites[host].push
     pathname: pathname
     xPath:    xPath
@@ -35,7 +30,7 @@ for site in siteBuild
 # Search.
 
 lookupXPath = (host,pathname) ->
-  if host? and pathname?
+  if host and pathname
     if host of sites
       for page in sites[host]
         if page.regexp.test pathname
@@ -48,14 +43,18 @@ lookupXPath = (host,pathname) ->
 mkKey = (host,pathname) -> "#{host}#{pathname}"
 
 saveID = (host, pathname, id) ->
-  if host? and pathname? and id?
-    localStorage[mkKey host, pathname] = id
+  if host and pathname and id
+    key = mkKey host, pathname
+    console.log "#{id} <- #{key}"
+    localStorage[key] = id
 
 lastID = (host,pathname) ->
-  if host? and pathname?
+  if host and pathname
     key = mkKey host, pathname
     if key of localStorage
-      return { id: localStorage[key] }
+      id = localStorage[key]
+      console.log "#{id} -> #{key}"
+      return { id: id }
   null
 
 # ####################################################################
@@ -64,18 +63,9 @@ lastID = (host,pathname) ->
 # closed.
 #
 openURL = (url) ->
-  if url? and 0 < url.length
+  if url
     chrome.tabs.getSelected null, (tab) ->
       chrome.tabs.create { url: url, index: tab.index, selected: true }
-
-# ####################################################################
-# Counter:
-
-count = 0
-
-counter = ->
-  value = count++
-  { count: value.toString() }
 
 # ####################################################################
 # Listener.
@@ -86,6 +76,5 @@ chrome.extension.onMessage.addListener (request, sender, callback) ->
     when "saveID" then callback saveID      request?.host, request?.pathname, request?.id
     when "lastID" then callback lastID      request?.host, request?.pathname
     when "open"   then callback openURL     request?.url
-    when "count"  then callback counter()
     else callback null
 

@@ -1,11 +1,19 @@
 
 # ####################################################################
-# XPath.
+# Utilities and constants.
 
-resultType        = XPathResult.ANY_TYPE
+stringContains = (haystack, needle) -> (haystack.indexOf(needle) != -1)
+
+googlePlus = "XXplus.google.com"
+facebook   = "www.facebook.com"
+
+# ####################################################################
+# XPath.
+#
+resultType = XPathResult.ANY_TYPE
 namespaceResolver = (namespace) -> if (namespace == "xhtml") then "http://www.w3.org/1999/xhtml" else null
 
-# Return a list of elements matching `xPath`.
+# Return a list of document elements matching `xPath`.
 #
 evaluateXPath = (xPath) ->
   try
@@ -19,22 +27,27 @@ evaluateXPath = (xPath) ->
 
 # ####################################################################
 # Header offsets.
-# Try to adjust the scroll offset for pages known to have static headers.
+# Try to adjust the scroll offset for pages known to have static headers.  We don't want to scroll content up
+# underneath such headers.
+# 
+# Basically, provide an XPath specification here.  The bottom of the indicated element (which must be
+# unique) is taken to be the top of the normal page area.
 
 # XPath for known headers.
 #
 ssHeaderXPath =
   "www.facebook.com": "//div[@id='pagelet_bluebar']/div[@id='blueBarHolder']/div['blueBar']/../.."
+  "plus.google.com":  "//div[@id='gb']"
 
 # Offset adjustment.
 #
 ssOffsetAdjustment = ->
   if xPath = ssHeaderXPath[window.location.host]
-    if headers = evaluateXPath xPath
-      if headers and headers.length == 1
-        header = headers[0]
-        if header.offsetTop == 0 and header.offsetHeight? and header.offsetHeight
-          return header.offsetHeight
+    if banners = evaluateXPath xPath
+      if banners and banners.length == 1
+        banner = banners[0]
+        if banner.offsetTop == 0 and banner.offsetHeight? and banner.offsetHeight
+          return banner.offsetHeight
   return 0
 
 # ####################################################################
@@ -46,12 +59,17 @@ ssOffsetAdjustment = ->
 ssTimer  = null
 ssStart  = null
 ssFactor = null
-ssOffset = 10 # This many pixels from top of window.
+
+# Scroll to this many pixels from the top of the window.
+#
+ssOffset = 20
 
 ssGetOffsetTop = (element) ->
   e = element
   (e.offsetTop while e = e.offsetParent).reduce ( (p,c) -> p + c ), element.offsetTop
 
+# Smooth scrolling.
+#
 smoothScroll = (element) ->
   offSetTop = ssGetOffsetTop element
   target    = Math.max 0, offSetTop - ( ssOffset + ssOffsetAdjustment() )
@@ -64,40 +82,37 @@ smoothScroll = (element) ->
 
   clearInterval ssTimer if ssTimer
 
-  ssTimer = setInterval ->
-      ssFactor = (Date.now() - ssStart) / duration
-      if 1 <= ssFactor
-        clearInterval ssTimer
-        ssTimer = null
-        ssFactor = 1
-      y = ssFactor * delta + offset
-      window.scrollBy 0, y - window.pageYOffset
-    # Interval.
-    10
+  timerFunc = ->
+    ssFactor = (Date.now() - ssStart) / duration
+    if 1 <= ssFactor
+      clearInterval ssTimer
+      ssTimer = null
+      ssFactor = 1
+    y = ssFactor * delta + offset
+    window.scrollBy 0, y - window.pageYOffset
+
+  timerFunc()
+  ssTimer = setInterval timerFunc, 10
 
 # ####################################################################
 # Element identifiers.
+#
+extractIDFacebook = (element) ->                                                                                                                               
+  try                                                                                                                                                          
+    if dataFT = JSON.parse element.getAttribute "data-ft"                                                                                                      
+      if dataFT.mf_story_key                                                                                                                                   
+        return dataFT.mf_story_key                                                                                                                             
+  return element.id
 
-# Hack for Facebook.
-#
-# The Facebook id attribute for a post is dynamic.  So here - for Facebook only - we pick out a different id,
-# one that is static. fbid is static.
-#
-extractFBID = (element) ->
-  return (element.getAttribute "fbid") || element.id
-
-# Extract an ID for `element`.
-#
 extractID = (element) ->
   switch window.location.host
-    when "www.facebook.com" then extractFBID element
+    when "www.facebook.com" then extractIDFacebook element
     else element.id
 
 # Notify the background script of the current ID for this page.
 #
 notifyID = (element) ->
-  id = extractID element
-  if id isnt null and 0 < id.length
+  if id = extractID element
     chrome.extension.sendMessage
       request: "saveID"
       id:       id
@@ -113,38 +128,35 @@ notifyID = (element) ->
 currentElement = null
 highlightCSS   = "justjk_highlighted"
 
-# focusAll = (element) ->
-#   if element
-#     focusAll element.parentNode
-#     element.focus() if element?.focus
-
 highlight = (element) ->
   if element isnt null
-    if currentElement isnt null
+    if currentElement
       currentElement.classList.remove highlightCSS
     #
+    console.log element
     currentElement = element
     currentElement.classList.add highlightCSS
-    # focusAll currentElement
     #
     smoothScroll currentElement
-    notifyID     currentElement
+    notifyID currentElement
     #
+    # No element should have the focus.  This is necessary for Google Plus.
     document.activeElement.blur()
     #
-    true # Do not propagate.
-  else
-    false # Propagate.
+    return true # Do not propagate.
+  #
+  return false # Propagate.
 
-# Navigate.
+# Navigate: forward or backward.
 #
 navigate = (xPath, mover) ->
   #
   elements = evaluateXPath xPath
   n = elements.length
+  console.log n
   #
   if 0 < n
-    index = [0...n].filter (i) -> elements[i].classList.contains highlightCSS
+    index = (i for e, i in elements when e.classList.contains highlightCSS)
     if index.length == 0
       highlight elements[0]
     else
@@ -178,33 +190,73 @@ killKeyEventHandler = (event) ->
     else killKeyEvent event, false
 
 # ####################################################################
-# Handle <enter>.
-# Incomplete.
+# Scoring HREFs.
+#
+scoreAdjustmentHost =
+  "www.facebook.com": (href) ->
+    score = 0
+    if stringContains href, "/photo.php?fbid="
+      score += 2
+    score
+
+doScoreAdjustmentHost = (href) ->
+  if scoreAdjustmentHost[window.location.host]
+    scoreAdjustmentHost[window.location.host](href)
+  else
+    0
+
+scoreAdjustmentPathname =
+  "vbulletin": (href) ->
+    score = 0
+    if stringContains href, "/vbulletin/showthread.php"
+      score += 1
+      if stringContains href, "goto=newpost"
+        score += 1
+    score
+
+doScoreAdjustmentPathname = (href) ->
+  paths = window.location.pathname.split "/"
+  if 2 <= paths.length
+    path = paths[1]
+    if scoreAdjustmentPathname[path]
+      return scoreAdjustmentPathname[path](href)
+  return 0
 
 # Score an HRef.  Higher is better.
 scoreHRef = (href) ->
   score = 0
-  # URLs containing redirects get a high score.
-  score += 5 if 0 < href.indexOf "%3A%2F%2"
-  # Facebook photos.
-  score += 2 if 0 < href.indexOf "/photo.php?fbid="
+  # Prefer URLs containing redirects; they are often the main link.
+  if stringContains href, "%3A%2F%2"
+    score += 4
   # Prefer external links.
-  score += 3 unless 0 < href.indexOf window.location.host
+  unless stringContains href, window.location.host
+    score += 3
+  #
+  # Score adjustments based on host.
+  score += doScoreAdjustmentHost href
+  #
+  # Score adjustments based on pathname.
+  score += doScoreAdjustmentPathname href
   #
   score
 
 # Sort into reverse order, so we can pick the best one off the front of the list.
 compareHRef = (a,b) -> scoreHRef(b) - scoreHRef(a)
 
-# Follow link.
+# ####################################################################
+# Handle <enter>.
 #
 followLink = (xPath) ->
-  element = if window.location.host is "plus.google.com" then document.activeElement else currentElement
+  element = currentElement
   #
   anchors = element.getElementsByTagName "a"
   anchors = Array.prototype.slice.call anchors, 0
   anchors = anchors.map (a) -> a.href
   anchors = anchors.sort compareHRef
+  #
+  for a in anchors
+    console.log ">>>>>>> #{scoreHRef a} #{a}"
+  #
   if 0 < anchors.length
     request =
       request: "open"
@@ -227,12 +279,7 @@ onKeypress = (eventName, xPath) -> (event) ->
   unless document.activeElement.nodeName.trim() in [ "BODY", "DIV" ]
     return true # Propagate.
   #
-  # Just let Google Plus do its own j/k thing.
-  key = extractKey event
-  if window.location.host is "plus.google.com" and key in jkKeys
-    return true # Propagate.
-  #
-  switch key
+  switch extractKey event
     # Lower, upper case.
     when "106", "74" then return killKeyEvent event, navigate xPath, (i,n) -> Math.min i+1, n-1 # j, J
     when "107", "75" then return killKeyEvent event, navigate xPath, (i,n) -> Math.max i-1, 0   # k, K
@@ -247,11 +294,6 @@ onKeypress = (eventName, xPath) -> (event) ->
 # Otherwise, navigate to first element.
 
 startUpAtLastKnownPosition = (xPath) ->
-  # Disable on Google Plus.
-  #
-  if window.location.host is "plus.google.com"
-    return true # Propagate.
-  #
   request =
     request: "lastID"
     host:     window.location.host
@@ -287,15 +329,3 @@ chrome.extension.sendMessage request, (response) ->
 # ####################################################################
 # Temporary tests.
 
-work = ->
-  styles = evaluateXPath "//*[@style]"
-  for s in styles
-    s.style.parentNode = s
-  styles = styles.map (s) -> s.style
-  styles = styles.filter (s) -> s.position? and s.position and s.position in [ "relative" ] # in [ "relative", "absolute" ]
-  console.log "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-  for s in styles
-    console.log "#{s.position} top=#{s.top} height=#{s.height} #{s.parentNode.offsetTop} #{s.parentNode.height}"
-    console.log s.parentNode
-
-setTimeout work, 2000
