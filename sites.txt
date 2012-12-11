@@ -9,7 +9,7 @@
 # the search result page and then returning.
   www.google.com     ^/search                     //li[starts-with(@class,'g')]/div[@class='vsc']/..
 
-  www.facebook.com   ^/                           //div[@id='contentArea']//li[contains(@class,'uiUnifiedStory')]
+  www.facebook.com   ^/                           //div[@id='contentArea']//li[starts-with(@class,'uiUnifiedStory')]
 # plus.google.com    ^/                           //div[starts-with(@id,'update-')]
   plus.google.com    ^/                           /doesNotMatchAnythingButActivatesJustJK
   

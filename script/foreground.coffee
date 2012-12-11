@@ -18,6 +18,26 @@ evaluateXPath = (xPath) ->
   return ( element while xPathResult and element = xPathResult.iterateNext() )
 
 # ####################################################################
+# Header offsets.
+# Try to adjust the scroll offset for pages known to have static headers.
+
+# XPath for known headers.
+#
+ssHeaderXPath =
+  "www.facebook.com": "//div[@id='pagelet_bluebar']/div[@id='blueBarHolder']/div['blueBar']/../.."
+
+# Offset adjustment.
+#
+ssOffsetAdjustment = ->
+  if xPath = ssHeaderXPath[window.location.host]
+    if headers = evaluateXPath xPath
+      if headers and headers.length == 1
+        header = headers[0]
+        if header.offsetTop == 0 and header.offsetHeight? and header.offsetHeight
+          return header.offsetHeight
+  return 0
+
+# ####################################################################
 # Scrolling.
 
 # Smooth scrolling.
@@ -26,7 +46,7 @@ evaluateXPath = (xPath) ->
 ssTimer  = null
 ssStart  = null
 ssFactor = null
-ssOffset = 50 # This many pixels from top of window.
+ssOffset = 10 # This many pixels from top of window.
 
 ssGetOffsetTop = (element) ->
   e = element
@@ -34,7 +54,7 @@ ssGetOffsetTop = (element) ->
 
 smoothScroll = (element) ->
   offSetTop = ssGetOffsetTop element
-  target    = Math.max 0, offSetTop - ssOffset
+  target    = Math.max 0, offSetTop - ( ssOffset + ssOffsetAdjustment() )
   offset    = window.pageYOffset
   delta     = target - offset
   duration  = 300
@@ -60,23 +80,17 @@ smoothScroll = (element) ->
 
 # Hack for Facebook.
 #
-# The Facebook id attribute for a post  changes each time the page is reloaded.  So here - for Facebook only -
-# we pick out a different id, one that is static.
+# The Facebook id attribute for a post is dynamic.  So here - for Facebook only - we pick out a different id,
+# one that is static. fbid is static.
 #
-# Attribute data-ft is JSON;  therein, mf_story_key is static.
-#
-extractIDFacebook = (element) ->
-  try
-    if dataFT = JSON.parse element.getAttribute "data-ft"
-      if dataFT.mf_story_key
-        return dataFT.mf_story_key
-  return element.id
+extractFBID = (element) ->
+  return (element.getAttribute "fbid") || element.id
 
 # Extract an ID for `element`.
 #
 extractID = (element) ->
   switch window.location.host
-    when "www.facebook.com" then extractIDFacebook element
+    when "www.facebook.com" then extractFBID element
     else element.id
 
 # Notify the background script of the current ID for this page.
@@ -273,12 +287,15 @@ chrome.extension.sendMessage request, (response) ->
 # ####################################################################
 # Temporary tests.
 
-# chrome.extension.sendMessage { request: "count" }, (response) ->
-#   count = response.count
-#   previous = null
-#   echoCurrentFocus = ->
-#     if previous != document.activeElement
-#       console.log "#{count} #{document.activeElement}"
-#       console.log document.activeElement
-#       previous = document.activeElement
-#   setInterval echoCurrentFocus, 500
+work = ->
+  styles = evaluateXPath "//*[@style]"
+  for s in styles
+    s.style.parentNode = s
+  styles = styles.map (s) -> s.style
+  styles = styles.filter (s) -> s.position? and s.position and s.position in [ "relative" ] # in [ "relative", "absolute" ]
+  console.log "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+  for s in styles
+    console.log "#{s.position} top=#{s.top} height=#{s.height} #{s.parentNode.offsetTop} #{s.parentNode.height}"
+    console.log s.parentNode
+
+setTimeout work, 2000
