@@ -202,9 +202,17 @@ killKeyEventHandler = (event) ->
 # ####################################################################
 # Scoring HREFs.
 #
+# Given a list of HREFs associated with an element, pick the best one to follow.
+# Scoring is ad hoc, based on heuristics which seem mostly to work.
+#
+# TODO: Move scoring to the background page.
+
+# Host specific score adjustments.
+#
 scoreAdjustmentHost =
   "www.facebook.com": (href) ->
     score = 0
+    # Boost score of photos on Facebook.
     if stringContains href, "/photo.php?fbid="
       score += 2
     score
@@ -215,11 +223,16 @@ doScoreAdjustmentHost = (href) ->
   else
     0
 
+# Pathname specific score adjustments.
+# The key here is the first component of the pathname.
+#
 scoreAdjustmentPathname =
   "vbulletin": (href) ->
     score = 0
+    # Prefer links to threads (over links to forums).
     if stringContains href, "/vbulletin/showthread.php"
       score += 1
+      # Prefer links to new posts.
       if stringContains href, "goto=newpost"
         score += 1
     score
@@ -233,25 +246,26 @@ doScoreAdjustmentPathname = (href) ->
   return 0
 
 # Score an HRef.  Higher is better.
+#
 scoreHRef = (href) ->
   score = 0
+  #
   # Prefer URLs containing redirects; they are often the main link.
-  if stringContains href, "%3A%2F%2"
-    score += 4
+  score += 4 if stringContains href, "%3A%2F%2"
+  #
   # Prefer external links.
-  unless stringContains href, window.location.host
-    score += 3
+  # FIXME: apps.facebook.com is *not* an external link.  Fix this and similar.
+  score += 3 unless stringContains href, window.location.host
   #
-  # Score adjustments based on host.
+  # Score adjustments based on host and pathname.
   score += doScoreAdjustmentHost href
-  #
-  # Score adjustments based on pathname.
   score += doScoreAdjustmentPathname href
   #
   score
 
-# Sort into reverse order, so we can pick the best one off the front of the list.
-compareHRef = (a,b) -> scoreHRef(b) - scoreHRef(a)
+# Comparison for sorting.
+#
+compareHRef = (a,b) -> scoreHRef(a) - scoreHRef(b)
 
 # ####################################################################
 # Handle <enter>.
@@ -267,7 +281,7 @@ followLink = (xPath) ->
     if 0 < anchors.length
       request =
         request: "open"
-        url:      anchors[0]
+        url:      anchors.pop()
       chrome.extension.sendMessage request
       return true
   #
