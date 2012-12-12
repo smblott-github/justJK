@@ -1,0 +1,58 @@
+
+#
+# Lines like this are comments.
+#
+# The token "site" begins a new entry.
+#
+# If only the site is listed, then "j" and "k" are passed through the underlying page.
+#
+# If no path is given, then the entry applies to the entire site.
+#
+# If no site is given, then paths are matched against every page.
+#
+# Multiple paths may be provided.
+#
+
+# ##############################################################################
+# Sites ...
+
+site     www.google.com
+path     ^/search
+elements //li[starts-with(@class,'g')]/div[@class='vsc']/..
+
+site     www.facebook.com
+header   //div[@id='pagelet_bluebar']/div[@id='blueBarHolder']/div['blueBar']/../..
+
+site     plus.google.com
+header   //div[@id='gb']
+
+site     slashdot.org
+elements //article[starts-with(@id,'firehose-')]
+  
+site     www.broadsheet.ie
+path     ^/$
+path     ^/page/
+elements //div[@class='post']/article[starts-with(@id,'post-')]
+
+site     www.yesiknowthat.com
+path     ^/$
+path     ^/page/
+
+site     www.reddit.com
+elements //div[@id='siteTable']/div[contains(@class,'thing')]
+
+site     twitter.com
+header   //div[starts-with(@class,'topbar')]/div[@class='global-nav']
+elements //div[@id='stream-items-id']/div[@data-item-type='tweet'] | //div[starts-with(@class,'new-tweets-bar')]
+
+# ##############################################################################
+# Paths only
+
+site
+path     ^/vbulletin/forumdisplay.php
+elements //tbody/tr/td[starts-with(@id,'td_threadtitle')]
+
+site
+path     ^/vbulletin/showthread.php
+elements //div[@id='posts']//table[starts-with(@id,'post')]/tbody/tr/td[starts-with(@id,'td_post')]
+

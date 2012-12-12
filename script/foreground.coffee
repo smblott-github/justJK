@@ -49,7 +49,7 @@ evaluateXPath = (xPath) ->
 ssHeaderXPath =
   "www.facebook.com": "//div[@id='pagelet_bluebar']/div[@id='blueBarHolder']/div['blueBar']/../.."
   "plus.google.com":  "//div[@id='gb']"
-  "twitter.com":      "//div[starts-with(@class,'topbar')]/div[@class='global-nav'] | //div[starts-with(@class,'new-tweets-bar')]"
+  "twitter.com":      "//div[starts-with(@class,'topbar')]/div[@class='global-nav']"
 
 # Offset adjustment.
 #
