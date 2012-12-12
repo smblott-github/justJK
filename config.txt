@@ -65,8 +65,8 @@ elements //div[@id='siteTable']/div[contains(@class,'thing')]
 
 site     twitter.com
 header   //div[starts-with(@class,'topbar')]/div[@class='global-nav']
-elements //div[@id='stream-items-id']/div[@data-item-type='tweet']
 elements //div[starts-with(@class,'new-tweets-bar')]
+elements //div[@id='stream-items-id']/div[@data-item-type='tweet']
 
 # ##############################################################################
 # Paths only (the site is left empty) ...

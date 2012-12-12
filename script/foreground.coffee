@@ -27,6 +27,15 @@ allNodeNames      = normalNodeNames.concat [ "BODY" ]
 verboten          = [ "INPUT", "TEXTAREA" ]
 
 # ####################################################################
+# Get elements by class name.
+#
+getElementsByClassName = (name) ->
+  e for e in document.getElementsByTagName '*' when e.className is name
+
+getVisibleElements = (elements) ->
+  e for e in elements when e?.style?.display isnt "none"
+
+# ####################################################################
 # XPath.
 #
 # Return a list of document elements matching `xPath`.
@@ -41,13 +50,27 @@ evaluateXPath = (xPath) ->
   #
   return ( element while xPathResult and element = xPathResult.iterateNext() )
 
+# A wrapper around evaluateXPath which discards vertically small elements.
+#
+getElementList = (xPath) ->
+  e for e in evaluateXPath xPath when 5 < e.offsetHeight
+
+# ####################################################################
+# Vanilla scroller.
+#
+vanillaScroll = (mover) ->
+  position = window.pageYOffset / vanillaScrollSize
+  newPosition = if mover then position + mover else 0
+  window.scrollBy 0, (newPosition - position) * vanillaScrollSize
+  return true # Do not propagate.
+
 # ####################################################################
 # Header offsets adjustment.
 #
 # Try to adjust the scroll offset for pages known to have static headers.  Content must not scroll up
 # underneath such headers.
 # 
-# Basically, provide an XPath specification here.  The bottom of the indicated element (which must be
+# Basically, provide an XPath specification.  The bottom of the indicated element (which must be
 # unique) is taken to be the top of the normal page area.
 #
 ssOffsetAdjustment = ->
@@ -87,34 +110,21 @@ smoothScroll = (element) ->
   ssStart   = Date.now()
   ssFactor  = 0
   #
-  clearInterval ssTimer if ssTimer
-  #
   intervalFunc = ->
-    ssFactor = (Date.now() - ssStart) / duration
+    ssFactor = Math.sqrt Math.sqrt (Date.now() - ssStart) / duration
     #
     if 1 <= ssFactor
       clearInterval ssTimer
       ssTimer = null
       ssFactor = 1
-    else
-      # Scroll faster at the start, slowing down towards the end.
-      ssFactor = Math.sqrt ssFactor
     #
     y = ssFactor * delta + offset
     window.scrollBy 0, y - window.pageYOffset
   #
+  clearInterval ssTimer if ssTimer
   ssTimer = setInterval intervalFunc, 10
   #
   element
-
-# ####################################################################
-# Vanilla scroller.
-#
-vanillaScroll = (mover) ->
-  position = window.pageYOffset / vanillaScrollSize
-  newPosition = if mover then position + mover else 0
-  window.scrollBy 0, (newPosition - position) * vanillaScrollSize
-  return true # Do not propagate.
 
 # ####################################################################
 # Notify the background script of the current ID for this page.
@@ -150,9 +160,6 @@ highlight = (element) ->
   #
   return false # Propagate.
 
-getElementList = (xPath) ->
-  e for e in evaluateXPath xPath when 5 < e.offsetHeight
-
 # ####################################################################
 # Navigation.
 #
@@ -186,18 +193,12 @@ navigate = (xPath, mover) ->
 # ####################################################################
 # Key handling routines.
 
-getElementsByClassName = (name) ->
-  e for e in document.getElementsByTagName '*' when e.className is name
-
-getVisibleElementsByClassName = (name) ->
-  e for e in getElementsByClassName name when e?.style?.display isnt "none"
-
 doingKeyboardInput = (element) ->
   return true if element.nodeName in verboten
   #
   # Special hack, just for Vimium.
   # The Vimium search HUD does not use an input element, so we need to check for it here.
-  return true if (getVisibleElementsByClassName "vimiumReset vimiumHUD").length
+  return true if (getVisibleElements getElementsByClassName "vimiumReset vimiumHUD").length
   #
   false
 
@@ -276,6 +277,12 @@ followLink = (xPath) ->
       url:      anchors[anchors.length - 1]
     chrome.extension.sendMessage request
     return true # Do not propagate.
+  else
+    #
+    # If the element contains no links, then we'll try "clicking" on it.
+    if typeof element.click is "function"
+      element.click.apply element
+      return true # Do not propagate.
   #
   return false # Propagate.
 
