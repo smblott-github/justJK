@@ -5,26 +5,20 @@
 stringContains    = (haystack, needle) -> haystack.indexOf(needle) != -1
 stringStartsWith  = (haystack, needle) -> haystack.indexOf(needle) ==  0
 extractKey        = (event)            -> event.which.toString()
-namespaceResolver = (namespace)        -> if (namespace == "xhtml") then "http://www.w3.org/1999/xhtml" else null
+namespaceResolver = (namespace)        -> if namespace == "xhtml" then "http://www.w3.org/1999/xhtml" else null
 
-vanillaScrollSize =  50
+vanillaScrollStep =  50
 xPathResultType   =  XPathResult.ANY_TYPE
 highlightCSS      = "justjk_highlighted"
 simpleBindings    = "/justJKSimpleBindingsForJK"
 nativeBindings    = "/justJKNativeBindingsForJK"
 bogusXPath        = [ simpleBindings, nativeBindings ]
+verboten          = [ "INPUT", "TEXTAREA" ]
 config            = {}
 
-#                                  j   k   z   J    K    Z
+#                                             j   k   z   J    K    Z
 jkKeys            = ( k.toString() for k in [ 74, 75, 90, 106, 107, 122 ] )
 enter             = "13"
-
-# TODO: Currently, each new node name encountered must be added to this list ... which is not really an
-# acceptable way to go about things.
-#
-normalNodeNames   = [ "DIV", "TD", "LI", "H1", "H2", "H3", "H4", "H5", "H6", "H7" ]
-allNodeNames      = normalNodeNames.concat [ "BODY" ]
-verboten          = [ "INPUT", "TEXTAREA" ]
 
 # ####################################################################
 # Get elements by class name.
@@ -32,8 +26,27 @@ verboten          = [ "INPUT", "TEXTAREA" ]
 getElementsByClassName = (name) ->
   e for e in document.getElementsByTagName '*' when e.className is name
 
-getVisibleElements = (elements) ->
+filterVisibleElements = (elements) ->
   e for e in elements when e?.style?.display isnt "none"
+
+# ####################################################################
+# Get active element.
+# Return the active element, with special-case handling for Facebook.
+#
+getActiveElement = ->
+  element = document.activeElement
+  #
+  switch window.location.host
+    when "www.facebook.com"
+      # With Facebook's native bindings, the active element is some "H5" object deep within the actual post.
+      # To find a link worth following, we must first got up the document tree a bit.
+      #
+      while element and element.nodeName isnt "LI"
+        element = element.parentNode
+      #
+      return element || document.activeElement
+  #
+  element
 
 # ####################################################################
 # XPath.
@@ -48,9 +61,10 @@ evaluateXPath = (xPath) ->
     console.log "justJK xPath error: #{xPath}"
     return []
   #
-  return ( element while xPathResult and element = xPathResult.iterateNext() )
+  element while xPathResult and element = xPathResult.iterateNext()
 
 # A wrapper around evaluateXPath which discards vertically small elements.
+# TODO: We should probably be discarding non-visible elements here.
 #
 getElementList = (xPath) ->
   e for e in evaluateXPath xPath when 5 < e.offsetHeight
@@ -59,25 +73,24 @@ getElementList = (xPath) ->
 # Vanilla scroller.
 #
 vanillaScroll = (mover) ->
-  position = window.pageYOffset / vanillaScrollSize
+  position = window.pageYOffset / vanillaScrollStep
   newPosition = if mover then position + mover else 0
-  window.scrollBy 0, (newPosition - position) * vanillaScrollSize
+  window.scrollBy 0, (newPosition - position) * vanillaScrollStep
   return true # Do not propagate.
 
 # ####################################################################
 # Header offsets adjustment.
 #
-# Try to adjust the scroll offset for pages known to have static headers.  Content must not scroll up
+# Try to adjust the scroll offset for pages known to have static headers.  Content should not scroll up
 # underneath such headers.
 # 
-# Basically, provide an XPath specification.  The bottom of the indicated element (which must be
+# Basically, config.header is  an XPath specification.  The bottom of the indicated element (which must be
 # unique) is taken to be the top of the normal page area.
 #
 ssOffsetAdjustment = ->
-  if xPath = config?.header
+  if xPath = config.header
     if banners = evaluateXPath xPath
-      if banners and banners.length == 1
-        banner = banners[0]
+      if banners and banners.length == 1 and banner = banners[0]
         if banner.offsetTop == 0 and banner.offsetHeight
           return banner.offsetHeight
   return 0
@@ -127,13 +140,13 @@ smoothScroll = (element) ->
   element
 
 # ####################################################################
-# Notify the background script of the current ID for this page.
+# Notify the background script of the selected ID for this page.
 #
 saveID = (element) ->
-  if id = element.id
+  if element.id
     chrome.extension.sendMessage
       request: "saveID"
-      id:       id
+      id:       element.id
       host:     window.location.host
       pathname: window.location.pathname
       # No callback.
@@ -149,6 +162,9 @@ currentElement = null
 #
 highlight = (element) ->
   if element
+    if element is currentElement
+      return true # Do not propagate.
+    #
     if currentElement
       currentElement.classList.remove highlightCSS
     #
@@ -181,28 +197,31 @@ navigate = (xPath, mover) ->
     index = (i for e, i in elements when e.classList.contains highlightCSS)
     if index.length == 0
       return highlight elements[0]
-    else
-      index = index[0]
-      newIndex = Math.min n-1, Math.max 0, if mover then index + mover else mover
-      unless newIndex is index
-        return highlight elements[newIndex]
-      # Drop through ...
+    #
+    index = index[0]
+    index = Math.min n-1, Math.max 0, if mover then index + mover else 0
+    highlight elements[index]
+    # Drop through ...
   #
   vanillaScroll mover
 
 # ####################################################################
 # Key handling routines.
 
-doingKeyboardInput = (element) ->
-  return true if element.nodeName in verboten
+keyboardInputElementActive =  ->
+  return true if document.activeElement.nodeName in verboten
   #
   # Special hack, just for Vimium.
-  # The Vimium search HUD does not use an input element, so we need to check for it here.
-  return true if (getVisibleElements getElementsByClassName "vimiumReset vimiumHUD").length
+  # The Vimium "find" HUD does not use an input element, so check for it here.
+  #
+  return true if (filterVisibleElements getElementsByClassName "vimiumReset vimiumHUD").length
   #
   false
 
-killKeyEvent = (event, killEvent=false) ->
+keyboardInputElementInactive = ->
+  not keyboardInputElementActive()
+
+maybeKillKeyEvent = (event, killEvent=false) ->
   if killEvent
     event.stopPropagation()
     event.preventDefault()
@@ -210,65 +229,50 @@ killKeyEvent = (event, killEvent=false) ->
   else
     true # Propagate.
 
+definitelyKillEvent = (event) ->
+  maybeKillKeyEvent event, true
+
 killKeyEventHandler = (event) ->
   switch extractKey event
     # Lower, upper case.
-    when "106", "74" then killKeyEvent event, true # j, J
-    when "107", "75" then killKeyEvent event, true # k, K
-    when "122", "90" then killKeyEvent event, true # z, Z
+    when "106", "74" then definitelyKillEvent event # j, J
+    when "107", "75" then definitelyKillEvent event # k, K
+    when "122", "90" then definitelyKillEvent event # z, Z
     # And <enter>.
-    when enter       then killKeyEvent event, true # <enter>
+    when enter       then definitelyKillEvent event # <enter>
     #
-    else killKeyEvent event, false
+    else maybeKillKeyEvent event, false
 
 # ####################################################################
 # Scoring HREFs.
-#
-# Given a list of HREFs associated with an element, pick the best one to follow.
 # Scoring is ad hoc, based on heuristics which seem mostly to work.
-#
 # HREFs with higher scores are prefered.
 #
 scoreHRef = (href) ->
   score = 0
   #
-  # Prefer URLs containing redirects; they are often the main link.
-  score += 4 if stringContains href, "%3A%2F%2"
+  # Prefer URLs containing redirects; they are often the primary link.
+  score += 4 if stringContains href, "%3A%2F%2" # == "://" URI encoded
   #
   # Prefer external links.
   score += 3 unless stringContains href, window.location.host
   #
-  if config?.like
+  # Slightly prefer non-static looking links.
+  score += 1 if stringContains href, "?"
+  #
+  if config.like
     for like in config.like
       score += 2 if stringContains href, like
   #
-  if config?.dislike
+  if config.dislike
     for dislike in config.dislike
       score -= 2 if stringContains href, dislike
   #
   score
 
-# Comparison for sorting.
+# Scoring-based Comparison (for sorting).
 #
 compareHRef = (a,b) -> scoreHRef(a) - scoreHRef(b)
-
-# ####################################################################
-# Get active element.
-#
-# Return the active element, with an exception for Facebook.
-#
-getActiveElement = ->
-  element = document.activeElement
-  #
-  switch window.location.host
-    when "www.facebook.com"
-      # With Facebook native bindings, the active element is some "H5" object deep within the actual post.  To
-      # find a link worth following, we must first got up the document tree a bit.
-      #
-      while element and element.nodeName isnt "LI"
-        element = element.parentNode
-  #
-  element
 
 # ####################################################################
 # Handle <enter>.
@@ -280,13 +284,14 @@ followLink = (xPath) ->
     when nativeBindings then element = getActiveElement()
     else                     element = currentElement
   #
-  unless element and not doingKeyboardInput element
+  unless element and keyboardInputElementInactive()
     return false # Propagate
   #
   anchors = element.getElementsByTagName "a"
   anchors = Array.prototype.slice.call anchors, 0
   anchors = ( a.href for a in anchors when a.href and not stringStartsWith a.href, "javascript:" )
   anchors = anchors.sort compareHRef
+  #
   console.log scoreHRef(a), a for a in anchors
   #
   if 0 < anchors.length
@@ -310,15 +315,14 @@ followLink = (xPath) ->
 onKeypress = (xPath) ->
   (event) ->
     #
-    # if document.activeElement.nodeName in allNodeNames
-    unless doingKeyboardInput document.activeElement
+    if not keyboardInputElementActive()
       switch key = extractKey event
         # Lower, upper case.
-        when "106", "74" then return killKeyEvent event, navigate xPath,  1 # j, J
-        when "107", "75" then return killKeyEvent event, navigate xPath, -1 # k, K
-        when "122", "90" then return killKeyEvent event, navigate xPath,  0 # z, Z
+        when "106", "74" then return maybeKillKeyEvent event, navigate xPath,  1 # j, J
+        when "107", "75" then return maybeKillKeyEvent event, navigate xPath, -1 # k, K
+        when "122", "90" then return maybeKillKeyEvent event, navigate xPath,  0 # z, Z
         # And <enter>.
-        when enter       then return killKeyEvent event, followLink xPath   # <enter>
+        when enter       then return maybeKillKeyEvent event, followLink xPath   # <enter>
         #
         # Else: drop through ...
     #
@@ -330,28 +334,29 @@ onKeypress = (xPath) ->
 # Otherwise, go to first element.
 
 startUpAtLastKnownPosition = (xPath) ->
-  request =
-    request: "lastID"
-    host:     window.location.host
-    pathname: window.location.pathname
-  chrome.extension.sendMessage request, (response) ->
-    if response?.id
-      for element in getElementList xPath
-        if element.id and response.id is element.id
-          # Don't return to last known element if we've already selected an element.
-          unless xPath in bogusXPath
-            unless currentElement
+  unless xPath in bogusXPath
+    #
+    request =
+      request: "lastID"
+      host:     window.location.host
+      pathname: window.location.pathname
+    #
+    chrome.extension.sendMessage request, (response) ->
+      if not currentElement
+        if response?.id
+          for element in getElementList xPath
+            if element.id and response.id is element.id
               return highlight element
-    #
-    # Not found.
-    # Go to first element, if appropriate.
-    #
-    unless xPath in bogusXPath
-      unless currentElement
+        #
+        # Go to first element.
+        #
         navigate xPath, 0
 
 # ####################################################################
 # Main: install listener and highlight previous element (or first).
+
+documentEventListener = (eventName, func) ->
+  document.addEventListener eventName,  func, true
 
 request =
   request: "config"
@@ -359,16 +364,14 @@ request =
   pathname: window.location.pathname
 
 chrome.extension.sendMessage request, (response) ->
-  config = response
+  config = response || {}
+  xPath = config.xPath || simpleBindings
   #
-  xPath = config?.xPath
-  xPath ?= simpleBindings
+  documentEventListener "keydown",  onKeypress xPath
+  documentEventListener "keypress", onKeypress xPath
+  documentEventListener "keyup",    killKeyEventHandler if xPath isnt nativeBindings
   #
-  document.addEventListener "keypress", onKeypress(xPath),   true
-  document.addEventListener "keydown",  onKeypress(xPath),   true
-  document.addEventListener "keyup",    killKeyEventHandler, true if xPath isnt nativeBindings
-  #
-  startUpAtLastKnownPosition xPath unless xPath in bogusXPath
+  startUpAtLastKnownPosition xPath
 
 # ####################################################################
 # Done.
