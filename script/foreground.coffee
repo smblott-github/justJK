@@ -23,6 +23,7 @@ jkKeys = ( k.toString() for k in [ 74, 75, 90, 106, 107, 122 ] )
 #
 normalNodeNames   = [ "DIV", "TD", "LI", "H1", "H2", "H3", "H4", "H5", "H6", "H7" ]
 allNodeNames      = normalNodeNames.concat [ "BODY" ]
+verboten          = [ "INPUT", "TEXTAREA" ]
 
 # ####################################################################
 # XPath.
@@ -259,8 +260,8 @@ followLink = (xPath) ->
     when nativeBindings then element = findActiveElement()
     else                     element = currentElement
   #
-  unless element and element.nodeName in normalNodeNames
-    return false # Propagate.
+  return false unless element
+  return false if element.nodeName in verboten
   #
   anchors = element.getElementsByTagName "a"
   anchors = Array.prototype.slice.call anchors, 0
@@ -283,7 +284,8 @@ followLink = (xPath) ->
 onKeypress = (xPath) ->
   (event) ->
     #
-    if document.activeElement.nodeName in allNodeNames
+    # if document.activeElement.nodeName in allNodeNames
+    unless document.activeElement.nodeName in verboten
       switch key = extractKey event
         # Lower, upper case.
         when "106", "74" then return killKeyEvent event, navigate xPath,  1 # j, J
