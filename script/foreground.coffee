@@ -7,22 +7,18 @@ stringStartsWith  = (haystack, needle) -> haystack.indexOf(needle) ==  0
 extractKey        = (event)            -> event.which.toString()
 namespaceResolver = (namespace)        -> if (namespace == "xhtml") then "http://www.w3.org/1999/xhtml" else null
 
+vanillaScrollSize =  50
 xPathResultType   =  XPathResult.ANY_TYPE
 highlightCSS      = "justjk_highlighted"
-scrollSize        =  50
+simpleBindings    = "/justJKSimpleBindingsForJK"
+nativeBindings    = "/justJKNativeBindingsForJK"
+bogusXPath        = [ simpleBindings, nativeBindings ]
 
 #                                  j   k   z   J    K    Z
 jkKeys = ( k.toString() for k in [ 74, 75, 90, 106, 107, 122 ] )
 
-# ####################################################################
-# Vanilla scroller.
-#
-vanillaScroll = (mover) ->
-  height = document.body.offsetHeight / scrollSize
-  position = document.body.offsetTop / scrollSize
-  newPosition = mover position, height
-  window.scrollBy 0, (position - newPosition) * scrollSize
-  return true # Do not propagate.
+normalNodeNames   = [ "DIV", "LI", "H1", "H2", "H3", "H4", "H5", "H6", "H7" ]
+allNodeNames      = normalNodeNames.concat [ "BODY" ]
 
 # ####################################################################
 # XPath.
@@ -114,29 +110,19 @@ smoothScroll = (element) ->
   element
 
 # ####################################################################
-# Element identifiers.
+# Vanilla scroller.
 #
-# For Facebook, use the mf_story_key field of the JSON date-ft attribute.
-# This seems to be stable.
-#
-extractIDFacebook = (element) ->
-  try
-    if dataFT = JSON.parse element.getAttribute "data-ft"
-      if dataFT.mf_story_key
-        return dataFT.mf_story_key
-  return element.id
+vanillaScroll = (mover) ->
+  position = window.pageYOffset / vanillaScrollSize
+  newPosition = if mover then position + mover else 0
+  window.scrollBy 0, (newPosition - position) * vanillaScrollSize
+  return true # Do not propagate.
 
-# For all other sites, just use element.id, if it is defined.
-#
-extractID = (element) ->
-  switch window.location.host
-    when "www.facebook.com" then extractIDFacebook element
-    else element.id
-
+# ####################################################################
 # Notify the background script of the current ID for this page.
 #
 saveID = (element) ->
-  if id = extractID element
+  if id = element.id
     chrome.extension.sendMessage
       request: "saveID"
       id:       id
@@ -160,40 +146,27 @@ highlight = (element) ->
     #
     (currentElement = element).classList.add highlightCSS
     #
-    saveID smoothScroll currentElement
-    #
-    # No element should have the focus.  Google Plus likes to grab the focus, which interferes with keystroke
-    # handling.
-    #
-    document.activeElement.blur()
-    #
+    smoothScroll currentElement
+    saveID currentElement
     return true # Do not propagate.
   #
   return false # Propagate.
 
 # ####################################################################
-# Navigation: element cache.
-#
-
-elementCache = null
-
-updateElementCache = (xPath) ->
-  elementCache = evaluateXPath xPath
-
-# ####################################################################
 # Navigation.
 #
 # xPath is the XPath query for selecting elements.
-# mover is a function.  It expects the current index and list length as arguments and returns a new index
-# (usually i-1, i+1 or 0).
+# mover is an integer, usually -1, 0 or 1
 #
 navigate = (xPath, mover) ->
   #
-  #   unless elementCache? and elementCache.length
-  #     updateElementCache xPath
-  updateElementCache xPath
+  if xPath is simpleBindings
+    return vanillaScroll mover
   #
-  elements = elementCache
+  if xPath is nativeBindings
+    return false # Propagate
+  #
+  elements = evaluateXPath xPath
   n = elements.length
   #
   if 0 < n
@@ -202,11 +175,13 @@ navigate = (xPath, mover) ->
       return highlight elements[0]
     else
       index = index[0]
-      index = if mover then index + mover else mover
-      index = Math.min n-1, Math.max 0,index
-      return highlight elements[index]
+      newIndex = Math.min n-1, Math.max 0, if mover then index + mover else mover
+      console.log "#{n} #{index} -> #{newIndex}"
+      unless newIndex is index
+        return highlight elements[newIndex]
+      # Drop through ...
   #
-  return false # Propagate.
+  vanillaScroll mover
 
 # ####################################################################
 # Key handling routines.
@@ -306,41 +281,65 @@ scoreHRef = (href) ->
 compareHRef = (a,b) -> scoreHRef(a) - scoreHRef(b)
 
 # ####################################################################
+# Find active element.
+#
+findActiveElement = ->
+  element = document.activeElement
+  #
+  # With Facebook native bindings, the active element is some "H5" object deep within the actual post.  To
+  # find a link worth following, we must first got up the document tree a bit.
+  #
+  if window.location.host is "www.facebook.com"
+    while element and element.nodeName isnt "LI"
+      element = element.parentNode
+  #
+  element
+
+# ####################################################################
 # Handle <enter>.
 #
 followLink = (xPath) ->
-  console.log "--------------------------------------------------------"
-  if currentElement
-    #
-    anchors = currentElement.getElementsByTagName "a"
-    anchors = Array.prototype.slice.call anchors, 0
-    anchors = ( a.href for a in anchors when not stringStartsWith a.href, "javascript:" )
-    anchors = anchors.sort compareHRef
-    #
-    if 0 < anchors.length
-      request =
-        request: "open"
-        url:      anchors[anchors.length - 1]
-      chrome.extension.sendMessage request
-      return true # Do not propagate.
+  #
+  switch xPath
+    when simpleBindings then element = null
+    when nativeBindings then element = findActiveElement()
+    else                     element = currentElement
+  #
+  unless element and element.nodeName in normalNodeNames
+    return false # Propagate.
+  #
+  anchors = element.getElementsByTagName "a"
+  anchors = Array.prototype.slice.call anchors, 0
+  anchors = ( a.href for a in anchors when not stringStartsWith a.href, "javascript:" )
+  anchors = anchors.sort compareHRef
+  #
+  if 0 < anchors.length
+    request =
+      request: "open"
+      url:      anchors[anchors.length - 1]
+    chrome.extension.sendMessage request
+    return true # Do not propagate.
   #
   return false # Propagate.
 
 # ####################################################################
 # Handle j, k, z, and <enter>.
 #
-onKeypress = (xPath) -> (event) ->
-  #
-  if document.activeElement.nodeName in [ "BODY", "DIV" ]
-    switch extractKey event
-      # Lower, upper case.
-      when "106", "74" then return killKeyEvent event, navigate xPath,  1 # j, J
-      when "107", "75" then return killKeyEvent event, navigate xPath, -1 # k, K
-      when "122", "90" then return killKeyEvent event, navigate xPath,  0 # z, Z
-      # And <enter>.
-      when "13"        then return killKeyEvent event, followLink xPath   # <enter>
-  #
-  return true # Propagate.
+onKeypress = (xPath) ->
+  (event) ->
+    #
+    if document.activeElement.nodeName in allNodeNames
+      switch key = extractKey event
+        # Lower, upper case.
+        when "106", "74" then return killKeyEvent event, navigate xPath,  1 # j, J
+        when "107", "75" then return killKeyEvent event, navigate xPath, -1 # k, K
+        when "122", "90" then return killKeyEvent event, navigate xPath,  0 # z, Z
+        # And <enter>.
+        when "13"        then return killKeyEvent event, followLink xPath   # <enter>
+        #
+        # Else: drop through ...
+    #
+    return true # Propagate.
 
 # ####################################################################
 # Start up.
@@ -357,15 +356,16 @@ startUpAtLastKnownPosition = (xPath) ->
       for element in evaluateXPath xPath
         if element.id and response.id is extractID element
           # Don't return to last known element if we've already selected an element.
-          if not currentElement
-            return highlight element
+          unless xPath in bogusXPath
+            unless currentElement
+              return highlight element
     #
     # Not found.
-    # Go to first element.
+    # Go to first element, if appropriate.
     #
-    # Don't go to first element if we've already selected an element.
-    if not currentElement
-      navigate xPath, 0
+    unless xPath in bogusXPath
+      unless currentElement
+        navigate xPath, 0
 
 # ####################################################################
 # Main: install listener and highlight previous element (or first).
@@ -376,16 +376,14 @@ request =
   pathname: window.location.pathname
 
 chrome.extension.sendMessage request, (response) ->
-  if xPath = response?.xPath
-    console.log "justJK activated #{window.location.host} #{window.location.pathname}"
-    #
-    document.addEventListener "keypress", onKeypress(xPath),   true
-    document.addEventListener "keydown",  onKeypress(xPath),   true
-    document.addEventListener "keyup",    killKeyEventHandler, true
-    startUpAtLastKnownPosition xPath
-  else
-    #
-    console.log "justJK inactive #{window.location.host} #{window.location.pathname}"
+  xPath = response?.xPath
+  xPath ?= simpleBindings
+  #
+  document.addEventListener "keypress", onKeypress(xPath),   true
+  document.addEventListener "keydown",  onKeypress(xPath),   true
+  document.addEventListener "keyup",    killKeyEventHandler, true if xPath isnt nativeBindings
+  #
+  startUpAtLastKnownPosition xPath unless xPath in bogusXPath
 
 # ####################################################################
 # Done.

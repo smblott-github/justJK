@@ -2,18 +2,11 @@
 # Host                 Path                         xPath
 # #                    #                            #
 # #                    #                            #
-# www.google.com       ^/search                     //li[ontains(concat(" ", normalize-space(@class), " "), " g ")]/div[@class='vsc']/..
 
-# The following Google selector picks out nodes which do not contain an id.
-# Therefore, the current position will be lost after navigating away from
-# the search result page and then returning.
   www.google.com       ^/search                     //li[starts-with(@class,'g')]/div[@class='vsc']/..
 
-# www.facebook.com     ^/                           //div[@id='contentArea']//li[starts-with(@class,'uiUnifiedStory')]
-  www.facebook.com     ^/                           //doesNotMatchAnythingButActivatesJustJK
-
-# plus.google.com      ^/                           //div[starts-with(@id,'update-')]
-  plus.google.com      ^/                           /doesNotMatchAnythingButActivatesJustJK
+  www.facebook.com     ^/                           /justJKNativeBindingsForJK
+  plus.google.com      ^/                           /justJKNativeBindingsForJK
   
   slashdot.org         ^/                           //article[starts-with(@id,'firehose-')]
   
@@ -27,6 +20,7 @@
   www.yesiknowthat.com ^/page/                      //div[@id='main']/div[starts-with(@class,'post-')]
 
   www.reddit.com       ^/                           //div[@id='siteTable']/div[contains(@class,'thing')]
+
 # #                    #                            #
 # #                    #                            #
 # Host                 Path                         xPath
