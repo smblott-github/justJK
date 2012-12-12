@@ -13,11 +13,15 @@ highlightCSS      = "justjk_highlighted"
 simpleBindings    = "/justJKSimpleBindingsForJK"
 nativeBindings    = "/justJKNativeBindingsForJK"
 bogusXPath        = [ simpleBindings, nativeBindings ]
+config            = {}
 
 #                                  j   k   z   J    K    Z
 jkKeys = ( k.toString() for k in [ 74, 75, 90, 106, 107, 122 ] )
 
-normalNodeNames   = [ "DIV", "LI", "H1", "H2", "H3", "H4", "H5", "H6", "H7" ]
+# TODO: Currently, each new node name encountered must be added to this list ... which is not really an
+# acceptable way to go about things.
+#
+normalNodeNames   = [ "DIV", "TD", "LI", "H1", "H2", "H3", "H4", "H5", "H6", "H7" ]
 allNodeNames      = normalNodeNames.concat [ "BODY" ]
 
 # ####################################################################
@@ -36,25 +40,16 @@ evaluateXPath = (xPath) ->
   return ( element while xPathResult and element = xPathResult.iterateNext() )
 
 # ####################################################################
-# Header offsets.
+# Header offsets adjustment.
 #
 # Try to adjust the scroll offset for pages known to have static headers.  Content must not scroll up
 # underneath such headers.
 # 
 # Basically, provide an XPath specification here.  The bottom of the indicated element (which must be
 # unique) is taken to be the top of the normal page area.
-
-# XPath for known headers.
-#
-ssHeaderXPath =
-  "www.facebook.com": "//div[@id='pagelet_bluebar']/div[@id='blueBarHolder']/div['blueBar']/../.."
-  "plus.google.com":  "//div[@id='gb']"
-  "twitter.com":      "//div[starts-with(@class,'topbar')]/div[@class='global-nav']"
-
-# Offset adjustment.
 #
 ssOffsetAdjustment = ->
-  if xPath = ssHeaderXPath[window.location.host]
+  if xPath = config?.header
     if banners = evaluateXPath xPath
       if banners and banners.length == 1
         banner = banners[0]
@@ -153,6 +148,9 @@ highlight = (element) ->
   #
   return false # Propagate.
 
+getElementList = (xPath) ->
+  e for e in evaluateXPath xPath when 5 < e.offsetHeight
+
 # ####################################################################
 # Navigation.
 #
@@ -167,8 +165,7 @@ navigate = (xPath, mover) ->
   if xPath is nativeBindings
     return false # Propagate
   #
-  elements = evaluateXPath xPath
-  elements = ( e for e in elements when 5 < e.offsetHeight )
+  elements = getElementList xPath
   n = elements.length
   #
   if 0 < n
@@ -178,7 +175,6 @@ navigate = (xPath, mover) ->
     else
       index = index[0]
       newIndex = Math.min n-1, Math.max 0, if mover then index + mover else mover
-      console.log "#{n} #{index} -> #{newIndex}"
       unless newIndex is index
         return highlight elements[newIndex]
       # Drop through ...
@@ -213,54 +209,7 @@ killKeyEventHandler = (event) ->
 # Given a list of HREFs associated with an element, pick the best one to follow.
 # Scoring is ad hoc, based on heuristics which seem mostly to work.
 #
-# TODO: Move scoring to the background page.
-
-# Host specific score adjustments.
-#
-scoreAdjustmentHost =
-  "www.facebook.com": (href) ->
-    score = 0
-    # Boost score of photos on Facebook.
-    if stringContains href, "/photo.php?fbid="
-      score += 2
-    score
-
-  "www.google.com": (href) ->
-    score = 0
-    # Boost score of photos on Facebook.
-    if stringContains href, "://webcache.googleusercontent.com/"
-      score -= 2
-    score
-
-doScoreAdjustmentHost = (href) ->
-  if scoreAdjustmentHost[window.location.host]
-    scoreAdjustmentHost[window.location.host](href)
-  else
-    0
-
-# Pathname specific score adjustments.
-# The key here is the first component of the pathname.
-#
-scoreAdjustmentPathname =
-  "vbulletin": (href) ->
-    score = 0
-    # Prefer links to threads (over links to forums).
-    if stringContains href, "/vbulletin/showthread.php"
-      score += 1
-      # Prefer links to new posts.
-      if stringContains href, "goto=newpost"
-        score += 1
-    score
-
-doScoreAdjustmentPathname = (href) ->
-  paths = window.location.pathname.split "/"
-  if 2 <= paths.length
-    path = paths[1]
-    if scoreAdjustmentPathname[path]
-      return scoreAdjustmentPathname[path](href)
-  return 0
-
-# Score an HRef.  Higher is better.
+# HREFs with higher scores are prefered.
 #
 scoreHRef = (href) ->
   score = 0
@@ -269,12 +218,15 @@ scoreHRef = (href) ->
   score += 4 if stringContains href, "%3A%2F%2"
   #
   # Prefer external links.
-  # FIXME: apps.facebook.com is *not* an external link.  Fix this and similar.
   score += 3 unless stringContains href, window.location.host
   #
-  # Score adjustments based on host and pathname.
-  score += doScoreAdjustmentHost href
-  score += doScoreAdjustmentPathname href
+  if config?.like
+    for like in config.like
+      score += 2 if stringContains href, like
+  #
+  if config?.dislike
+    for dislike in config.dislike
+      score -= 2 if stringContains href, dislike
   #
   score
 
@@ -312,8 +264,9 @@ followLink = (xPath) ->
   #
   anchors = element.getElementsByTagName "a"
   anchors = Array.prototype.slice.call anchors, 0
-  anchors = ( a.href for a in anchors when not stringStartsWith a.href, "javascript:" )
+  anchors = ( a.href for a in anchors when a.href and not stringStartsWith a.href, "javascript:" )
   anchors = anchors.sort compareHRef
+  console.log scoreHRef(a), a for a in anchors
   #
   if 0 < anchors.length
     request =
@@ -355,8 +308,8 @@ startUpAtLastKnownPosition = (xPath) ->
     pathname: window.location.pathname
   chrome.extension.sendMessage request, (response) ->
     if response?.id
-      for element in evaluateXPath xPath
-        if element.id and response.id is extractID element
+      for element in getElementList xPath
+        if element.id and response.id is element.id
           # Don't return to last known element if we've already selected an element.
           unless xPath in bogusXPath
             unless currentElement
@@ -378,7 +331,8 @@ request =
   pathname: window.location.pathname
 
 chrome.extension.sendMessage request, (response) ->
-  xPath = response?.xPath
+  config = response if response
+  xPath = config?.xPath
   xPath ?= simpleBindings
   #
   document.addEventListener "keypress", onKeypress(xPath),   true

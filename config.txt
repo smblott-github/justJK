@@ -1,11 +1,14 @@
 
+# ####################################################################
+# A brief explanation ...
 #
 # Lines like this are comments.
 #
 # The token "site" begins a new entry.  It must be the first word on
 # a line.
 #
-# If only the site is listed, then "j" and "k" are passed through the underlying page.
+# If only the site is listed, then "j" and "k" are passed through the
+# underlying page.
 #
 # If no path is given, then the entry applies to the entire site.
 #
@@ -14,18 +17,36 @@
 # Multiple paths may be provided.
 #
 
+# ####################################################################
+# Header offsets (the header directive)
+#
+# Goal: try to adjust the scroll offset for pages known to have static
+# headers.  Content must not scroll up underneath such headers.
+# 
+# Basically, provide an XPath specification here.  The bottom of the
+# indicated element (which must be unique) is taken to be the top of the
+# normal page area.
+#
+# See Facebook, Google Plus and Twitter for examples.
+#
+
 # ##############################################################################
 # Sites ...
 
 site     www.google.com
 path     ^/search
 elements //li[starts-with(@class,'g')]/div[@class='vsc']/..
+dislike  google.com/search
+dislike  ://webcache.googleusercontent.com/
 
 site     www.facebook.com
-header   //div[@id='pagelet_bluebar']/div[@id='blueBarHolder']/div['blueBar']/../..
+# header //div[@id='pagelet_bluebar']/div[@id='blueBarHolder']/div['blueBar']/../..
+like     /photo.php?fbid=
+dislike  apps.facebook.com
 
 site     plus.google.com
-header   //div[@id='gb']
+# header //div[@id='gb']
+dislike  ://webcache.googleusercontent.com/
 
 site     slashdot.org
 elements //article[starts-with(@id,'firehose-')]
@@ -44,14 +65,17 @@ elements //div[@id='siteTable']/div[contains(@class,'thing')]
 
 site     twitter.com
 header   //div[starts-with(@class,'topbar')]/div[@class='global-nav']
-elements //div[@id='stream-items-id']/div[@data-item-type='tweet'] | //div[starts-with(@class,'new-tweets-bar')]
+elements //div[@id='stream-items-id']/div[@data-item-type='tweet']
+elements //div[starts-with(@class,'new-tweets-bar')]
 
 # ##############################################################################
-# Paths only
+# Paths only (the site is left empty) ...
 
 site
 path     ^/vbulletin/forumdisplay.php
 elements //tbody/tr/td[starts-with(@id,'td_threadtitle')]
+like     /vbulletin/showthread.php
+like     goto=newpost
 
 site
 path     ^/vbulletin/showthread.php
