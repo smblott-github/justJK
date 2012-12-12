@@ -71,13 +71,16 @@ elements //div[starts-with(@class,'new-tweets-bar')]
 # ##############################################################################
 # Paths only (the site is left empty) ...
 
+# ############
+# VBulletin
+
 site
-path     ^/vbulletin/forumdisplay.php
+path     /forumdisplay.php$
 elements //tbody/tr/td[starts-with(@id,'td_threadtitle')]
-like     /vbulletin/showthread.php
+like     /showthread.php
 like     goto=newpost
 
 site
-path     ^/vbulletin/showthread.php
+path     /showthread.php$
 elements //div[@id='posts']//table[starts-with(@id,'post')]/tbody/tr/td[starts-with(@id,'td_post')]
 

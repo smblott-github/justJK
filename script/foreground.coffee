@@ -328,7 +328,7 @@ startUpAtLastKnownPosition = (xPath) ->
 # Main: install listener and highlight previous element (or first).
 
 request =
-  request: "lookup"
+  request: "config"
   host:     window.location.host
   pathname: window.location.pathname
 

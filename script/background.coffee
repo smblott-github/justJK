@@ -1,6 +1,6 @@
 
 # ####################################################################
-# Customisation for sites.
+# Customisation.
 
 siteListURL = chrome.extension.getURL "config.txt"
 
@@ -41,20 +41,21 @@ for site in (siteList.split "\nsite")[1..] # Skip bogus first entry.
   #
   site = ( line.trim() for line in site.split "\n" )
   #
+  # Host, here, may be the empty string.
   [ host, site... ] = site
   #
   for line in site
     [ directive, line... ] = line.split /\s+/
-    console.log directive, line
-    switch directive
-      when "path"     then pathnames.push line.join " "
-      when "elements" then xPath.push     line.join " "
-      when "header"   then header =       line.join " "
-      when "like"     then like.push      line.join " "
-      when "dislike"  then dislike.push   line.join " "
+    if line = line.join " "
+      switch directive
+        when "path"     then pathnames.push line
+        when "elements" then xPath.push     line
+        when "header"   then header =       line
+        when "like"     then like.push      line
+        when "dislike"  then dislike.push   line
   #
   xPath.push "/justJKNativeBindingsForJK" unless xPath.length
-  xPath  = xPath.join "|"
+  xPath = xPath.join "|"
   #
   if host
     sites[host] ?= []
@@ -68,14 +69,8 @@ for site in (siteList.split "\nsite")[1..] # Skip bogus first entry.
         header:  header
         like:    like
         dislike: dislike
-      console.log
-        path:    p
-        regexp:  new RegExp p
-        xPath:   xPath
-        header:  header
-        like:    like
-        dislike: dislike
   else
+    # No host.
     if xPath
       for p in pathnames
         paths.push
@@ -87,9 +82,9 @@ for site in (siteList.split "\nsite")[1..] # Skip bogus first entry.
           dislike: dislike
 
 # ####################################################################
-# Search.
+# Lookup configuration.
 
-lookupXPath = (host,pathname) ->
+config = (host,pathname) ->
   if host and pathname
     if host of sites
       for page in sites[host]
@@ -136,9 +131,9 @@ openURL = (url) ->
 
 chrome.extension.onMessage.addListener (request, sender, callback) ->
   switch request?.request
-    when "lookup" then callback lookupXPath request?.host, request?.pathname
-    when "saveID" then callback saveID      request?.host, request?.pathname, request?.id
-    when "lastID" then callback lastID      request?.host, request?.pathname
-    when "open"   then callback openURL     request?.url
+    when "config" then callback config  request?.host, request?.pathname
+    when "saveID" then callback saveID  request?.host, request?.pathname, request?.id
+    when "lastID" then callback lastID  request?.host, request?.pathname
+    when "open"   then callback openURL request?.url
     else callback null
 
