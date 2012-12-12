@@ -26,7 +26,7 @@
    ],
 
    "web_accessible_resources": [
-       "sites.txt", "config.txt"
+       "config.txt"
      ]
 }
 
