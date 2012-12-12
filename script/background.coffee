@@ -2,7 +2,7 @@
 # ####################################################################
 # Customisation for sites.
 
-siteListURL = chrome.extension.getURL "sites.txt"
+siteListURL = chrome.extension.getURL "config.txt"
 
 # From: `https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest/Using_XMLHttpRequest`.
 siteRequest = new XMLHttpRequest()
@@ -13,18 +13,56 @@ siteList = if siteRequest.status is 200 then siteRequest.responseText else ""
 # ####################################################################
 # Parse sites.
 
-siteParse = ( s.trim()      for s in siteList.split "\n"                  )
-siteParse = ( s.split /\s+/ for s in siteParse when s.indexOf("#") isnt 0 )
-siteParse = ( s             for s in siteParse when s.length is 3         )
+directives = [ "site", "path", "elements", "header" ]
+
+# Strip some whitespace, comments, empty lines and lines which don't seem to contain directives.
+#
+siteParse = ( s.trim()      for s in siteList.split "\n"                            )
+siteParse = ( s             for s in siteParse when s.indexOf("#") isnt 0           )
+siteParse = ( s             for s in siteParse when s                               )
+siteParse = ( s             for s in siteParse when s.split(/\s+/)[0] in directives )
+siteList  = "\n" + siteParse.join "\n"
 
 sites = {}
-for site in siteParse
-  [ host, pathname, xPath ] = site
-  sites[host] ?= []
-  sites[host].push
-    pathname: pathname
-    xPath:    xPath
-    regexp:   new RegExp pathname
+paths = []
+
+for site in siteList.split "\nsite"
+  host      = null
+  header    = null
+  xPath     = []
+  pathnames = []
+  #
+  site = ( line.trim() for line in site.split "\n" )
+  #
+  [ host, site... ] = site
+  #
+  for line in site
+    [ directive, line... ] = line.split /\s+/
+    switch directive
+      when "path"     then pathnames.push line.join " "
+      when "elements" then xPath.push     line.join " "
+      when "header"   then header =       line.join " "
+  #
+  xPath.push "/justJKNativeBindingsForJK" unless xPath.length
+  xPath  = xPath.join "|"
+  #
+  if host
+    sites[host] ?= []
+    pathnames.push "^/" if pathnames.length == 0
+    #
+    for p in pathnames
+      sites[host].push
+        path:   p
+        regexp: new RegExp p
+        xPath:  xPath
+        header: header
+  else
+    if xPath
+      for p in pathnames
+        paths.push
+          path: p
+          xPath: xPath
+          header: header
 
 # ####################################################################
 # Search.
