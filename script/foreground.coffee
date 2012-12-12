@@ -3,14 +3,26 @@
 # Utilities and constants.
 
 stringContains    = (haystack, needle) -> haystack.indexOf(needle) != -1
+stringStartsWith  = (haystack, needle) -> haystack.indexOf(needle) ==  0
 extractKey        = (event)            -> event.which.toString()
 namespaceResolver = (namespace)        -> if (namespace == "xhtml") then "http://www.w3.org/1999/xhtml" else null
 
 xPathResultType   =  XPathResult.ANY_TYPE
 highlightCSS      = "justjk_highlighted"
+scrollSize        =  50
 
 #                                  j   k   z   J    K    Z
 jkKeys = ( k.toString() for k in [ 74, 75, 90, 106, 107, 122 ] )
+
+# ####################################################################
+# Vanilla scroller.
+#
+vanillaScroll = (mover) ->
+  height = document.body.offsetHeight / scrollSize
+  position = document.body.offsetTop / scrollSize
+  newPosition = mover position, height
+  window.scrollBy 0, (position - newPosition) * scrollSize
+  return true # Do not propagate.
 
 # ####################################################################
 # XPath.
@@ -177,8 +189,9 @@ updateElementCache = (xPath) ->
 #
 navigate = (xPath, mover) ->
   #
-  unless elementCache? and elementCache.length
-    updateElementCache xPath
+  #   unless elementCache? and elementCache.length
+  #     updateElementCache xPath
+  updateElementCache xPath
   #
   elements = elementCache
   n = elements.length
@@ -188,12 +201,9 @@ navigate = (xPath, mover) ->
     if index.length == 0
       return highlight elements[0]
     else
-      index = mover index[0], n
-      # Update the element cache (to pick up any new entries) if we're in danger of falling of either end of
-      # the lits.
-      #
-      updateElementCache xPath if index == 0 or index == n-1
-      #
+      index = index[0]
+      index = if mover then index + mover else mover
+      index = Math.min n-1, Math.max 0,index
       return highlight elements[index]
   #
   return false # Propagate.
@@ -236,6 +246,13 @@ scoreAdjustmentHost =
     # Boost score of photos on Facebook.
     if stringContains href, "/photo.php?fbid="
       score += 2
+    score
+
+  "www.google.com": (href) ->
+    score = 0
+    # Boost score of photos on Facebook.
+    if stringContains href, "://webcache.googleusercontent.com/"
+      score -= 2
     score
 
 doScoreAdjustmentHost = (href) ->
@@ -292,21 +309,22 @@ compareHRef = (a,b) -> scoreHRef(a) - scoreHRef(b)
 # Handle <enter>.
 #
 followLink = (xPath) ->
+  console.log "--------------------------------------------------------"
   if currentElement
     #
     anchors = currentElement.getElementsByTagName "a"
     anchors = Array.prototype.slice.call anchors, 0
-    anchors = anchors.map (a) -> a.href
+    anchors = ( a.href for a in anchors when not stringStartsWith a.href, "javascript:" )
     anchors = anchors.sort compareHRef
     #
     if 0 < anchors.length
       request =
         request: "open"
-        url:      anchors.pop()
+        url:      anchors[anchors.length - 1]
       chrome.extension.sendMessage request
-      return true
+      return true # Do not propagate.
   #
-  return false
+  return false # Propagate.
 
 # ####################################################################
 # Handle j, k, z, and <enter>.
@@ -316,11 +334,11 @@ onKeypress = (xPath) -> (event) ->
   if document.activeElement.nodeName in [ "BODY", "DIV" ]
     switch extractKey event
       # Lower, upper case.
-      when "106", "74" then return killKeyEvent event, navigate xPath, (i,n) -> Math.min i+1, n-1 # j, J
-      when "107", "75" then return killKeyEvent event, navigate xPath, (i,n) -> Math.max i-1, 0   # k, K
-      when "122", "90" then return killKeyEvent event, navigate xPath, (i,n) -> 0                 # z, Z
+      when "106", "74" then return killKeyEvent event, navigate xPath,  1 # j, J
+      when "107", "75" then return killKeyEvent event, navigate xPath, -1 # k, K
+      when "122", "90" then return killKeyEvent event, navigate xPath,  0 # z, Z
       # And <enter>.
-      when "13"        then return killKeyEvent event, followLink xPath                           # <enter>
+      when "13"        then return killKeyEvent event, followLink xPath   # <enter>
   #
   return true # Propagate.
 
@@ -338,12 +356,16 @@ startUpAtLastKnownPosition = (xPath) ->
     if response?.id
       for element in evaluateXPath xPath
         if element.id and response.id is extractID element
-          return highlight element
+          # Don't return to last known element if we've already selected an element.
+          if not currentElement
+            return highlight element
     #
     # Not found.
     # Go to first element.
     #
-    navigate xPath, (i,n) -> 0
+    # Don't go to first element if we've already selected an element.
+    if not currentElement
+      navigate xPath, 0
 
 # ####################################################################
 # Main: install listener and highlight previous element (or first).

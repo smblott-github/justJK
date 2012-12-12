@@ -64,6 +64,7 @@ lastID = (host,pathname) ->
 #
 openURL = (url) ->
   if url
+    console.log url
     chrome.tabs.getSelected null, (tab) ->
       chrome.tabs.create { url: url, index: tab.index, selected: true }
 

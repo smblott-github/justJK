@@ -9,16 +9,19 @@
 # the search result page and then returning.
   www.google.com       ^/search                     //li[starts-with(@class,'g')]/div[@class='vsc']/..
 
-  www.facebook.com     ^/                           //div[@id='contentArea']//li[starts-with(@class,'uiUnifiedStory')]
-  plus.google.com      ^/                           //div[starts-with(@id,'update-')]
-# plus.google.com      ^/                           /doesNotMatchAnythingButActivatesJustJK
+# www.facebook.com     ^/                           //div[@id='contentArea']//li[starts-with(@class,'uiUnifiedStory')]
+  www.facebook.com     ^/                           //doesNotMatchAnythingButActivatesJustJK
+
+# plus.google.com      ^/                           //div[starts-with(@id,'update-')]
+  plus.google.com      ^/                           /doesNotMatchAnythingButActivatesJustJK
   
   slashdot.org         ^/                           //article[starts-with(@id,'firehose-')]
   
   www.boards.ie        ^/vbulletin/forumdisplay.php //tbody/tr/td[starts-with(@id,'td_threadtitle')]
   www.boards.ie        ^/vbulletin/showthread.php   //div[@id='posts']//table[starts-with(@id,'post')]/tbody/tr/td[starts-with(@id,'td_post')]
 
-  www.broadsheet.ie    ^/                           //div[@class='post']/article[starts-with(@id,'post-')]
+  www.broadsheet.ie    ^/$                          //div[@class='post']/article[starts-with(@id,'post-')]
+  www.broadsheet.ie    ^/page/                      //div[@class='post']/article[starts-with(@id,'post-')]
 
   www.yesiknowthat.com ^/$                          //div[@id='main']/div[starts-with(@class,'post-')]
   www.yesiknowthat.com ^/page/                      //div[@id='main']/div[starts-with(@class,'post-')]
