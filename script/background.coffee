@@ -105,6 +105,7 @@ saveID = (host, pathname, id) ->
     key = mkKey host, pathname
     console.log "#{id} <- #{key}"
     localStorage[key] = id
+  null
 
 lastID = (host,pathname) ->
   if host and pathname
@@ -120,7 +121,7 @@ lastID = (host,pathname) ->
 # Create tab to the left of the current tab.  That way we end up back on the current tab when the new tab is
 # closed.
 #
-openURL = (url) ->
+open = (url) ->
   if url
     console.log url
     chrome.tabs.getSelected null, (tab) ->
@@ -134,6 +135,6 @@ chrome.extension.onMessage.addListener (request, sender, callback) ->
     when "config" then callback config  request?.host, request?.pathname
     when "saveID" then callback saveID  request?.host, request?.pathname, request?.id
     when "lastID" then callback lastID  request?.host, request?.pathname
-    when "open"   then callback openURL request?.url
+    when "open"   then callback open    request?.url
     else callback null
 

@@ -16,7 +16,8 @@ bogusXPath        = [ simpleBindings, nativeBindings ]
 config            = {}
 
 #                                  j   k   z   J    K    Z
-jkKeys = ( k.toString() for k in [ 74, 75, 90, 106, 107, 122 ] )
+jkKeys            = ( k.toString() for k in [ 74, 75, 90, 106, 107, 122 ] )
+enter             = "13"
 
 # TODO: Currently, each new node name encountered must be added to this list ... which is not really an
 # acceptable way to go about things.
@@ -185,6 +186,21 @@ navigate = (xPath, mover) ->
 # ####################################################################
 # Key handling routines.
 
+getElementsByClassName = (name) ->
+  e for e in document.getElementsByTagName '*' when e.className is name
+
+getVisibleElementsByClassName = (name) ->
+  e for e in getElementsByClassName name when e?.style?.display isnt "none"
+
+doingKeyboardInput = (element) ->
+  return true if element.nodeName in verboten
+  #
+  # Special hack, just for Vimium.
+  # The Vimium search HUD does not use an input element, so we need to check for it here.
+  return true if (getVisibleElementsByClassName "vimiumReset vimiumHUD").length
+  #
+  false
+
 killKeyEvent = (event, killEvent=false) ->
   if killEvent
     event.stopPropagation()
@@ -200,7 +216,7 @@ killKeyEventHandler = (event) ->
     when "107", "75" then killKeyEvent event, true # k, K
     when "122", "90" then killKeyEvent event, true # z, Z
     # And <enter>.
-    when "13"        then killKeyEvent event, true # <enter>
+    when enter       then killKeyEvent event, true # <enter>
     #
     else killKeyEvent event, false
 
@@ -236,32 +252,17 @@ scoreHRef = (href) ->
 compareHRef = (a,b) -> scoreHRef(a) - scoreHRef(b)
 
 # ####################################################################
-# Find active element.
-#
-findActiveElement = ->
-  element = document.activeElement
-  #
-  # With Facebook native bindings, the active element is some "H5" object deep within the actual post.  To
-  # find a link worth following, we must first got up the document tree a bit.
-  #
-  if window.location.host is "www.facebook.com"
-    while element and element.nodeName isnt "LI"
-      element = element.parentNode
-  #
-  element
-
-# ####################################################################
 # Handle <enter>.
 #
 followLink = (xPath) ->
   #
   switch xPath
     when simpleBindings then element = null
-    when nativeBindings then element = findActiveElement()
+    when nativeBindings then element = document.activeElement
     else                     element = currentElement
   #
   return false unless element
-  return false if element.nodeName in verboten
+  return false if doingKeyboardInput element
   #
   anchors = element.getElementsByTagName "a"
   anchors = Array.prototype.slice.call anchors, 0
@@ -285,14 +286,14 @@ onKeypress = (xPath) ->
   (event) ->
     #
     # if document.activeElement.nodeName in allNodeNames
-    unless document.activeElement.nodeName in verboten
+    unless doingKeyboardInput document.activeElement
       switch key = extractKey event
         # Lower, upper case.
         when "106", "74" then return killKeyEvent event, navigate xPath,  1 # j, J
         when "107", "75" then return killKeyEvent event, navigate xPath, -1 # k, K
         when "122", "90" then return killKeyEvent event, navigate xPath,  0 # z, Z
         # And <enter>.
-        when "13"        then return killKeyEvent event, followLink xPath   # <enter>
+        when enter       then return killKeyEvent event, followLink xPath   # <enter>
         #
         # Else: drop through ...
     #
