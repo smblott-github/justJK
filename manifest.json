@@ -5,7 +5,6 @@
    "description": "Add j/k (for logical down/up) keyboards shortcuts to a variety of web sites.",
 
    "permissions": [
-      "tabs",
       "<all_urls>"
    ],
 
