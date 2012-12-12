@@ -253,17 +253,35 @@ scoreHRef = (href) ->
 compareHRef = (a,b) -> scoreHRef(a) - scoreHRef(b)
 
 # ####################################################################
+# Get active element.
+#
+# Return the active element, with an exception for Facebook.
+#
+getActiveElement = ->
+  element = document.activeElement
+  #
+  switch window.location.host
+    when "www.facebook.com"
+      # With Facebook native bindings, the active element is some "H5" object deep within the actual post.  To
+      # find a link worth following, we must first got up the document tree a bit.
+      #
+      while element and element.nodeName isnt "LI"
+        element = element.parentNode
+  #
+  element
+
+# ####################################################################
 # Handle <enter>.
 #
 followLink = (xPath) ->
   #
   switch xPath
     when simpleBindings then element = null
-    when nativeBindings then element = document.activeElement
+    when nativeBindings then element = getActiveElement()
     else                     element = currentElement
   #
-  return false unless element
-  return false if doingKeyboardInput element
+  unless element and not doingKeyboardInput element
+    return false # Propagate
   #
   anchors = element.getElementsByTagName "a"
   anchors = Array.prototype.slice.call anchors, 0
@@ -272,14 +290,14 @@ followLink = (xPath) ->
   console.log scoreHRef(a), a for a in anchors
   #
   if 0 < anchors.length
-    request =
+    chrome.extension.sendMessage
       request: "open"
-      url:      anchors[anchors.length - 1]
-    chrome.extension.sendMessage request
+      url:      anchors.pop()
+      # No callback
     return true # Do not propagate.
   else
-    #
     # If the element contains no links, then we'll try "clicking" on it.
+    #
     if typeof element.click is "function"
       element.click.apply element
       return true # Do not propagate.
@@ -341,7 +359,8 @@ request =
   pathname: window.location.pathname
 
 chrome.extension.sendMessage request, (response) ->
-  config = response if response
+  config = response
+  #
   xPath = config?.xPath
   xPath ?= simpleBindings
   #
