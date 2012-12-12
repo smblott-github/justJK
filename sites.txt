@@ -1,25 +1,27 @@
 
-# Host                 Path                         xPath
-# #                    #                            #
-# #                    #                            #
+# Host                 Path     xPath
+# #                    #        #
+# #                    #        #
 
-  www.google.com       ^/search                     //li[starts-with(@class,'g')]/div[@class='vsc']/..
+  www.google.com       ^/search //li[starts-with(@class,'g')]/div[@class='vsc']/..
 
-  www.facebook.com     ^/                           /justJKNativeBindingsForJK
-  plus.google.com      ^/                           /justJKNativeBindingsForJK
+  www.facebook.com     ^/       /justJKNativeBindingsForJK
+  plus.google.com      ^/       /justJKNativeBindingsForJK
   
-  slashdot.org         ^/                           //article[starts-with(@id,'firehose-')]
+  slashdot.org         ^/       //article[starts-with(@id,'firehose-')]
   
+  www.broadsheet.ie    ^/$      //div[@class='post']/article[starts-with(@id,'post-')]
+  www.broadsheet.ie    ^/page/  //div[@class='post']/article[starts-with(@id,'post-')]
+
+  www.yesiknowthat.com ^/$      //div[@id='main']/div[starts-with(@class,'post-')]
+  www.yesiknowthat.com ^/page/  //div[@id='main']/div[starts-with(@class,'post-')]
+
+  www.reddit.com       ^/       //div[@id='siteTable']/div[contains(@class,'thing')]
+
+  twitter.com          ^/       //div[@id='stream-items-id']/div[@data-item-type='tweet']
+
   www.boards.ie        ^/vbulletin/forumdisplay.php //tbody/tr/td[starts-with(@id,'td_threadtitle')]
   www.boards.ie        ^/vbulletin/showthread.php   //div[@id='posts']//table[starts-with(@id,'post')]/tbody/tr/td[starts-with(@id,'td_post')]
-
-  www.broadsheet.ie    ^/$                          //div[@class='post']/article[starts-with(@id,'post-')]
-  www.broadsheet.ie    ^/page/                      //div[@class='post']/article[starts-with(@id,'post-')]
-
-  www.yesiknowthat.com ^/$                          //div[@id='main']/div[starts-with(@class,'post-')]
-  www.yesiknowthat.com ^/page/                      //div[@id='main']/div[starts-with(@class,'post-')]
-
-  www.reddit.com       ^/                           //div[@id='siteTable']/div[contains(@class,'thing')]
 
 # #                    #                            #
 # #                    #                            #

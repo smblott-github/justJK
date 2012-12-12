@@ -38,7 +38,7 @@ evaluateXPath = (xPath) ->
 # ####################################################################
 # Header offsets.
 #
-# Try to adjust the scroll offset for pages known to have static headers.  Content must no scroll up
+# Try to adjust the scroll offset for pages known to have static headers.  Content must not scroll up
 # underneath such headers.
 # 
 # Basically, provide an XPath specification here.  The bottom of the indicated element (which must be
@@ -49,6 +49,7 @@ evaluateXPath = (xPath) ->
 ssHeaderXPath =
   "www.facebook.com": "//div[@id='pagelet_bluebar']/div[@id='blueBarHolder']/div['blueBar']/../.."
   "plus.google.com":  "//div[@id='gb']"
+  "twitter.com":      "//div[starts-with(@class,'topbar')]/div[@class='global-nav'] | //div[starts-with(@class,'new-tweets-bar')]"
 
 # Offset adjustment.
 #
@@ -167,6 +168,7 @@ navigate = (xPath, mover) ->
     return false # Propagate
   #
   elements = evaluateXPath xPath
+  elements = ( e for e in elements when 5 < e.offsetHeight )
   n = elements.length
   #
   if 0 < n
