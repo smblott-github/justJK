@@ -66,11 +66,14 @@ evaluateXPath = (xPath) ->
   #
   element while xPathResult and element = xPathResult.iterateNext()
 
+byElementPosition = (a,b) ->
+  ssGetOffsetTop(a) - ssGetOffsetTop(b)
+
 # A wrapper around evaluateXPath which discards vertically small elements.
 # TODO: We should probably be discarding non-visible elements here.
 #
 getElementList = (xPath) ->
-  e for e in evaluateXPath xPath when 5 < e.offsetHeight
+  (e for e in evaluateXPath xPath when 5 < e.offsetHeight).sort byElementPosition
 
 # ####################################################################
 # Header offsets adjustment.
@@ -175,6 +178,7 @@ smoothScrollToElement = (element) ->
 vanillaScroll = (mover) ->
   position = window.pageYOffset / vanillaScrollStep
   newPosition = if mover then position + mover else 0
+  console.log (newPosition - position) * vanillaScrollStep
   smoothScrollByDelta (newPosition - position) * vanillaScrollStep
   return true # Do not propagate.
 
@@ -238,8 +242,10 @@ navigate = (xPath, mover) ->
       return highlight elements[0]
     #
     index = index[0]
-    index = Math.min n-1, Math.max 0, if mover then index + mover else 0
-    return highlight elements[index]
+    newIndex = Math.min n-1, Math.max 0, if mover then index + mover else 0
+    if newIndex isnt index
+      return highlight elements[newIndex]
+    # Drop through.
   #
   vanillaScroll mover
 
