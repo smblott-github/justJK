@@ -101,13 +101,15 @@ config = (host,pathname) ->
 mkKey = (host,pathname) -> "#{host}#{pathname}"
 
 saveID = (host, pathname, id) ->
-  if host and pathname and id
+  if host and pathname
     key = mkKey host, pathname
     console.log "#{id} <- #{key}"
     localStorage[key] = id
   null
 
 lastID = (host,pathname) ->
+  # If the selected element does not have an id, then id here will be null.  It must neverthe less be recorded
+  # ... so that we don't later jump back to a previous element which *did* have an id.
   if host and pathname
     key = mkKey host, pathname
     if key of localStorage

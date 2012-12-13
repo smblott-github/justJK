@@ -187,13 +187,12 @@ vanillaScroll = (mover) ->
 # Notify the background script of the selected ID for this page.
 #
 saveID = (element) ->
-  if element.id
-    chrome.extension.sendMessage
-      request: "saveID"
-      id:       element.id
-      host:     window.location.host
-      pathname: window.location.pathname
-      # No callback.
+  chrome.extension.sendMessage
+    request: "saveID"
+    id:       element.id
+    host:     window.location.host
+    pathname: window.location.pathname
+    # No callback.
   #
   element
 
@@ -253,7 +252,12 @@ navigate = (xPath, mover) ->
 # ####################################################################
 # Key handling routines.
 
-keyboardInputElementActive =  ->
+doUnlessInputActive = (func) ->
+  if document.activeElement.nodeName not in verboten
+    if not (filterVisibleElements getElementsByClassName "vimiumReset vimiumHUD").length
+      func()
+
+keyboardInputElementActive = ->
   return true if document.activeElement.nodeName in verboten
   #
   # Special hack, just for Vimium.
@@ -415,9 +419,18 @@ chrome.extension.sendMessage request, (response) ->
   xPath = config.xPath || simpleBindings
   console.log "justJK xPath", xPath
   #
-  documentEventListener "keydown",  onKeypress xPath
-  documentEventListener "keypress", onKeypress xPath
-  documentEventListener "keyup",    killKeyEventHandler if xPath isnt nativeBindings
+  switch xPath
+    when simpleBindings
+      keypress.combo "j",     -> doUnlessInputActive -> vanillaScroll  1
+      keypress.combo "k",     -> doUnlessInputActive -> vanillaScroll -1
+      keypress.combo "z",     -> doUnlessInputActive -> vanillaScroll  0
+    when nativeBindings
+      keypress.combo "enter", -> doUnlessInputActive -> followLink xPath
+    else
+      keypress.combo "j",     -> doUnlessInputActive -> navigate xPath,  1
+      keypress.combo "k",     -> doUnlessInputActive -> navigate xPath, -1
+      keypress.combo "z",     -> doUnlessInputActive -> navigate xPath,  0
+      keypress.combo "enter", -> doUnlessInputActive -> followLink xPath
   #
   startUpAtLastKnownPosition xPath
 
