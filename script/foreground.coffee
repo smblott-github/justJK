@@ -13,13 +13,9 @@ xPathResultType   =  XPathResult.ANY_TYPE
 highlightCSS      = "justjk_highlighted"
 simpleBindings    = "/justJKSimpleBindingsForJK"
 nativeBindings    = "/justJKNativeBindingsForJK"
-bogusXPath        = [ simpleBindings, nativeBindings ]
 verboten          = [ "INPUT", "TEXTAREA" ]
+currentElement    = null
 config            = {}
-
-#                                             j   k   z   J    K    Z
-jkKeys            = ( k.toString() for k in [ 74, 75, 90, 106, 107, 122 ] )
-enter             = "13"
 
 # ####################################################################
 # Get elements by class name.
@@ -144,110 +140,59 @@ smoothScrollToElement = (element) ->
   #
   element
 
-# # Smooth scrolling.
-# #
-# smoothScroll = (element) ->
-#   offSetTop = ssGetOffsetTop element
-#   target    = offSetTop - ( ssOffset + ssOffsetAdjustment() )
-#   offset    = window.pageYOffset
-#   delta     = target - offset
-#   duration  = 400
-#   #
-#   ssStart   = Date.now()
-#   ssFactor  = 0
-#   #
-#   intervalFunc = ->
-#     ssFactor = Math.sqrt Math.sqrt (Date.now() - ssStart) / duration
-#     #
-#     if 1 <= ssFactor
-#       clearInterval ssTimer
-#       ssTimer = null
-#       ssFactor = 1
-#     #
-#     y = ssFactor * delta + offset
-#     window.scrollBy 0, y - window.pageYOffset
-#   #
-#   clearInterval ssTimer if ssTimer
-#   intervalFunc()
-#   ssTimer = setInterval intervalFunc, 10
-#   #
-#   element
-
 # ####################################################################
 # Vanilla scroller.
 #
-vanillaScroll = (mover) ->
+vanillaScroll = (move) ->
   position = window.pageYOffset / vanillaScrollStep
-  newPosition = if mover then position + mover else 0
-  console.log (newPosition - position) * vanillaScrollStep
+  newPosition = if move then position + move else 0
   smoothScrollByDelta (newPosition - position) * vanillaScrollStep
   return true # Do not propagate.
 
 # ####################################################################
-# Notify the background script of the selected ID for this page.
-#
-saveID = (element) ->
-  chrome.extension.sendMessage
-    request: "saveID"
-    id:       element.id
-    host:     window.location.host
-    pathname: window.location.pathname
-    # No callback.
-  #
-  element
-
-# ####################################################################
-# Highlighting.
-#
-currentElement = null
-
 # Highlight an element and scroll it into view.
 #
 highlight = (element) ->
-  if element
-    if element is currentElement
-      return true # Do not propagate.
+  if element and element isnt currentElement
     #
     if currentElement
       currentElement.classList.remove highlightCSS
     #
-    (currentElement = element).classList.add highlightCSS
+    currentElement = element
+    currentElement.classList.add highlightCSS
     #
     smoothScrollToElement currentElement
-    saveID currentElement
-    return true # Do not propagate.
-  #
-  return false # Propagate.
+    #
+    chrome.extension.sendMessage
+      request: "saveID"
+      id:       currentElement.id
+      host:     window.location.host
+      pathname: window.location.pathname
+      # No callback.
 
 # ####################################################################
-# Navigation.
+# Logical navigation.
 #
-# xPath is the XPath query for selecting elements.
-# mover is an integer, usually -1, 0 or 1
-#
-navigate = (xPath, mover) ->
-  #
-  if xPath is simpleBindings
-    return vanillaScroll mover
-  #
-  if xPath is nativeBindings
-    return false # Propagate
-  #
+navigate = (xPath, move) ->
   elements = getElementList xPath
   n = elements.length
   #
+  echo 1
   if 0 < n
     index = (i for e, i in elements when e.classList.contains highlightCSS)
     if index.length == 0
       return highlight elements[0]
+    echo 2
     #
     index = index[0]
-    newIndex = Math.min n-1, Math.max 0, if mover then index + mover else 0
+    newIndex = Math.min n-1, Math.max 0, if move then index + move else 0
+    echo 3
     if newIndex isnt index
+      echo 4
       return highlight elements[newIndex]
     # Drop through.
   #
-  vanillaScroll mover
+  vanillaScroll move
 
 # ####################################################################
 # Key handling routines.
@@ -256,41 +201,6 @@ doUnlessInputActive = (func) ->
   if document.activeElement.nodeName not in verboten
     if not (filterVisibleElements getElementsByClassName "vimiumReset vimiumHUD").length
       func()
-
-keyboardInputElementActive = ->
-  return true if document.activeElement.nodeName in verboten
-  #
-  # Special hack, just for Vimium.
-  # The Vimium "find" HUD does not use an input element, so check for it here.
-  #
-  return true if (filterVisibleElements getElementsByClassName "vimiumReset vimiumHUD").length
-  #
-  false
-
-keyboardInputElementInactive = ->
-  not keyboardInputElementActive()
-
-maybeKillKeyEvent = (event, killEvent=false) ->
-  if killEvent
-    event.stopPropagation()
-    event.preventDefault()
-    false # Do not propagate.
-  else
-    true # Propagate.
-
-definitelyKillEvent = (event) ->
-  maybeKillKeyEvent event, true
-
-killKeyEventHandler = (event) ->
-  switch extractKey event
-    # Lower, upper case.
-    when "106", "74" then definitelyKillEvent event # j, J
-    when "107", "75" then definitelyKillEvent event # k, K
-    when "122", "90" then definitelyKillEvent event # z, Z
-    # And <enter>.
-    when enter       then definitelyKillEvent event # <enter>
-    #
-    else maybeKillKeyEvent event, false
 
 # ####################################################################
 # Scoring HREFs.
@@ -328,86 +238,29 @@ compareHRef = (a,b) -> scoreHRef(a) - scoreHRef(b)
 #
 followLink = (xPath) ->
   #
-  switch xPath
-    when simpleBindings then element = null
-    when nativeBindings then element = getActiveElement()
-    else                     element = currentElement
+  element = if xPath is nativeBindings then getActiveElement() else currentElement
   #
-  unless element and keyboardInputElementInactive()
-    return false # Propagate
-  #
-  anchors = element.getElementsByTagName "a"
-  anchors = Array.prototype.slice.call anchors, 0
-  anchors = ( a.href for a in anchors when a.href and not stringStartsWith a.href, "javascript:" )
-  # Reverse the list here so that, when there are multiple top-scoring HREFs, the originally first-listed of
-  # those will end up at the end.
-  anchors = anchors.reverse().sort compareHRef
-  #
-  console.log scoreHRef(a), a for a in anchors
-  #
-  if 0 < anchors.length
-    chrome.extension.sendMessage
-      request: "open"
-      url:      anchors.pop()
-      # No callback
-    return true # Do not propagate.
-  else
-    # If the element contains no links, then we'll try "clicking" on it.
+  if element
+    anchors = element.getElementsByTagName "a"
+    anchors = Array.prototype.slice.call anchors, 0
+    anchors = ( a.href for a in anchors when a.href and not stringStartsWith a.href, "javascript:" )
+    # Reverse the list here so that, when there are multiple top-scoring HREFs, the originally first-listed of
+    # those will end up at the end.
+    anchors = anchors.reverse().sort compareHRef
     #
-    if typeof element.click is "function"
-      element.click.apply element
-      return true # Do not propagate.
-  #
-  return false # Propagate.
-
-# ####################################################################
-# Handle j, k, z, and <enter>.
-#
-onKeypress = (xPath) ->
-  (event) ->
+    console.log scoreHRef(a), a for a in anchors
     #
-    if not keyboardInputElementActive()
-      switch key = extractKey event
-        # Lower, upper case.
-        when "106", "74" then return maybeKillKeyEvent event, navigate xPath,  1 # j, J
-        when "107", "75" then return maybeKillKeyEvent event, navigate xPath, -1 # k, K
-        when "122", "90" then return maybeKillKeyEvent event, navigate xPath,  0 # z, Z
-        # And <enter>.
-        when enter       then return maybeKillKeyEvent event, followLink xPath   # <enter>
-        #
-        # Else: drop through ...
-    #
-    return true # Propagate.
-
-# ####################################################################
-# Start up.
-# Try to return to last known position (based on saved IDs).
-# Otherwise, go to first element.
-
-startUpAtLastKnownPosition = (xPath) ->
-  unless xPath in bogusXPath
-    #
-    request =
-      request: "lastID"
-      host:     window.location.host
-      pathname: window.location.pathname
-    #
-    chrome.extension.sendMessage request, (response) ->
-      if not currentElement
-        if response?.id
-          for element in getElementList xPath
-            if element.id and response.id is element.id
-              return highlight element
-        #
-        # Go to first element.
-        #
-        navigate xPath, 0
+    if 0 < anchors.length
+      chrome.extension.sendMessage
+        request: "open"
+        url:      anchors.pop()
+        # No callback
+    else
+      if typeof element.click is "function"
+        element.click.apply element
 
 # ####################################################################
 # Main: install listener and highlight previous element (or first).
-
-documentEventListener = (eventName, func) ->
-  document.addEventListener eventName,  func, true
 
 request =
   request: "config"
@@ -423,17 +276,30 @@ chrome.extension.sendMessage request, (response) ->
     when simpleBindings
       keypress.combo "j",     -> doUnlessInputActive -> vanillaScroll  1
       keypress.combo "k",     -> doUnlessInputActive -> vanillaScroll -1
-      keypress.combo "z",     -> doUnlessInputActive -> vanillaScroll  0
+      keypress.combo ";",     -> doUnlessInputActive -> vanillaScroll  0
+    #
     when nativeBindings
       keypress.combo "enter", -> doUnlessInputActive -> followLink xPath
+    #
     else
-      keypress.combo "j",     -> doUnlessInputActive -> navigate xPath,  1
-      keypress.combo "k",     -> doUnlessInputActive -> navigate xPath, -1
-      keypress.combo "z",     -> doUnlessInputActive -> navigate xPath,  0
+      keypress.combo "j",     -> doUnlessInputActive -> navigate   xPath,  1
+      keypress.combo "k",     -> doUnlessInputActive -> navigate   xPath, -1
+      keypress.combo ";",     -> doUnlessInputActive -> navigate   xPath,  0
       keypress.combo "enter", -> doUnlessInputActive -> followLink xPath
-  #
-  startUpAtLastKnownPosition xPath
-
-# ####################################################################
-# Done.
+      #
+      request =
+        request: "lastID"
+        host:     window.location.host
+        pathname: window.location.pathname
+      #
+      chrome.extension.sendMessage request, (response) ->
+        if not currentElement
+          if response?.id
+            for element in getElementList xPath
+              if element.id and response.id is element.id
+                return highlight element
+          #
+          # Go to first element.
+          #
+          navigate xPath, 0
 
