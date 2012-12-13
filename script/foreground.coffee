@@ -175,7 +175,6 @@ smoothScrollToElement = (element) ->
 vanillaScroll = (mover) ->
   position = window.pageYOffset / vanillaScrollStep
   newPosition = if mover then position + mover else 0
-  # window.scrollBy 0, (newPosition - position) * vanillaScrollStep
   smoothScrollByDelta (newPosition - position) * vanillaScrollStep
   return true # Do not propagate.
 
