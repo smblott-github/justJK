@@ -7,15 +7,20 @@ justJK = window.justJK ?= {}
 Dom = justJK.Dom
 
 Scroll = justJK.Scroll = 
+  #
   vanillaScrollStep:  70
-  duration: 400
-  offset: 20
-  timer: null
+  offset:             20
+  #
+  duration:           350
+  durationScale:      6
+  interval:           10
+  #
+  timer:              null
 
   smoothScrollByDelta: (delta) ->
     offset = window.pageYOffset
     start  = Date.now()
-    duration = @duration + Math.sqrt Math.abs delta
+    duration = @duration + @durationScale * Math.sqrt Math.abs delta
     #
     intervalFunc = =>
       factor = Math.sqrt Math.sqrt (Date.now() - start) / duration
@@ -29,7 +34,7 @@ Scroll = justJK.Scroll =
       window.scrollBy 0, y - window.pageYOffset
     #
     clearInterval @timer if @timer
-    @timer = setInterval intervalFunc, 10
+    @timer = setInterval intervalFunc, @interval
 
   smoothScrollToElement: (element, header) ->
     offSetTop = Dom.offsetTop element
