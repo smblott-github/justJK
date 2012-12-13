@@ -7,7 +7,7 @@ stringStartsWith  = (haystack, needle) -> haystack.indexOf(needle) ==  0
 extractKey        = (event)            -> event.which.toString()
 namespaceResolver = (namespace)        -> if namespace == "xhtml" then "http://www.w3.org/1999/xhtml" else null
 
-vanillaScrollStep =  50
+vanillaScrollStep =  70
 xPathResultType   =  XPathResult.ANY_TYPE
 highlightCSS      = "justjk_highlighted"
 simpleBindings    = "/justJKSimpleBindingsForJK"
@@ -70,15 +70,6 @@ getElementList = (xPath) ->
   e for e in evaluateXPath xPath when 5 < e.offsetHeight
 
 # ####################################################################
-# Vanilla scroller.
-#
-vanillaScroll = (mover) ->
-  position = window.pageYOffset / vanillaScrollStep
-  newPosition = if mover then position + mover else 0
-  window.scrollBy 0, (newPosition - position) * vanillaScrollStep
-  return true # Do not propagate.
-
-# ####################################################################
 # Header offsets adjustment.
 #
 # Try to adjust the scroll offset for pages known to have static headers.  Content should not scroll up
@@ -113,12 +104,9 @@ ssGetOffsetTop = (element) ->
 
 # Smooth scrolling.
 #
-smoothScroll = (element) ->
-  offSetTop = ssGetOffsetTop element
-  target    = Math.max 0, offSetTop - ( ssOffset + ssOffsetAdjustment() )
-  offset    = window.pageYOffset
-  delta     = target - offset
+smoothScrollByDelta = (delta) ->
   duration  = 400
+  offset    = window.pageYOffset
   #
   ssStart   = Date.now()
   ssFactor  = 0
@@ -136,8 +124,56 @@ smoothScroll = (element) ->
   #
   clearInterval ssTimer if ssTimer
   ssTimer = setInterval intervalFunc, 10
+
+# Smooth scrolling.
+#
+smoothScrollToElement = (element) ->
+  offSetTop = ssGetOffsetTop element
+  target    = Math.max 0, offSetTop - ( ssOffset + ssOffsetAdjustment() )
+  offset    = window.pageYOffset
+  delta     = target - offset
+  #
+  smoothScrollByDelta delta
   #
   element
+
+# # Smooth scrolling.
+# #
+# smoothScroll = (element) ->
+#   offSetTop = ssGetOffsetTop element
+#   target    = Math.max 0, offSetTop - ( ssOffset + ssOffsetAdjustment() )
+#   offset    = window.pageYOffset
+#   delta     = target - offset
+#   duration  = 400
+#   #
+#   ssStart   = Date.now()
+#   ssFactor  = 0
+#   #
+#   intervalFunc = ->
+#     ssFactor = Math.sqrt Math.sqrt (Date.now() - ssStart) / duration
+#     #
+#     if 1 <= ssFactor
+#       clearInterval ssTimer
+#       ssTimer = null
+#       ssFactor = 1
+#     #
+#     y = ssFactor * delta + offset
+#     window.scrollBy 0, y - window.pageYOffset
+#   #
+#   clearInterval ssTimer if ssTimer
+#   ssTimer = setInterval intervalFunc, 10
+#   #
+#   element
+
+# ####################################################################
+# Vanilla scroller.
+#
+vanillaScroll = (mover) ->
+  position = window.pageYOffset / vanillaScrollStep
+  newPosition = if mover then position + mover else 0
+  # window.scrollBy 0, (newPosition - position) * vanillaScrollStep
+  smoothScrollByDelta (newPosition - position) * vanillaScrollStep
+  return true # Do not propagate.
 
 # ####################################################################
 # Notify the background script of the selected ID for this page.
@@ -170,7 +206,7 @@ highlight = (element) ->
     #
     (currentElement = element).classList.add highlightCSS
     #
-    smoothScroll currentElement
+    smoothScrollToElement currentElement
     saveID currentElement
     return true # Do not propagate.
   #
@@ -366,6 +402,7 @@ request =
 chrome.extension.sendMessage request, (response) ->
   config = response || {}
   xPath = config.xPath || simpleBindings
+  console.log "justJK xPath", xPath
   #
   documentEventListener "keydown",  onKeypress xPath
   documentEventListener "keypress", onKeypress xPath

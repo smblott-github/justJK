@@ -37,8 +37,12 @@ site     www.google.com
 path     ^/search
 elements //li[starts-with(@class,'g')][@id='newsbox']
 elements //li[starts-with(@class,'g')]/div[@class='vsc']/..
+elements //li[starts-with(@class,'g')][starts-with(@id,'esc-story-cluster-id')]
 dislike  google.com/search
 dislike  ://webcache.googleusercontent.com/
+
+site     www.google.com
+path     ^/reader/
 
 site     www.facebook.com
 # header //div[@id='pagelet_bluebar']/div[@id='blueBarHolder']/div['blueBar']/../..
