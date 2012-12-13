@@ -334,7 +334,9 @@ followLink = (xPath) ->
   anchors = element.getElementsByTagName "a"
   anchors = Array.prototype.slice.call anchors, 0
   anchors = ( a.href for a in anchors when a.href and not stringStartsWith a.href, "javascript:" )
-  anchors = anchors.sort compareHRef
+  # Reverse the list here so that, when there are multiple top-scoring HREFs, the originally first-listed of
+  # those will end up at the end.
+  anchors = anchors.reverse().sort compareHRef
   #
   console.log scoreHRef(a), a for a in anchors
   #
