@@ -144,7 +144,7 @@ smoothScrollToElement = (element) ->
 # #
 # smoothScroll = (element) ->
 #   offSetTop = ssGetOffsetTop element
-#   target    = Math.max 0, offSetTop - ( ssOffset + ssOffsetAdjustment() )
+#   target    = offSetTop - ( ssOffset + ssOffsetAdjustment() )
 #   offset    = window.pageYOffset
 #   delta     = target - offset
 #   duration  = 400
@@ -164,6 +164,7 @@ smoothScrollToElement = (element) ->
 #     window.scrollBy 0, y - window.pageYOffset
 #   #
 #   clearInterval ssTimer if ssTimer
+#   intervalFunc()
 #   ssTimer = setInterval intervalFunc, 10
 #   #
 #   element
@@ -239,8 +240,7 @@ navigate = (xPath, mover) ->
     #
     index = index[0]
     index = Math.min n-1, Math.max 0, if mover then index + mover else 0
-    highlight elements[index]
-    # Drop through ...
+    return highlight elements[index]
   #
   vanillaScroll mover
 
