@@ -1,16 +1,16 @@
 
 window.justJK ?= {}
 justJK = window.justJK
-
-Util = justJK.Util
-Dom  = justJK.Dom
-
-echo = Util.echo
+#
+Util   = justJK.Util
+Dom    = justJK.Dom
+Scroll = justJK.Scroll
+#
+echo   = Util.echo
 
 # ####################################################################
 # Utilities and constants.
 
-vanillaScrollStep =  70
 highlightCSS      = "justjk_highlighted"
 simpleBindings    = "/justJKSimpleBindingsForJK"
 nativeBindings    = "/justJKNativeBindingsForJK"
@@ -29,62 +29,6 @@ config            = {}
 #
 
 # ####################################################################
-# Smooth scrolling.
-# Adapted from: `http://codereview.stackexchange.com/questions/13111/smooth-page-scrolling-in-javascript`.
-#
-ssTimer  = null
-ssStart  = null
-ssFactor = null
-
-# Scroll to this many pixels from the top of the window.
-#
-ssOffset = 20
-
-# Smooth scrolling by pixels.
-#
-smoothScrollByDelta = (delta) ->
-  duration  = 400
-  offset    = window.pageYOffset
-  #
-  ssStart   = Date.now()
-  ssFactor  = 0
-  #
-  intervalFunc = ->
-    ssFactor = Math.sqrt Math.sqrt (Date.now() - ssStart) / duration
-    #
-    if 1 <= ssFactor
-      clearInterval ssTimer
-      ssTimer = null
-      ssFactor = 1
-    #
-    y = ssFactor * delta + offset
-    window.scrollBy 0, y - window.pageYOffset
-  #
-  clearInterval ssTimer if ssTimer
-  ssTimer = setInterval intervalFunc, 10
-
-# Smooth scrolling to element.
-#
-smoothScrollToElement = (element) ->
-  offSetTop = Dom.offsetTop element
-  target    = Math.max 0, offSetTop - ( ssOffset + Dom.offsetAdjustment config.header )
-  offset    = window.pageYOffset
-  delta     = target - offset
-  #
-  smoothScrollByDelta delta
-  #
-  element
-
-# ####################################################################
-# Vanilla scroller.
-#
-vanillaScroll = (move) ->
-  position = window.pageYOffset / vanillaScrollStep
-  newPosition = if move then position + move else 0
-  smoothScrollByDelta (newPosition - position) * vanillaScrollStep
-  return true # Do not propagate.
-
-# ####################################################################
 # Highlight an element and scroll it into view.
 #
 highlight = (element) ->
@@ -96,7 +40,7 @@ highlight = (element) ->
     currentElement = element
     currentElement.classList.add highlightCSS
     #
-    smoothScrollToElement currentElement
+    Scroll.smoothScrollToElement currentElement, config.header
     #
     chrome.extension.sendMessage
       request: "saveID"
@@ -123,7 +67,7 @@ navigate = (xPath, move) ->
       return highlight elements[newIndex]
     # Drop through.
   #
-  vanillaScroll move
+  Scroll.vanillaScroll move
 
 # ####################################################################
 # Key handling routines.
@@ -205,9 +149,9 @@ chrome.extension.sendMessage request, (response) ->
   #
   switch xPath
     when simpleBindings
-      keypress.combo "j",     -> doUnlessInputActive -> vanillaScroll  1
-      keypress.combo "k",     -> doUnlessInputActive -> vanillaScroll -1
-      keypress.combo ";",     -> doUnlessInputActive -> vanillaScroll  0
+      keypress.combo "j",     -> doUnlessInputActive -> Scroll.vanillaScroll  1
+      keypress.combo "k",     -> doUnlessInputActive -> Scroll.vanillaScroll -1
+      keypress.combo ";",     -> doUnlessInputActive -> Scroll.vanillaScroll  0
     #
     when nativeBindings
       keypress.combo "enter", -> doUnlessInputActive -> followLink xPath

@@ -21,6 +21,7 @@
          "js"         : [ "third-party/keypress.js",
                           "script/util.js",
                           "script/dom.js",
+                          "script/scroll.js",
                           "script/foreground.js"
                         ],
          "run_at"     : "document_end",
