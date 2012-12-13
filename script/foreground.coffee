@@ -1,6 +1,5 @@
 
-window.justJK ?= {}
-justJK = window.justJK
+justJK = window.justJK ?= {}
 #
 Util   = justJK.Util
 Dom    = justJK.Dom

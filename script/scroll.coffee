@@ -3,13 +3,10 @@
 # Adapted from: `http://codereview.stackexchange.com/questions/13111/smooth-page-scrolling-in-javascript`.
 #
 
-window.justJK ?= {}
-justJK = window.justJK
+justJK = window.justJK ?= {}
+Dom = justJK.Dom
 
-Util = justJK.Util
-Dom  = justJK.Dom
-
-Scroll = justJK.Scroll =
+Scroll = justJK.Scroll = 
   vanillaScrollStep:  70
   duration: 400
   offset: 20
@@ -18,9 +15,10 @@ Scroll = justJK.Scroll =
   smoothScrollByDelta: (delta) ->
     offset = window.pageYOffset
     start  = Date.now()
+    duration = @duration + Math.sqrt Math.abs delta
     #
     intervalFunc = =>
-      factor = Math.sqrt Math.sqrt (Date.now() - start) / @duration
+      factor = Math.sqrt Math.sqrt (Date.now() - start) / duration
       #
       if 1 <= factor
         clearInterval @timer
@@ -35,7 +33,7 @@ Scroll = justJK.Scroll =
 
   smoothScrollToElement: (element, header) ->
     offSetTop = Dom.offsetTop element
-    target    = Math.max 0, offSetTop - ( @offset + Dom.offsetAdjustment header )
+    target    = offSetTop - ( @offset + Dom.offsetAdjustment header )
     offset    = window.pageYOffset
     delta     = target - offset
     #
@@ -44,7 +42,5 @@ Scroll = justJK.Scroll =
     element
 
   vanillaScroll: (move) ->
-    position = window.pageYOffset / @vanillaScrollStep
-    newPosition = if move then position + move else 0
-    @smoothScrollByDelta (newPosition - position) * @vanillaScrollStep
-    return true # Do not propagate.
+    @smoothScrollByDelta if move then move * @vanillaScrollStep else 0 - window.pageYOffset
+
