@@ -35,6 +35,7 @@
 
 site     www.google.com
 path     ^/search
+elements //li[starts-with(@class,'g')][@id='newsbox']
 elements //li[starts-with(@class,'g')]/div[@class='vsc']/..
 dislike  google.com/search
 dislike  ://webcache.googleusercontent.com/
