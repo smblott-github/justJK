@@ -26,6 +26,9 @@ enter             = "13"
 getElementsByClassName = (name) ->
   e for e in document.getElementsByTagName '*' when e.className is name
 
+# ####################################################################
+# Filter element list by visibility.
+#
 filterVisibleElements = (elements) ->
   e for e in elements when e?.style?.display isnt "none"
 
@@ -102,7 +105,7 @@ ssGetOffsetTop = (element) ->
   e = element
   (e.offsetTop while e = e.offsetParent).reduce ( (p,c) -> p + c ), element.offsetTop
 
-# Smooth scrolling.
+# Smooth scrolling by pixels.
 #
 smoothScrollByDelta = (delta) ->
   duration  = 400
@@ -125,7 +128,7 @@ smoothScrollByDelta = (delta) ->
   clearInterval ssTimer if ssTimer
   ssTimer = setInterval intervalFunc, 10
 
-# Smooth scrolling.
+# Smooth scrolling to element.
 #
 smoothScrollToElement = (element) ->
   offSetTop = ssGetOffsetTop element
