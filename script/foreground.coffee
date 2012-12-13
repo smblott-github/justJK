@@ -2,6 +2,7 @@
 # ####################################################################
 # Utilities and constants.
 
+echo              = (args...)          -> console.log arg for arg in args
 stringContains    = (haystack, needle) -> haystack.indexOf(needle) != -1
 stringStartsWith  = (haystack, needle) -> haystack.indexOf(needle) ==  0
 extractKey        = (event)            -> event.which.toString()
