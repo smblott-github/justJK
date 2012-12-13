@@ -1,4 +1,8 @@
 
+justJK = window.justJK ?= {}
+#
+Const  = justJK.Const
+
 # ####################################################################
 # Customisation.
 
@@ -54,7 +58,7 @@ for site in (siteList.split "\nsite")[1..] # Skip bogus first entry.
         when "like"     then like.push      line
         when "dislike"  then dislike.push   line
   #
-  xPath.push "/justJKNativeBindingsForJK" unless xPath.length
+  xPath.push Const.nativeBindings unless xPath.length
   xPath = xPath.join "|"
   #
   if host
@@ -93,7 +97,7 @@ config = (host,pathname) ->
   for path in paths
     if path.regexp.test pathname
       return path
-  return null
+  return { xPath: Const.simpleBindings }
 
 # ####################################################################
 # Save and look up most recent @id for a page.

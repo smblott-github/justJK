@@ -38,7 +38,7 @@ highlight = (element) ->
     Scroll.smoothScrollToElement currentElement, config.header
 
 # ####################################################################
-# Logical navigation.
+# Handle logical navigation.
 #
 navigate = (xPath, move) ->
   elements = Dom.getElementList xPath
@@ -68,8 +68,8 @@ followLink = (xPath) ->
     anchors = element.getElementsByTagName "a"
     anchors = Array.prototype.slice.call anchors, 0
     anchors = ( a.href for a in anchors when a.href and not Util.stringStartsWith a.href, "javascript:" )
-    # Reverse the list here so that, when there are multiple top-scoring HREFs, the originally first-listed of
-    # those will end up at the end.
+    # Reverse the list so that, when there are multiple top-scoring HREFs, the originally first of those ends
+    # up last.
     anchors = anchors.reverse().sort Score.compareHRef config.like, config.dislike
     #
     if 0 < anchors.length
@@ -78,6 +78,7 @@ followLink = (xPath) ->
         url:      anchors.pop()
         # No callback
     else
+      # No links.  Try "clicking" the the element.
       if typeof element.click is "function"
         element.click.apply element
 
@@ -90,8 +91,9 @@ request =
   pathname: window.location.pathname
 
 chrome.extension.sendMessage request, (response) ->
-  config = response || {}
-  xPath = config.xPath || Const.simpleBindings
+  config = response
+  #
+  xPath = config.xPath
   echo "justJK xPath: #{xPath}"
   #
   switch xPath

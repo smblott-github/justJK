@@ -10,6 +10,7 @@
 
    "background": {
       "scripts": [
+         "script/util.js",
          "script/background.js"
       ]
    },
