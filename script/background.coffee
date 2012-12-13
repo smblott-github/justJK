@@ -19,7 +19,8 @@ siteList = if siteRequest.status is 200 then siteRequest.responseText else ""
 
 sites      = {}
 paths      = []
-directives = [ "site", "path", "elements", "header", "like", "dislike" ]
+directives = "site path elements header like dislike"
+directives = directives.split /\s+/
 
 # Strip some whitespace, comments, empty lines and lines which don't seem to contain directives.
 #
