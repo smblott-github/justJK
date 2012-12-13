@@ -1,76 +1,22 @@
 
+window.justJK ?= {}
+justJK = window.justJK
+
+Util = justJK.Util
+Dom  = justJK.Dom
+
+echo = Util.echo
+
 # ####################################################################
 # Utilities and constants.
 
-echo              = (args...)          -> console.log arg for arg in args
-stringContains    = (haystack, needle) -> haystack.indexOf(needle) != -1
-stringStartsWith  = (haystack, needle) -> haystack.indexOf(needle) ==  0
-extractKey        = (event)            -> event.which.toString()
-namespaceResolver = (namespace)        -> if namespace == "xhtml" then "http://www.w3.org/1999/xhtml" else null
-
 vanillaScrollStep =  70
-xPathResultType   =  XPathResult.ANY_TYPE
 highlightCSS      = "justjk_highlighted"
 simpleBindings    = "/justJKSimpleBindingsForJK"
 nativeBindings    = "/justJKNativeBindingsForJK"
 verboten          = [ "INPUT", "TEXTAREA" ]
 currentElement    = null
 config            = {}
-
-# ####################################################################
-# Get elements by class name.
-#
-getElementsByClassName = (name) ->
-  e for e in document.getElementsByTagName '*' when e.className is name
-
-# ####################################################################
-# Filter element list by visibility.
-#
-filterVisibleElements = (elements) ->
-  e for e in elements when e?.style?.display isnt "none"
-
-# ####################################################################
-# Get active element.
-# Return the active element, with special-case handling for Facebook.
-#
-getActiveElement = ->
-  element = document.activeElement
-  #
-  switch window.location.host
-    when "www.facebook.com"
-      # With Facebook's native bindings, the active element is some "H5" object deep within the actual post.
-      # To find a link worth following, we must first got up the document tree a bit.
-      #
-      while element and element.nodeName isnt "LI"
-        element = element.parentNode
-      #
-      return element || document.activeElement
-  #
-  element
-
-# ####################################################################
-# XPath.
-#
-# Return a list of document elements matching `xPath`.
-#
-evaluateXPath = (xPath) ->
-  try
-    xPathResult = document.evaluate xPath, document, namespaceResolver, xPathResultType
-    #
-  catch error
-    console.log "justJK xPath error: #{xPath}"
-    return []
-  #
-  element while xPathResult and element = xPathResult.iterateNext()
-
-byElementPosition = (a,b) ->
-  ssGetOffsetTop(a) - ssGetOffsetTop(b)
-
-# A wrapper around evaluateXPath which discards vertically small elements.
-# TODO: We should probably be discarding non-visible elements here.
-#
-getElementList = (xPath) ->
-  (e for e in evaluateXPath xPath when 5 < e.offsetHeight).sort byElementPosition
 
 # ####################################################################
 # Header offsets adjustment.
@@ -81,13 +27,6 @@ getElementList = (xPath) ->
 # Basically, config.header is  an XPath specification.  The bottom of the indicated element (which must be
 # unique) is taken to be the top of the normal page area.
 #
-ssOffsetAdjustment = ->
-  if xPath = config.header
-    if banners = evaluateXPath xPath
-      if banners and banners.length == 1 and banner = banners[0]
-        if banner.offsetTop == 0 and banner.offsetHeight
-          return banner.offsetHeight
-  return 0
 
 # ####################################################################
 # Smooth scrolling.
@@ -100,10 +39,6 @@ ssFactor = null
 # Scroll to this many pixels from the top of the window.
 #
 ssOffset = 20
-
-ssGetOffsetTop = (element) ->
-  e = element
-  (e.offsetTop while e = e.offsetParent).reduce ( (p,c) -> p + c ), element.offsetTop
 
 # Smooth scrolling by pixels.
 #
@@ -131,8 +66,8 @@ smoothScrollByDelta = (delta) ->
 # Smooth scrolling to element.
 #
 smoothScrollToElement = (element) ->
-  offSetTop = ssGetOffsetTop element
-  target    = Math.max 0, offSetTop - ( ssOffset + ssOffsetAdjustment() )
+  offSetTop = Dom.offsetTop element
+  target    = Math.max 0, offSetTop - ( ssOffset + Dom.offsetAdjustment config.header )
   offset    = window.pageYOffset
   delta     = target - offset
   #
@@ -174,21 +109,17 @@ highlight = (element) ->
 # Logical navigation.
 #
 navigate = (xPath, move) ->
-  elements = getElementList xPath
+  elements = Dom.getElementList xPath
   n = elements.length
   #
-  echo 1
   if 0 < n
     index = (i for e, i in elements when e.classList.contains highlightCSS)
     if index.length == 0
       return highlight elements[0]
-    echo 2
     #
     index = index[0]
     newIndex = Math.min n-1, Math.max 0, if move then index + move else 0
-    echo 3
     if newIndex isnt index
-      echo 4
       return highlight elements[newIndex]
     # Drop through.
   #
@@ -199,8 +130,10 @@ navigate = (xPath, move) ->
 
 doUnlessInputActive = (func) ->
   if document.activeElement.nodeName not in verboten
-    if not (filterVisibleElements getElementsByClassName "vimiumReset vimiumHUD").length
+    if not (Dom.filterVisibleElements Dom.getElementsByClassName "vimiumReset vimiumHUD").length
       func()
+      return false # Prevent propagation.
+  return true # Propagate.
 
 # ####################################################################
 # Scoring HREFs.
@@ -211,21 +144,21 @@ scoreHRef = (href) ->
   score = 0
   #
   # Prefer URLs containing redirects; they are often the primary link.
-  score += 4 if stringContains href, "%3A%2F%2" # == "://" URI encoded
+  score += 4 if Util.stringContains href, "%3A%2F%2" # == "://" URI encoded
   #
   # Prefer external links.
-  score += 3 unless stringContains href, window.location.host
+  score += 3 unless Util.stringContains href, window.location.host
   #
   # Slightly prefer non-static looking links.
-  score += 1 if stringContains href, "?"
+  score += 1 if Util.stringContains href, "?"
   #
   if config.like
     for like in config.like
-      score += 2 if stringContains href, like
+      score += 2 if Util.stringContains href, like
   #
   if config.dislike
     for dislike in config.dislike
-      score -= 2 if stringContains href, dislike
+      score -= 2 if Util.stringContains href, dislike
   #
   score
 
@@ -238,17 +171,15 @@ compareHRef = (a,b) -> scoreHRef(a) - scoreHRef(b)
 #
 followLink = (xPath) ->
   #
-  element = if xPath is nativeBindings then getActiveElement() else currentElement
+  element = if xPath is nativeBindings then Dom.getActiveElement() else currentElement
   #
   if element
     anchors = element.getElementsByTagName "a"
     anchors = Array.prototype.slice.call anchors, 0
-    anchors = ( a.href for a in anchors when a.href and not stringStartsWith a.href, "javascript:" )
+    anchors = ( a.href for a in anchors when a.href and not Util.stringStartsWith a.href, "javascript:" )
     # Reverse the list here so that, when there are multiple top-scoring HREFs, the originally first-listed of
     # those will end up at the end.
     anchors = anchors.reverse().sort compareHRef
-    #
-    console.log scoreHRef(a), a for a in anchors
     #
     if 0 < anchors.length
       chrome.extension.sendMessage
@@ -270,7 +201,7 @@ request =
 chrome.extension.sendMessage request, (response) ->
   config = response || {}
   xPath = config.xPath || simpleBindings
-  console.log "justJK xPath", xPath
+  echo "justJK xPath: #{xPath}"
   #
   switch xPath
     when simpleBindings
@@ -295,7 +226,7 @@ chrome.extension.sendMessage request, (response) ->
       chrome.extension.sendMessage request, (response) ->
         if not currentElement
           if response?.id
-            for element in getElementList xPath
+            for element in Dom.getElementList xPath
               if element.id and response.id is element.id
                 return highlight element
           #

@@ -18,9 +18,10 @@
       {
          "matches"    : [ "<all_urls>" ],
          "css"        : [ "css/highlight.css" ],
-         "js"         : [ // "third-party/wgxpath.install.js",
-                             "third-party/keypress.js",
-                             "script/foreground.js"
+         "js"         : [ "third-party/keypress.js",
+                          "script/util.js",
+                          "script/dom.js",
+                          "script/foreground.js"
                         ],
          "run_at"     : "document_end",
          "all_frames" :  false
