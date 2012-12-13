@@ -6,3 +6,8 @@ Util = justJK.Util =
   stringContains:    (haystack, needle) -> haystack.indexOf(needle) != -1
   stringStartsWith:  (haystack, needle) -> haystack.indexOf(needle) ==  0
 
+Const = justJK.Const =
+  highlightCSS:   "justjk_highlighted"
+  simpleBindings: "/justJKSimpleBindingsForJK"
+  nativeBindings: "/justJKNativeBindingsForJK"
+  verboten:       [ "INPUT", "TEXTAREA" ]

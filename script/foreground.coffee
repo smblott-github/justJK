@@ -2,51 +2,39 @@
 justJK = window.justJK ?= {}
 #
 Util   = justJK.Util
+Const  = justJK.Const
 Dom    = justJK.Dom
 Scroll = justJK.Scroll
 #
 echo   = Util.echo
 
 # ####################################################################
-# Utilities and constants.
-
-highlightCSS      = "justjk_highlighted"
-simpleBindings    = "/justJKSimpleBindingsForJK"
-nativeBindings    = "/justJKNativeBindingsForJK"
-verboten          = [ "INPUT", "TEXTAREA" ]
-currentElement    = null
-config            = {}
-
-# ####################################################################
-# Header offsets adjustment.
+# State.
 #
-# Try to adjust the scroll offset for pages known to have static headers.  Content should not scroll up
-# underneath such headers.
-# 
-# Basically, config.header is  an XPath specification.  The bottom of the indicated element (which must be
-# unique) is taken to be the top of the normal page area.
-#
+currentElement = null
+config         = {}
 
 # ####################################################################
 # Highlight an element and scroll it into view.
 #
 highlight = (element) ->
-  if element and element isnt currentElement
-    #
-    if currentElement
-      currentElement.classList.remove highlightCSS
-    #
-    currentElement = element
-    currentElement.classList.add highlightCSS
+  if element
+    if element isnt currentElement
+      #
+      if currentElement
+        currentElement.classList.remove Const.highlightCSS
+      #
+      currentElement = element
+      currentElement.classList.add Const.highlightCSS
+      #
+      chrome.extension.sendMessage
+        request: "saveID"
+        id:       currentElement.id
+        host:     window.location.host
+        pathname: window.location.pathname
+        # No callback.
     #
     Scroll.smoothScrollToElement currentElement, config.header
-    #
-    chrome.extension.sendMessage
-      request: "saveID"
-      id:       currentElement.id
-      host:     window.location.host
-      pathname: window.location.pathname
-      # No callback.
 
 # ####################################################################
 # Logical navigation.
@@ -56,7 +44,7 @@ navigate = (xPath, move) ->
   n = elements.length
   #
   if 0 < n
-    index = (i for e, i in elements when e.classList.contains highlightCSS)
+    index = (i for e, i in elements when e.classList.contains Const.highlightCSS)
     if index.length == 0
       return highlight elements[0]
     #
@@ -67,16 +55,6 @@ navigate = (xPath, move) ->
     # Drop through.
   #
   Scroll.vanillaScroll move
-
-# ####################################################################
-# Key handling routines.
-
-doUnlessInputActive = (func) ->
-  if document.activeElement.nodeName not in verboten
-    if not (Dom.filterVisibleElements Dom.getElementsByClassName "vimiumReset vimiumHUD").length
-      func()
-      return false # Prevent propagation.
-  return true # Propagate.
 
 # ####################################################################
 # Scoring HREFs.
@@ -114,7 +92,7 @@ compareHRef = (a,b) -> scoreHRef(a) - scoreHRef(b)
 #
 followLink = (xPath) ->
   #
-  element = if xPath is nativeBindings then Dom.getActiveElement() else currentElement
+  element = if xPath is Const.nativeBindings then Dom.getActiveElement() else currentElement
   #
   if element
     anchors = element.getElementsByTagName "a"
@@ -143,23 +121,23 @@ request =
 
 chrome.extension.sendMessage request, (response) ->
   config = response || {}
-  xPath = config.xPath || simpleBindings
+  xPath = config.xPath || Const.simpleBindings
   echo "justJK xPath: #{xPath}"
   #
   switch xPath
-    when simpleBindings
-      keypress.combo "j",     -> doUnlessInputActive -> Scroll.vanillaScroll  1
-      keypress.combo "k",     -> doUnlessInputActive -> Scroll.vanillaScroll -1
-      keypress.combo ";",     -> doUnlessInputActive -> Scroll.vanillaScroll  0
+    when Const.simpleBindings
+      keypress.combo "j",     -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
+      keypress.combo "k",     -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
+      keypress.combo ";",     -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  0
     #
-    when nativeBindings
-      keypress.combo "enter", -> doUnlessInputActive -> followLink xPath
+    when Const.nativeBindings
+      keypress.combo "enter", -> Dom.doUnlessInputActive -> followLink xPath
     #
     else
-      keypress.combo "j",     -> doUnlessInputActive -> navigate   xPath,  1
-      keypress.combo "k",     -> doUnlessInputActive -> navigate   xPath, -1
-      keypress.combo ";",     -> doUnlessInputActive -> navigate   xPath,  0
-      keypress.combo "enter", -> doUnlessInputActive -> followLink xPath
+      keypress.combo "j",     -> Dom.doUnlessInputActive -> navigate   xPath,  1
+      keypress.combo "k",     -> Dom.doUnlessInputActive -> navigate   xPath, -1
+      keypress.combo ";",     -> Dom.doUnlessInputActive -> navigate   xPath,  0
+      keypress.combo "enter", -> Dom.doUnlessInputActive -> followLink xPath
       #
       request =
         request: "lastID"
