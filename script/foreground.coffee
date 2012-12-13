@@ -5,6 +5,7 @@ Util   = justJK.Util
 Const  = justJK.Const
 Dom    = justJK.Dom
 Scroll = justJK.Scroll
+Score  = justJK.Score
 #
 echo   = Util.echo
 
@@ -57,37 +58,6 @@ navigate = (xPath, move) ->
   Scroll.vanillaScroll move
 
 # ####################################################################
-# Scoring HREFs.
-# Scoring is ad hoc, based on heuristics which seem mostly to work.
-# HREFs with higher scores are prefered.
-#
-scoreHRef = (href) ->
-  score = 0
-  #
-  # Prefer URLs containing redirects; they are often the primary link.
-  score += 4 if Util.stringContains href, "%3A%2F%2" # == "://" URI encoded
-  #
-  # Prefer external links.
-  score += 3 unless Util.stringContains href, window.location.host
-  #
-  # Slightly prefer non-static looking links.
-  score += 1 if Util.stringContains href, "?"
-  #
-  if config.like
-    for like in config.like
-      score += 2 if Util.stringContains href, like
-  #
-  if config.dislike
-    for dislike in config.dislike
-      score -= 2 if Util.stringContains href, dislike
-  #
-  score
-
-# Scoring-based Comparison (for sorting).
-#
-compareHRef = (a,b) -> scoreHRef(a) - scoreHRef(b)
-
-# ####################################################################
 # Handle <enter>.
 #
 followLink = (xPath) ->
@@ -100,7 +70,7 @@ followLink = (xPath) ->
     anchors = ( a.href for a in anchors when a.href and not Util.stringStartsWith a.href, "javascript:" )
     # Reverse the list here so that, when there are multiple top-scoring HREFs, the originally first-listed of
     # those will end up at the end.
-    anchors = anchors.reverse().sort compareHRef
+    anchors = anchors.reverse().sort Score.compareHRef config.like, config.dislike
     #
     if 0 < anchors.length
       chrome.extension.sendMessage
