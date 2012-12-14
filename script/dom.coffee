@@ -49,17 +49,11 @@ Dom = justJK.Dom =
   # Return position of banner (specified by xPath) within the window.
   offsetAdjustment: (xPath) ->
     if xPath
-      Util.echo 1
       if banners = @evaluateXPath xPath
-        Util.echo 2
-        if banners and banners.length == 1 and banner = banners[0]
-          Util.echo 3
-          Util.echo @offsetTop banner
-          Util.echo banner.offsetHeight
-          if banner.offsetHeight and 0 == @offsetTop banner
-            Util.echo "HEADER: #{banner.offsetHeight}"
-            return banner.offsetHeight
-    Util.echo 4
+        if banners.length
+          Util.echo banners
+          bottoms = ( e.offsetHeight + @offsetTop e for e in banners)
+          return bottoms.reduce ( (p,c) -> Math.min p, c ), bottoms[0]
     #
     0
 

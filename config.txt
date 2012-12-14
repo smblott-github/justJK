@@ -51,7 +51,7 @@ like     /photo.php?fbid=
 dislike  apps.facebook.com
 
 site     plus.google.com
-header   //div[@id='gb']
+header   //div[@id='gb'] | //div[@role='navigation']
 elements //div[@id='contentPane']//div[@guidedhelpid='streamcontent']//div[starts-with(@id,'update-')]
 dislike  ://webcache.googleusercontent.com/
 
