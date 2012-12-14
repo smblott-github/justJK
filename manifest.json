@@ -11,6 +11,7 @@
    "background": {
       "scripts": [
          "script/util.js",
+         "script/parse.js",
          "script/background.js"
       ]
    },

@@ -62,8 +62,8 @@ navigate = (xPath, move) ->
 #
 followLink = (xPath) ->
   #
-  # If the active element is a link then we follow it regardless.
-  if document.activeElement and document.activeElement.nodeName is "A"
+  # If the active element is an anchor then we follow the link regardless.
+  if document.activeElement?.nodeName is "A"
     return document.activeElement.click()
   #
   element = if xPath is Const.nativeBindings then Dom.getActiveElement() else currentElement
