@@ -76,15 +76,17 @@ Parse = justJK.Parse =
         pathnames.push "^/" if pathnames.length == 0
         #
         for p in pathnames
+          entry =
+            path:    p
+            regexp:  new RegExp p
+            xPath:   xPath
+            header:  header
+            like:    like
+            dislike: dislike
           for s in @sites host
             sites[s] ?= []
-            sites[s].push
-              path:    p
-              regexp:  new RegExp p
-              xPath:   xPath
-              header:  header
-              like:    like
-              dislike: dislike
+            sites[s].push entry
+        #
       else
         # No host.
         if xPath
