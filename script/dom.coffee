@@ -51,7 +51,8 @@ Dom = justJK.Dom =
     if xPath
       if banners = @evaluateXPath xPath
         if banners and banners.length == 1 and banner = banners[0]
-          if banner.offsetTop == 0 and banner.offsetHeight
+          if @offsetTop banner == 0 and banner.offsetHeight
+            Util.echo "HEADER: #{banner.offsetHeight}"
             return banner.offsetHeight
     #
     0

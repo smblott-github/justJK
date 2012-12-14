@@ -48,7 +48,7 @@ addHighlightOnClickHandlers = (elements) ->
     unless element[jjkAttribute]
       do (element) ->
         element.onclick = ->
-          highlight element, false # "false" here means "do not scroll"
+          highlight element, false # "false" here means "do not scroll".
         #
         element[jjkAttribute] = true
   #

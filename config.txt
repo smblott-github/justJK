@@ -45,13 +45,14 @@ site     google .com .ie .co.uk .de .fr
 path     ^/reader/
 
 site     www.facebook.com
-# header   //div[@id='pagelet_bluebar']/div[@id='blueBarHolder']/div['blueBar']/../..
+header   //div[@id='pagelet_bluebar']/div[@id='blueBarHolder']/div['blueBar']/../..
 elements //li[starts-with(@class,'uiUnifiedStory')]
 like     /photo.php?fbid=
 dislike  apps.facebook.com
 
 site     plus.google.com
-# header //div[@id='gb']
+header   //div[@id='gb']
+elements //div[@id='contentPane']//div[@guidedhelpid='streamcontent']//div[starts-with(@id,'update-')]
 dislike  ://webcache.googleusercontent.com/
 
 site     slashdot.org
