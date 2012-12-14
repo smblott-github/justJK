@@ -17,21 +17,10 @@ Dom = justJK.Dom =
   filterVisibleElements: (elements) ->
     e for e in elements when e?.style?.display isnt "none"
 
-  # Return active element (or its proxy).
+  # Return active element.
+  # WARNING: This operation is proxied in "hacks.coffee".
   getActiveElement: ->
-    element = document.activeElement
-    #
-    switch window.location.host
-      when "www.facebook.com"
-        # With Facebook's native bindings, the active element is some "H5" object deep within the actual post.
-        # To find a link worth following, we must first got up the document tree a bit.
-        #
-        while element and element.nodeName isnt "LI"
-          element = element.parentNode
-        #
-        return element || document.activeElement
-    #
-    element
+    document.activeElement
 
   # Return list of elements matching given XPath expression.
   evaluateXPath: (xPath) ->

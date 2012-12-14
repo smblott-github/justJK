@@ -25,6 +25,7 @@
                           "script/dom.js",
                           "script/scroll.js",
                           "script/score.js",
+                          "script/hacks.js",
                           "script/foreground.js"
                         ],
          "run_at"     : "document_end",
