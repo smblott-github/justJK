@@ -48,6 +48,7 @@ site     www.facebook.com
 header   //div[@id='pagelet_bluebar']/div[@id='blueBarHolder']/div['blueBar']/../..
 elements //li[starts-with(@class,'uiUnifiedStory')]
 like     /photo.php?fbid=
+like     /l.php?u=
 dislike  apps.facebook.com
 
 site     plus.google.com

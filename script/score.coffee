@@ -29,5 +29,7 @@ Score = justJK.Score =
 
   compareHRef: (like,dislike) ->
     (a,b) ->
-      Score.scoreHRef(like,dislike,a) - Score.scoreHRef(like,dislike,b)
+      aScore = Score.scoreHRef(like,dislike,a)
+      bScore = Score.scoreHRef(like,dislike,b)
+      if aScore == bScore then a.length - b.length else aScore - bScore
 
