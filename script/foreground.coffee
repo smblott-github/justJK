@@ -71,7 +71,7 @@ document.onscroll = ->
           return highlight element, false # "false" here means "do not scroll".
     #
     clearInterval @timer if onscrollTimer
-    onscrollTimer = setTimeout interval, 700
+    onscrollTimer = setTimeout interval, 500
 
 # ####################################################################
 # Handle logical navigation.
