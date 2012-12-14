@@ -55,25 +55,6 @@ addHighlightOnClickHandlers = (elements) ->
   elements
 
 # ####################################################################
-# When the user scrolls, try to focus an element that is visible.
-#
-
-onscrollTimer = null
-
-document.onscroll = ->
-  if config?.logical
-    #
-    interval = ->
-      virtualTop = window.pageYOffset + Dom.offsetAdjustment config.header
-      #
-      for element in Dom.getElementList config.xPath
-        if virtualTop < Dom.offsetTop element
-          return highlight element, false # "false" here means "do not scroll".
-    #
-    clearInterval onscrollTimer if onscrollTimer
-    onscrollTimer = setTimeout interval, 500
-
-# ####################################################################
 # Handle logical navigation.
 #
 navigate = (xPath, move) ->
@@ -149,8 +130,6 @@ chrome.extension.sendMessage request, (response) ->
       keypress.combo "enter", -> Dom.doUnlessInputActive -> followLink xPath
     #
     else
-      config.logical = true
-      #
       keypress.combo "j",     -> Dom.doUnlessInputActive -> navigate   xPath,  1
       keypress.combo "k",     -> Dom.doUnlessInputActive -> navigate   xPath, -1
       keypress.combo ";",     -> Dom.doUnlessInputActive -> navigate   xPath,  0
@@ -171,4 +150,21 @@ chrome.extension.sendMessage request, (response) ->
           # Go to first element.
           #
           navigate xPath, 0
+      #
+      # ########################
+      # Fix selection on scroll.
+      onscrollTimer = null
+      count = 0
+      #
+      document.onscroll = ->
+        interval = ->
+          virtualTop = window.pageYOffset + Dom.offsetAdjustment config.header
+          #
+          for element in Dom.getElementList config.xPath
+            if virtualTop <= Dom.offsetTop element
+              return highlight element, false # "false" here means "do not scroll".
+        #
+        clearInterval onscrollTimer if onscrollTimer
+        onscrollTimer = setTimeout interval, 500
+
 
