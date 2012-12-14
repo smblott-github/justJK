@@ -3,6 +3,8 @@ justJK = window.justJK ?= {}
 #
 Util   = justJK.Util
 Const  = justJK.Const
+#
+echo   = Util.echo
 
 Dom = justJK.Dom =
   #
@@ -13,9 +15,18 @@ Dom = justJK.Dom =
   getElementsByClassName: (name) ->
     e for e in document.getElementsByTagName '*' when e.className is name
 
+  # Is elements visible?
+  visible: (element) ->
+    while element
+      return false if element?.style?.display is "none" or element.offsetHeight <= 0
+      element = element.parentNode
+    #
+    return true
+
   # Filter out hidden elements.
   filterVisibleElements: (elements) ->
-    e for e in elements when e?.style?.display isnt "none"
+    # e for e in elements when e?.style?.display isnt "none"
+    e for e in elements when @visible e
 
   # Return active element.
   # WARNING: This operation is proxied in "hacks.coffee".
