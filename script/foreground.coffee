@@ -93,6 +93,8 @@ followLink = (xPath) ->
     # up last.
     anchors = anchors.reverse().sort Score.compareHRef config.like, config.dislike
     #
+    echo.apply Util, anchors
+    #
     if 0 < anchors.length
       chrome.extension.sendMessage
         request: "open"

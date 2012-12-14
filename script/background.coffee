@@ -1,8 +1,11 @@
 
 justJK = window.justJK ?= {}
 #
+Util   = justJK.Util
 Const  = justJK.Const
 Parse  = justJK.Parse
+#
+echo   = Util.echo
 
 [ sites, paths ] = Parse.parse()
 
@@ -39,7 +42,7 @@ saveID = (host, pathname, id) ->
   # ... so that we don't later jump back to a previous element which *did* have an id.
   if host and pathname
     key = mkKey host, pathname
-    console.log "#{id} <- #{key}"
+    echo "#{id} <- #{key}"
     localStorage[key] = id
   null
 
@@ -48,7 +51,7 @@ lastID = (host,pathname) ->
     key = mkKey host, pathname
     if key of localStorage
       id = localStorage[key]
-      console.log "#{id} -> #{key}"
+      echo "#{id} -> #{key}"
       return { id: id }
   null
 
@@ -59,7 +62,7 @@ lastID = (host,pathname) ->
 #
 open = (url) ->
   if url
-    console.log url
+    echo "open: #{url}"
     chrome.tabs.getSelected null, (tab) ->
       chrome.tabs.create { url: url, index: tab.index, selected: true }
 
