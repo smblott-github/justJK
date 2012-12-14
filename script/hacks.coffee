@@ -1,4 +1,7 @@
 
+# These functions proxy/replace their general definitions elsewhere,  They provide new implementations which
+# handle known, site-specific issues, falling back to the general implementation for other cases.
+
 justJK = window.justJK ?= {}
 #
 Util   = justJK.Util
@@ -15,14 +18,13 @@ echo   = Util.echo
 getActiveElementOrig = Dom.getActiveElement
 
 Dom.getActiveElement = (args...) ->
-    element = document.activeElement
+    element = getActiveElementOrig.apply Dom, args
     #
-    switch window.location.host
-      when "www.facebook.com"
-        while element and element.nodeName isnt "LI"
-          element = element.parentNode
-        #
-        return element if element
+    if window.location.host is "www.facebook.com"
+      while element and element.nodeName isnt "LI"
+        element = element.parentNode
+      #
+      return element if element
     #
     getActiveElementOrig.apply Dom, args
 
@@ -31,6 +33,7 @@ Dom.getActiveElement = (args...) ->
 doUnlessInputActiveOrig = Dom.doUnlessInputActive
 
 Dom.doUnlessInputActive = (args...) ->
+  # Note: @/this here is Dom.
   if (@filterVisibleElements @getElementsByClassName "vimiumReset vimiumHUD").length
     return true # Propagate.
   doUnlessInputActiveOrig.apply Dom, args
