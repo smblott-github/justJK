@@ -9,14 +9,16 @@ Parse  = justJK.Parse
 # ####################################################################
 # Lookup configuration.
 
-subHosts = (host) ->
+# www.google.co.uk ->
+#   www.google.co.uk, google.co.uk, co.uk, uk
+domains = (host) ->
   parts = host.split "."
   parts[i..].join "." for i in [0...parts.length-1]
 
 config = (host,pathname) ->
   # Check host.
   if host and pathname
-    for hst in subHosts host
+    for hst in domains host
       if hst of sites
         for page in sites[hst]
           if page.regexp.test pathname
@@ -33,6 +35,8 @@ config = (host,pathname) ->
 mkKey = (host,pathname) -> "#{host}#{pathname}"
 
 saveID = (host, pathname, id) ->
+  # If the selected element does not have an id, then id here will be null.  It must nevertheless be recorded
+  # ... so that we don't later jump back to a previous element which *did* have an id.
   if host and pathname
     key = mkKey host, pathname
     console.log "#{id} <- #{key}"
@@ -40,8 +44,6 @@ saveID = (host, pathname, id) ->
   null
 
 lastID = (host,pathname) ->
-  # If the selected element does not have an id, then id here will be null.  It must neverthe less be recorded
-  # ... so that we don't later jump back to a previous element which *did* have an id.
   if host and pathname
     key = mkKey host, pathname
     if key of localStorage
