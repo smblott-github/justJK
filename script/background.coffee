@@ -63,17 +63,18 @@ for site in (siteList.split "\nsite")[1..] # Skip bogus first entry.
   xPath = xPath.join "|"
   #
   if host
-    sites[host] ?= []
     pathnames.push "^/" if pathnames.length == 0
     #
     for p in pathnames
-      sites[host].push
-        path:    p
-        regexp:  new RegExp p
-        xPath:   xPath
-        header:  header
-        like:    like
-        dislike: dislike
+      for s in host.split /\s+/
+        sites[s] ?= []
+        sites[s].push
+          path:    p
+          regexp:  new RegExp p
+          xPath:   xPath
+          header:  header
+          like:    like
+          dislike: dislike
   else
     # No host.
     if xPath
@@ -89,12 +90,19 @@ for site in (siteList.split "\nsite")[1..] # Skip bogus first entry.
 # ####################################################################
 # Lookup configuration.
 
+subHosts = (host) ->
+  parts = host.split "."
+  parts[i..].join "." for i in [0...parts.length-1]
+
 config = (host,pathname) ->
+  # Check host.
   if host and pathname
-    if host of sites
-      for page in sites[host]
-        if page.regexp.test pathname
-          return page
+    for hst in subHosts host
+      if hst of sites
+        for page in sites[hst]
+          if page.regexp.test pathname
+            return page
+  # Check pathname.
   for path in paths
     if path.regexp.test pathname
       return path
