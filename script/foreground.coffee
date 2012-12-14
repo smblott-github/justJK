@@ -64,13 +64,13 @@ document.onscroll = ->
   if config?.logical
     #
     interval = ->
-      adjustment = window.pageYOffset + Dom.offsetAdjustment config.header
+      virtualTop = window.pageYOffset + Dom.offsetAdjustment config.header
       #
       for element in Dom.getElementList config.xPath
-        if adjustment < Dom.offsetTop element
+        if virtualTop < Dom.offsetTop element
           return highlight element, false # "false" here means "do not scroll".
     #
-    clearInterval @timer if onscrollTimer
+    clearInterval onscrollTimer if onscrollTimer
     onscrollTimer = setTimeout interval, 500
 
 # ####################################################################

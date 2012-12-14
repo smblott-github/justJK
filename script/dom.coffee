@@ -52,7 +52,7 @@ Dom = justJK.Dom =
       banners = @evaluateXPath xPath
       if banners.length
         bottoms = ( e.offsetHeight + @offsetTop e for e in banners )
-        return bottoms.reduce ( (p,c) -> Math.min p, c ), bottoms[0]
+        return bottoms.reduce ( (p,c) -> Math.max p, c ), bottoms[0]
     #
     0
 
