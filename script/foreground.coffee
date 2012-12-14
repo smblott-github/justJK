@@ -159,6 +159,11 @@ chrome.extension.sendMessage request, (response) ->
       onscrollFunc = ->
         virtualTop = window.pageYOffset + Dom.offsetAdjustment config.header
         #
+        if currentElement
+          [ceTop, ceBottom ] = Dom.offsetTopBottom currentElement
+          ceBottom -= 100
+          return if ceTop < virtualTop < ceBottom
+        #
         for element in Dom.getElementList config.xPath
           if virtualTop <= Dom.offsetTop element
             return highlight element, false # "false" here means "do not scroll".

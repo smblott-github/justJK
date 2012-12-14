@@ -37,10 +37,15 @@ Dom = justJK.Dom =
   getElementList: (xPath) ->
     (e for e in @evaluateXPath xPath when 5 < e.offsetHeight).sort @byElementPosition
 
-  # Return offset of element vis-a-vis the top of the window.
+  # Return offset of the top of element vis-a-vis the top of the window.
   offsetTop: (element) ->
     e = element
     (e.offsetTop while e = e.offsetParent).reduce ( (p,c) -> p + c ), element.offsetTop
+
+  # Return offsets of the top and the bottom of element vis-a-vis the top of the window.
+  offsetTopBottom: (element) ->
+    offsetTop = @offsetTop element
+    [ offsetTop, offsetTop + element.offsetHeight ]
 
   # Compare two elements by their position within the window.
   byElementPosition: (a,b) ->
