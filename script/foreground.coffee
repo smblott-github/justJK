@@ -55,7 +55,7 @@ addHighlightOnClickHandlers = (elements) ->
   elements
 
 # ####################################################################
-# When the user scrolls, try to focus on an element that is visible.
+# When the user scrolls, try to focus an element that is visible.
 #
 
 onscrollTimer = null
@@ -64,17 +64,14 @@ document.onscroll = ->
   if config?.logical
     #
     interval = ->
-      adjustment = Dom.offsetAdjustment config.header
+      adjustment = window.pageYOffset + Dom.offsetAdjustment config.header
       #
       for element in Dom.getElementList config.xPath
-        if adjustment <= Dom.offsetTop element
-          echo "Scrolled to #{element}"
-          echo element
+        if adjustment < Dom.offsetTop element
           return highlight element, false # "false" here means "do not scroll".
     #
     clearInterval @timer if onscrollTimer
-    onscrollTimer = setTimeout interval, 500
-
+    onscrollTimer = setTimeout interval, 700
 
 # ####################################################################
 # Handle logical navigation.
