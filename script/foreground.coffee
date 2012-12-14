@@ -156,15 +156,14 @@ chrome.extension.sendMessage request, (response) ->
       onscrollTimer = null
       count = 0
       #
-      document.onscroll = ->
-        interval = ->
-          virtualTop = window.pageYOffset + Dom.offsetAdjustment config.header
-          #
-          for element in Dom.getElementList config.xPath
-            if virtualTop <= Dom.offsetTop element
-              return highlight element, false # "false" here means "do not scroll".
+      onscrollFunc = ->
+        virtualTop = window.pageYOffset + Dom.offsetAdjustment config.header
         #
+        for element in Dom.getElementList config.xPath
+          if virtualTop <= Dom.offsetTop element
+            return highlight element, false # "false" here means "do not scroll".
+      #
+      document.onscroll = ->
         clearInterval onscrollTimer if onscrollTimer
-        onscrollTimer = setTimeout interval, 500
-
+        onscrollTimer = setTimeout onscrollFunc, 300
 
