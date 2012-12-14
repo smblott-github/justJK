@@ -33,11 +33,14 @@
 # ##############################################################################
 # Sites ...
 
-site     www.google.com
+site     google.com
 path     ^/search
-elements //li[starts-with(@class,'g')][@id='newsbox']
-elements //li[starts-with(@class,'g')]/div[@class='vsc']/..
-elements //li[starts-with(@class,'g')][starts-with(@id,'esc-story-cluster-id')]
+# The following XPath misses the case where the 'g' is at the end of the
+# list ... which doesn't seem to com eup in practice.
+elements //li[ @class='g' or starts-with(@class,'g ') or contains(@class,' g ')  ]
+# elements //li[starts-with(@class,'g')][@id='newsbox']
+# elements //li[starts-with(@class,'g')]/div[@class='vsc']/..
+# elements //li[starts-with(@class,'g')][starts-with(@id,'esc-story-cluster-id')]
 dislike  google.com/search
 dislike  ://webcache.googleusercontent.com/
 
