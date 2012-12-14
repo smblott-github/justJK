@@ -24,5 +24,14 @@ Dom.getActiveElement = (args...) ->
         #
         return element if element
     #
-    getActiveElementOrig.call Dom, args
+    getActiveElementOrig.apply Dom, args
+
+# Vimium's search box is not an input element.  So, we shouldn't handle keys if the search box is active.
+#
+doUnlessInputActiveOrig = Dom.doUnlessInputActive
+
+Dom.doUnlessInputActive = (args...) ->
+  if (@filterVisibleElements @getElementsByClassName "vimiumReset vimiumHUD").length
+    return true # Propagate.
+  doUnlessInputActiveOrig.apply Dom, args
 

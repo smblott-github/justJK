@@ -57,10 +57,11 @@ Dom = justJK.Dom =
     0
 
   # Call function "func" unless an input element is active.
+  # WARNING: This operation is proxied in "hacks.coffee".
   doUnlessInputActive: (func) ->
-    if document.activeElement.nodeName not in Const.verboten
-      if not (@filterVisibleElements @getElementsByClassName "vimiumReset vimiumHUD").length
-        func()
-        return false # Prevent propagation.
-    return true # Propagate.
+    if document.activeElement?.nodeName in Const.verboten
+      return true # Propagate.
+    #
+    func()
+    return false # Prevent propagation.
 
