@@ -49,11 +49,10 @@ Dom = justJK.Dom =
   # Return position of banner (specified by xPath) within the window.
   offsetAdjustment: (xPath) ->
     if xPath
-      if banners = @evaluateXPath xPath
-        if banners.length
-          Util.echo banners
-          bottoms = ( e.offsetHeight + @offsetTop e for e in banners)
-          return bottoms.reduce ( (p,c) -> Math.min p, c ), bottoms[0]
+      banners = @evaluateXPath xPath
+      if banners.length
+        bottoms = ( e.offsetHeight + @offsetTop e for e in banners )
+        return bottoms.reduce ( (p,c) -> Math.min p, c ), bottoms[0]
     #
     0
 
