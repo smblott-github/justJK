@@ -55,6 +55,28 @@ addHighlightOnClickHandlers = (elements) ->
   elements
 
 # ####################################################################
+# When the user scrolls, try to focus on an element that is visible.
+#
+
+onscrollTimer = null
+
+document.onscroll = ->
+  if config?.logical
+    #
+    interval = ->
+      adjustment = Dom.offsetAdjustment config.header
+      #
+      for element in Dom.getElementList config.xPath
+        if adjustment <= Dom.offsetTop element
+          echo "Scrolled to #{element}"
+          echo element
+          return highlight element, false # "false" here means "do not scroll".
+    #
+    clearInterval @timer if onscrollTimer
+    onscrollTimer = setTimeout interval, 500
+
+
+# ####################################################################
 # Handle logical navigation.
 #
 navigate = (xPath, move) ->
@@ -115,6 +137,7 @@ request =
 
 chrome.extension.sendMessage request, (response) ->
   config = response
+  config.logical = false
   #
   xPath = config.xPath
   echo "justJK xPath: #{xPath}"
@@ -129,6 +152,8 @@ chrome.extension.sendMessage request, (response) ->
       keypress.combo "enter", -> Dom.doUnlessInputActive -> followLink xPath
     #
     else
+      config.logical = true
+      #
       keypress.combo "j",     -> Dom.doUnlessInputActive -> navigate   xPath,  1
       keypress.combo "k",     -> Dom.doUnlessInputActive -> navigate   xPath, -1
       keypress.combo ";",     -> Dom.doUnlessInputActive -> navigate   xPath,  0
