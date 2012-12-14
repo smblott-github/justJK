@@ -1,9 +1,20 @@
 
 justJK = window.justJK ?= {}
 #
+Util   = justJK.Util
 Const  = justJK.Const
 
 Parse = justJK.Parse =
+
+  sites: (host) ->
+    hosts = host.split /\s+/
+    if Util.stringContains hosts[0], "."
+      hosts
+    else
+      [ base, tlds... ] = hosts
+      tlds = ( ( if Util.stringStartsWith tld, "." then tld else ".#{tld}" ) for tld in tlds )
+      "#{base}#{tld}" for tld in tlds
+
   parse: ->
     siteListURL = chrome.extension.getURL "config.txt"
 
@@ -65,7 +76,7 @@ Parse = justJK.Parse =
         pathnames.push "^/" if pathnames.length == 0
         #
         for p in pathnames
-          for s in host.split /\s+/
+          for s in @sites host
             sites[s] ?= []
             sites[s].push
               path:    p

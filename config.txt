@@ -33,15 +33,15 @@
 # ##############################################################################
 # Sites ...
 
-site     google.com google.ie google.co.uk google.de google.fr
+site     google .com .ie .co.uk .de .fr
 path     ^/search
 # The following XPath misses the case where the 'g' is at the end of the
 # list ... which doesn't seem to com eup in practice.
 elements //li[ @class='g' or starts-with(@class,'g ') or contains(@class,' g ')  ]
-dislike  google.com/search
+dislike  /search
 dislike  ://webcache.googleusercontent.com/
 
-site     www.google.com
+site     google .com .ie .co.uk .de .fr
 path     ^/reader/
 
 site     www.facebook.com
