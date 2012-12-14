@@ -7,6 +7,7 @@ Util = justJK.Util =
   stringStartsWith:  (haystack, needle) -> haystack.indexOf(needle) ==  0
 
 Const = justJK.Const =
+  jjkAttribute:   "__justJKExtra__smblott_"
   highlightCSS:   "justjk_highlighted"
   simpleBindings: "/justJKSimpleBindingsForJK"
   nativeBindings: "/justJKNativeBindingsForJK"

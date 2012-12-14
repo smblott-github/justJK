@@ -18,7 +18,7 @@ config         = {}
 # ####################################################################
 # Highlight an element and scroll it into view.
 #
-highlight = (element) ->
+highlight = (element, scroll=true) ->
   if element
     if element isnt currentElement
       #
@@ -35,13 +35,30 @@ highlight = (element) ->
         pathname: window.location.pathname
         # No callback.
     #
-    Scroll.smoothScrollToElement currentElement, config.header
+    if scroll
+      Scroll.smoothScrollToElement currentElement, config.header
+
+# ####################################################################
+# Arm elements for highlighting on click.
+#
+jjkAttribute = Const.jjkAttribute
+
+addHighlightOnClickHandlers = (elements) ->
+  for element in elements
+    unless element[jjkAttribute]
+      do (element) ->
+        element.onclick = ->
+          highlight element, false # "false" here means "do not scroll"
+        #
+        element[jjkAttribute] = true
+  #
+  elements
 
 # ####################################################################
 # Handle logical navigation.
 #
 navigate = (xPath, move) ->
-  elements = Dom.getElementList xPath
+  elements = addHighlightOnClickHandlers Dom.getElementList xPath
   n = elements.length
   #
   if 0 < n
