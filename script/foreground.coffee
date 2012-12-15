@@ -178,20 +178,16 @@ chrome.extension.sendMessage request, (response) ->
       # ########################
       # Highlight new selection on scroll.
       #
-      onscrollTimer = null
-      onscrollCallback  = ->
-        onscrollTimer = null
-        pageTop = Scroll.pageTop config.header
-        #
-        if currentElement
-          [ top, bottom ] = Dom.offsetTopBottom currentElement
-          return if top < pageTop < bottom - 60
-        #
-        for element in Dom.getElementList config.xPath
-          if pageTop <= Dom.offsetTop element
-            return highlight element, false # "false" here means "do not scroll".
-      #
       document.onscroll = ->
-        clearInterval onscrollTimer if onscrollTimer
-        onscrollTimer = setTimeout onscrollCallback, 300
+        Util.onlyOnce ->
+          pageTop = Scroll.pageTop config.header
+          #
+          # Stick with the current element if it's in a reasonable position.
+          if currentElement
+            [ top, bottom ] = Dom.offsetTopBottom currentElement
+            return if top < pageTop < bottom - 60
+          #
+          for element in Dom.getElementList config.xPath
+            if pageTop <= Dom.offsetTop element
+              return highlight element, false # "false" here means "do not scroll".
 
