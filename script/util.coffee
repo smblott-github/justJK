@@ -14,6 +14,10 @@ Util = justJK.Util =
   stringStartsWith:  (haystack, needle) -> haystack.indexOf(needle) ==  0
   sum:               (a, b)             -> a + b
 
+  show: (thing) ->
+    Util.echo thing
+    thing
+
   flatten: (obj,func) ->
     val while obj and [ val, obj ] = func obj
 

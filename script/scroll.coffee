@@ -15,9 +15,9 @@ Scroll = justJK.Scroll =
   vanillaScrollStep:  70
   offset:             20
   #
-  duration:           350
+  duration:           250
   durationScale:      6
-  interval:           40
+  interval:           20
   #
   timer:              null
 

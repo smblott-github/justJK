@@ -5,6 +5,7 @@ Util   = justJK.Util
 Const  = justJK.Const
 #
 echo   = Util.echo
+show   = Util.show
 
 Dom = justJK.Dom =
   #
@@ -15,13 +16,11 @@ Dom = justJK.Dom =
   getElementsByClassName: (name) ->
     e for e in document.getElementsByTagName '*' when e.className is name
 
-  # Is elements visible?
+  # Is element visible?
   visible: (element) ->
-    while element
-      return false if element?.style?.display is "none" or element.offsetHeight <= 0
-      element = element.parentNode
-    #
-    return true
+    window.getComputedStyle(element).display isnt "none" and
+      @parentNodes(element)
+        .reduce ( (p,e) -> p and ( 0 < e.offsetHeight or not e.offsetHeight? ) ), true
 
   # Filter out hidden elements.
   filterVisibleElements: (elements) ->
@@ -52,7 +51,7 @@ Dom = justJK.Dom =
 
   # Return offset of the top of element vis-a-vis the top of the window.
   offsetTop: (element) ->
-    ( Util.flatten element, (e,n) -> [ e.offsetTop, e.offsetParent ] )
+    ( e.offsetTop for e in @offsetParents(element) )
       .reduce Util.sum, 0
 
   # Return offset of the bottom of element vis-a-vis the top of the window.
@@ -68,7 +67,11 @@ Dom = justJK.Dom =
   byElementPosition: (a,b) ->
     Dom.offsetTop(a) - Dom.offsetTop(b)
 
-  # Return list of element together with all its offset parents.
+  # Return list of element and all its parent nodes.
+  parentNodes: (element) ->
+    Util.flatten element, (e) -> [ e, e.parentNode ]
+
+  # Return list of element and all its offset parents.
   offsetParents: (element) ->
     Util.flatten element, (e) -> [ e, e.offsetParent ]
 
