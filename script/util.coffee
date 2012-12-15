@@ -24,19 +24,12 @@ Util = justJK.Util =
   #
   onlyOnceTimer: null
   #
-  onlyOnceFuncWrapper: (func) ->
-    @onlyOnceTimer = null
-    func()
-  #
-  #
-  onlyOnceFuncWrapperWrapper: (func) ->
+  onlyOnceFunc: (func) ->
     ->
-      Util.onlyOnceFuncWrapper.call Util, func
+      Util.onlyOnceTimer = null
+      func()
   #
   onlyOnce: (func) ->
-    if @onlyOnceTimer
-      clearInterval @onlyOnceTimer
-      @onlyOnceTimer = null
-    #
-    @onlyOnceTimer = setTimeout @onlyOnceFuncWrapperWrapper(func), 100
+    clearInterval @onlyOnceTimer if @onlyOnceTimer
+    @onlyOnceTimer = setTimeout @onlyOnceFunc(func), 100
 
