@@ -16,15 +16,24 @@ Dom = justJK.Dom =
   getElementsByClassName: (name) ->
     e for e in document.getElementsByTagName '*' when e.className is name
 
+  # # Is element visible?
+  # visible: (element) ->
+  #   window.getComputedStyle(element).display isnt "none" and
+  #     @offsetParents(element)
+  #       .reduce ( (p,e) -> p and 0 < e.offsetHeight ), true
+
   # Is element visible?
   visible: (element) ->
-    window.getComputedStyle(element).display isnt "none" and
-      @parentNodes(element)
-        .reduce ( (p,e) -> p and ( 0 < e.offsetHeight or not e.offsetHeight? ) ), true
+    for e in @parentNodes element
+      return false if e.offsetHeight <= 0
+      if style = window.getComputedStyle(e)
+        return false if style.display    is "none"
+        return false if style.visibility is "hidden"
+    #
+    true
 
   # Filter out hidden elements.
   filterVisibleElements: (elements) ->
-    # e for e in elements when e?.style?.display isnt "none"
     e for e in elements when @visible e
 
   # Return active element.
@@ -45,13 +54,17 @@ Dom = justJK.Dom =
     #
     element while xPathResult and element = xPathResult.iterateNext()
 
-  # Return list of element matcing given XPath expression sorted by their position within the window.
+  # Return list of elements matching given XPath expression sorted by their position within the window.
   getElementList: (xPath) ->
     (e for e in @evaluateXPath xPath when 5 < e.offsetHeight).sort @byElementPosition
 
+  # Compare two elements by their top position within the window.
+  byElementPosition: (a,b) ->
+    Dom.offsetTop(a) - Dom.offsetTop(b)
+
   # Return offset of the top of element vis-a-vis the top of the window.
   offsetTop: (element) ->
-    ( e.offsetTop for e in @offsetParents(element) when e.offsetTop? )
+    ( e.offsetTop for e in @offsetParents element when e.offsetTop )
       .reduce Util.sum, 0
 
   # Return offset of the bottom of element vis-a-vis the top of the window.
@@ -63,17 +76,10 @@ Dom = justJK.Dom =
     offsetTop = @offsetTop element
     [ offsetTop, offsetTop + element.offsetHeight ]
 
-  # Compare two elements by their top position within the window.
-  byElementPosition: (a,b) ->
-    Dom.offsetTop(a) - Dom.offsetTop(b)
-
   # Return list of element and all its parent nodes.
-  parentNodes: (element) ->
-    Util.flatten element, (e) -> [ e, e.parentNode ]
-
-  # Return list of element and all its offset parents.
-  offsetParents: (element) ->
-    Util.flatten element, (e) -> [ e, e.offsetParent ]
+  # Return list of an element and all of its offset parents.
+  parentNodes:   (element) -> Util.flatten element, (e) -> [ e, e.parentNode   ]
+  offsetParents: (element) -> Util.flatten element, (e) -> [ e, e.offsetParent ]
 
   # Is the position of element fixed?
   isFixed: (element) ->
@@ -87,7 +93,7 @@ Dom = justJK.Dom =
   # Call function "func" unless an input element is active.
   # WARNING: This operation is proxied in "hacks.coffee".
   doUnlessInputActive: (func) ->
-    if document.activeElement?.nodeName in Const.verboten
+    if document.activeElement.nodeName in Const.verboten
       return true # Propagate.
     #
     func()

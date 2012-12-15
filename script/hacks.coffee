@@ -1,6 +1,6 @@
 
 # These functions proxy/replace their general definitions elsewhere,  They provide new implementations which
-# handle known, site-specific issues, falling back to the general implementation for other cases.
+# handle known, site-specific issues, falling back to the general implementation as appropriate.
 
 justJK = window.justJK ?= {}
 #
