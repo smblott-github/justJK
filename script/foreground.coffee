@@ -143,6 +143,9 @@ chrome.extension.sendMessage request, (response) ->
       keypress.combo "j",     -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
       keypress.combo "k",     -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
       keypress.combo ";",     -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  0
+      #
+      keypress.combo "down",  -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
+      keypress.combo "up",    -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
     #
     when Const.nativeBindings
       keypress.combo "enter", -> Dom.doUnlessInputActive -> followLink xPath
