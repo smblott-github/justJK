@@ -67,6 +67,24 @@ navigate = (xPath, move) ->
       return highlight elements[0]
     #
     index = index[0]
+    #
+    # When mixing logical scrolling with other scrolling, the selected element can be in a variety of
+    # positions.  The UX is better with the following adjustments.
+    #
+    if move and not Scroll.scrolling()
+      element = elements[index]
+      #
+      if currentElement and element is currentElement
+        elementTop = Dom.offsetTop element
+        pageTop = Scroll.pageTop config.header
+        #
+        switch move
+          when  1 then return highlight element if pageTop    < elementTop
+          when -1 then return highlight element if elementTop < pageTop
+        # Drop through.
+    #
+    # Normal navigation.
+    #
     newIndex = Math.min n-1, Math.max 0, if move then index + move else 0
     if newIndex isnt index
       return highlight elements[newIndex]
@@ -157,15 +175,15 @@ chrome.extension.sendMessage request, (response) ->
       count = 0
       #
       onscrollFunc = ->
-        virtualTop = window.pageYOffset + Dom.offsetAdjustment config.header
+        pageTop = Scroll.pageTop config.header
         #
         if currentElement
           [ceTop, ceBottom ] = Dom.offsetTopBottom currentElement
           ceBottom -= 100
-          return if ceTop < virtualTop < ceBottom
+          return if ceTop < pageTop < ceBottom
         #
         for element in Dom.getElementList config.xPath
-          if virtualTop <= Dom.offsetTop element
+          if pageTop <= Dom.offsetTop element
             return highlight element, false # "false" here means "do not scroll".
       #
       document.onscroll = ->

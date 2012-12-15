@@ -17,6 +17,10 @@ Scroll = justJK.Scroll =
   #
   timer:              null
 
+  scrolling:            -> @timer != null
+  pageTop: (header)     -> window.pageYOffset + @offset + Dom.pageTopAdjustment header
+  vanillaScroll: (move) -> @smoothScrollByDelta if move then move * @vanillaScrollStep else 0 - window.pageYOffset
+
   smoothScrollByDelta: (delta) ->
     offset = window.pageYOffset
     start  = Date.now()
@@ -38,14 +42,11 @@ Scroll = justJK.Scroll =
 
   smoothScrollToElement: (element, header) ->
     offSetTop = Dom.offsetTop element
-    target    = offSetTop - ( @offset + Dom.offsetAdjustment header )
+    target    = offSetTop - ( @offset + Dom.pageTopAdjustment header )
     offset    = window.pageYOffset
     delta     = target - offset
     #
     @smoothScrollByDelta delta
     #
     element
-
-  vanillaScroll: (move) ->
-    @smoothScrollByDelta if move then move * @vanillaScrollStep else 0 - window.pageYOffset
 

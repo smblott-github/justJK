@@ -63,7 +63,7 @@ Dom = justJK.Dom =
     Dom.offsetTop(a) - Dom.offsetTop(b)
 
   # Return position of banner (specified by xPath) within the window.
-  offsetAdjustment: (xPath) ->
+  pageTopAdjustment: (xPath) ->
     if xPath
       banners = @evaluateXPath xPath
       if banners.length
