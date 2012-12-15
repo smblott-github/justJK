@@ -3,6 +3,7 @@ justJK = window.justJK ?= {}
 #
 Util   = justJK.Util
 #
+echo             = Util.echo
 stringContains   = Util.stringContains
 stringStartsWith = Util.stringStartsWith
 

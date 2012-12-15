@@ -104,15 +104,20 @@ followLink = (xPath) ->
   element = if xPath is Const.nativeBindings then Dom.getActiveElement() else currentElement
   #
   if element
-    anchors = element.getElementsByTagName "a"
+    # anchors = element.getElementsByTagName "a"
+    anchors = Dom.getElementsByTagName element, "a"
     anchors = Dom.filterVisibleElements anchors
+    echo "-- #{anchors.length}"
+    for a in anchors
+      echo "#{Score.scoreHRef  config.like, config.dislike, a.href} #{a}"
+    #
     anchors = Array.prototype.slice.call anchors, 0
     anchors = ( a.href for a in anchors when a.href and not Util.stringStartsWith a.href, "javascript:" )
+    #
     # Reverse the list so that, when there are multiple top-scoring HREFs, the originally first of those ends
     # up last.
     anchors = anchors.reverse().sort Score.compareHRef config.like, config.dislike
     #
-    echo.apply Util, anchors
     #
     if 0 < anchors.length
       chrome.extension.sendMessage
@@ -182,13 +187,16 @@ chrome.extension.sendMessage request, (response) ->
       document.onscroll = ->
         Util.onlyOnce ->
           pageTop = Scroll.pageTop config.header
+          pageBottom = pageTop + window.innerHeight
           #
           # Stick with the current element if it's in a reasonable position.
           if currentElement
             [ top, bottom ] = Dom.offsetTopBottom currentElement
             return if top < pageTop < bottom - 60
           #
+          previous = null
           for element in Dom.getElementList config.xPath
-            if pageTop <= Dom.offsetTop element
+            if pageTop <= Dom.offsetTop(element) or pageBottom - 300 < Dom.offsetBottom(element)
               return highlight element, false # "false" here means "do not scroll".
+            previous = element
 

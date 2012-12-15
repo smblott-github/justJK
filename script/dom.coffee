@@ -22,13 +22,41 @@ Dom = justJK.Dom =
   #     @offsetParents(element)
   #       .reduce ( (p,e) -> p and 0 < e.offsetHeight ), true
 
+  # # Is element visible?
+  # visible: (element) ->
+  #   for e in @parentNodes element
+  #     return false if e.offsetHeight <= 0
+  #     if style = window.getComputedStyle(e)
+  #       return false if style.display    is "none"
+  #       return false if style.visibility is "hidden"
+  #   #
+  #   true
+
   # Is element visible?
   visible: (element) ->
+    height = 0
+    for e in @offsetParents element
+      if e.offsetHeight <= 0
+        echo "height"
+        echo e
+        echo e.scrollHeight
+        return false
+    #
     for e in @parentNodes element
-      return false if e.offsetHeight <= 0
       if style = window.getComputedStyle(e)
-        return false if style.display    is "none"
-        return false if style.visibility is "hidden"
+        if style.display is "none"
+          echo "display"
+          return false
+        if style.visibility is "hidden"
+          echo "visibility"
+          return false
+        if style.overflow is "hidden"
+          top = @offsetTop e
+          for p in @offsetParents e
+            bottom = @offsetBottom p
+            if bottom < top
+              echo "overflow"
+              return false
     #
     true
 
@@ -98,4 +126,10 @@ Dom = justJK.Dom =
     #
     func()
     return false # Prevent propagation.
+
+  getElementsByTagName: (element,tag, result=[]) ->
+    result.push element if element.nodeName.toLowerCase() is tag
+    @getElementsByTagName child, tag, result for child in element.children
+    #
+    result
 
