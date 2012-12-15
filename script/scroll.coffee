@@ -4,7 +4,11 @@
 #
 
 justJK = window.justJK ?= {}
-Dom = justJK.Dom
+#
+Dom    = justJK.Dom
+Util   = justJK.Util
+#
+echo   = Util.echo
 
 Scroll = justJK.Scroll = 
   #
@@ -41,12 +45,5 @@ Scroll = justJK.Scroll =
     @timer = setInterval intervalFunc, @interval
 
   smoothScrollToElement: (element, header) ->
-    offSetTop = Dom.offsetTop element
-    target    = offSetTop - ( @offset + Dom.pageTopAdjustment header )
-    offset    = window.pageYOffset
-    delta     = target - offset
-    #
-    @smoothScrollByDelta delta
-    #
-    element
+    @smoothScrollByDelta Dom.offsetTop(element) - @pageTop header
 
