@@ -13,6 +13,7 @@ Util = justJK.Util =
   stringContains:    (haystack, needle) -> haystack.indexOf(needle) != -1
   stringStartsWith:  (haystack, needle) -> haystack.indexOf(needle) ==  0
   sum:               (a, b)             -> a + b
+  max:               (a, b)             -> Math.max a, b
 
   show: (thing) ->
     Util.echo thing

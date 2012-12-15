@@ -105,11 +105,7 @@ followLink = (xPath) ->
   #
   if element
     anchors = element.getElementsByTagName "a"
-    echo "-------"
-    echo anchors.length
     anchors = Dom.filterVisibleElements anchors
-    echo "---"
-    echo.apply null, anchors
     anchors = Array.prototype.slice.call anchors, 0
     anchors = ( a.href for a in anchors when a.href and not Util.stringStartsWith a.href, "javascript:" )
     # Reverse the list so that, when there are multiple top-scoring HREFs, the originally first of those ends

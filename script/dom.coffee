@@ -51,7 +51,7 @@ Dom = justJK.Dom =
 
   # Return offset of the top of element vis-a-vis the top of the window.
   offsetTop: (element) ->
-    ( e.offsetTop for e in @offsetParents(element) )
+    ( e.offsetTop for e in @offsetParents(element) when e.offsetTop? )
       .reduce Util.sum, 0
 
   # Return offset of the bottom of element vis-a-vis the top of the window.
@@ -77,12 +77,12 @@ Dom = justJK.Dom =
 
   # Is the position of element fixed?
   isFixed: (element) ->
-    "fixed" in window.getComputedStyle(e).position for e in @offsetParents element
+    "fixed" in ( window.getComputedStyle(e).position for e in @offsetParents element )
 
   # Return largest position of the bottom of a fixed banner.
   pageTopAdjustment: (xPath) ->
     ( @offsetBottom banner for banner in @evaluateXPath xPath when @isFixed banner )
-      .reduce Math.max, 0
+      .reduce Util.max, 0
 
   # Call function "func" unless an input element is active.
   # WARNING: This operation is proxied in "hacks.coffee".
