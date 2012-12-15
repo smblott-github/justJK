@@ -12,6 +12,10 @@ Util = justJK.Util =
   echo:              (args...)          -> console.log arg for arg in args
   stringContains:    (haystack, needle) -> haystack.indexOf(needle) != -1
   stringStartsWith:  (haystack, needle) -> haystack.indexOf(needle) ==  0
+  sum:               (a, b)             -> a + b
+
+  flatten: (obj,func) ->
+    val while obj and [ val, obj ] = func obj
 
   # Sometimes, a function call is triggered unnecessarily multiple times in quick succession.  "onlyOnce",
   # here, arranges to call a function 100ms after it was last asked to do so.  However, it quietly swallows

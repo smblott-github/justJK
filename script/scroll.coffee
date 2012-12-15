@@ -17,7 +17,7 @@ Scroll = justJK.Scroll =
   #
   duration:           350
   durationScale:      6
-  interval:           10
+  interval:           40
   #
   timer:              null
 

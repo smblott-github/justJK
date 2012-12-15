@@ -35,6 +35,8 @@ Dom = justJK.Dom =
 
   # Return list of elements matching given XPath expression.
   evaluateXPath: (xPath) ->
+    return [] unless xPath
+    #
     try
       xPathResult = document.evaluate xPath, document, @namespaceResolver, @xPathResultType
       #
@@ -50,27 +52,34 @@ Dom = justJK.Dom =
 
   # Return offset of the top of element vis-a-vis the top of the window.
   offsetTop: (element) ->
-    e = element
-    (e.offsetTop while e = e.offsetParent).reduce ( (p,c) -> p + c ), element.offsetTop
+    ( Util.flatten element, (e,n) -> [ e.offsetTop, e.offsetParent ] )
+      .reduce Util.sum, 0
 
-  # Return offsets of the top and the bottom of element vis-a-vis the top of the window.
+  # Return offset of the bottom of element vis-a-vis the top of the window.
+  offsetBottom: (element) ->
+    element.offsetHeight + @offsetTop element
+
+  # Return both the offsets of the top and the bottom of element vis-a-vis the top of the window.
   offsetTopBottom: (element) ->
     offsetTop = @offsetTop element
     [ offsetTop, offsetTop + element.offsetHeight ]
 
-  # Compare two elements by their position within the window.
+  # Compare two elements by their top position within the window.
   byElementPosition: (a,b) ->
     Dom.offsetTop(a) - Dom.offsetTop(b)
 
-  # Return position of banner (specified by xPath) within the window.
+  # # Is the position of element fixed?
+  # isFixed: (element) ->
+  #   "fixed" in Util.flatten element, (e) -> [ window.getComputedStyle(e).position, e.offsetParent ]
+
+  # Is the position of element fixed?
+  isFixed: (element) ->
+    window.getComputedStyle(element).position is "fixed"
+
+  # Return largest position of the bottom of a fixed banner.
   pageTopAdjustment: (xPath) ->
-    if xPath
-      banners = @evaluateXPath xPath
-      if banners.length
-        bottoms = ( e.offsetHeight + @offsetTop e for e in banners )
-        return bottoms.reduce ( (p,c) -> Math.max p, c ), bottoms[0]
-    #
-    0
+    ( @offsetBottom banner for banner in @evaluateXPath xPath when @isFixed banner )
+      .reduce Math.max, 0
 
   # Call function "func" unless an input element is active.
   # WARNING: This operation is proxied in "hacks.coffee".
