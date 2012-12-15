@@ -28,7 +28,7 @@
                           "script/hacks.js",
                           "script/foreground.js"
                         ],
-         "run_at"     : "document_start",
+         "run_at"     : "document_end",
          "all_frames" :  false
       }
    ],
