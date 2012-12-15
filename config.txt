@@ -45,7 +45,7 @@ site     google .com .ie .co.uk .de .fr
 path     ^/reader/
 
 site     www.facebook.com
-header   //div[@id='pagelet_bluebar']/div[@id='blueBarHolder']/div['blueBar']
+header   //div[@id='pagelet_bluebar']/div[@id='blueBarHolder']/div['blueBar'] | //div[@id='timeline_sticky_header']
 elements //li[starts-with(@class,'uiUnifiedStory')]
 like     /photo.php?fbid=
 like     /l.php?u=

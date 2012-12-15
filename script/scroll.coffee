@@ -28,10 +28,11 @@ Scroll = justJK.Scroll =
   smoothScrollByDelta: (delta) ->
     offset = window.pageYOffset
     start  = Date.now()
-    duration = @duration + @durationScale * Math.sqrt Math.abs delta
+    duration = @duration # + @durationScale * Math.sqrt Math.abs delta
     #
     intervalFunc = =>
-      factor = Math.sqrt Math.sqrt (Date.now() - start) / duration
+      # factor = Math.sqrt Math.sqrt (Date.now() - start) / duration
+      factor = (Date.now() - start) / duration
       #
       if 1 <= factor
         clearInterval @timer

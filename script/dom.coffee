@@ -68,13 +68,13 @@ Dom = justJK.Dom =
   byElementPosition: (a,b) ->
     Dom.offsetTop(a) - Dom.offsetTop(b)
 
-  # # Is the position of element fixed?
-  # isFixed: (element) ->
-  #   "fixed" in Util.flatten element, (e) -> [ window.getComputedStyle(e).position, e.offsetParent ]
+  # Return list of element together with all its offset parents.
+  offsetParents: (element) ->
+    Util.flatten element, (e) -> [ e, e.offsetParent ]
 
   # Is the position of element fixed?
   isFixed: (element) ->
-    window.getComputedStyle(element).position is "fixed"
+    "fixed" in window.getComputedStyle(e).position for e in @offsetParents element
 
   # Return largest position of the bottom of a fixed banner.
   pageTopAdjustment: (xPath) ->
