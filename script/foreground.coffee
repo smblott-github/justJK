@@ -153,6 +153,9 @@ chrome.extension.sendMessage request, (response) ->
       keypress.combo ";",     -> Dom.doUnlessInputActive -> navigate   xPath,  0
       keypress.combo "enter", -> Dom.doUnlessInputActive -> followLink xPath
       #
+      keypress.combo "down",  -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
+      keypress.combo "up",    -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
+      #
       request =
         request: "lastID"
         host:     window.location.host
@@ -170,17 +173,16 @@ chrome.extension.sendMessage request, (response) ->
           navigate xPath, 0
       #
       # ########################
-      # Fix selection on scroll.
-      onscrollTimer = null
-      count = 0
+      # Highlight new selection on scroll.
       #
-      onscrollFunc = ->
+      onscrollTimer = null
+      onscrollCallback  = ->
+        onscrollTimer = null
         pageTop = Scroll.pageTop config.header
         #
         if currentElement
-          [ceTop, ceBottom ] = Dom.offsetTopBottom currentElement
-          ceBottom -= 100
-          return if ceTop < pageTop < ceBottom
+          [ top, bottom ] = Dom.offsetTopBottom currentElement
+          return if top < pageTop < bottom - 60
         #
         for element in Dom.getElementList config.xPath
           if pageTop <= Dom.offsetTop element
@@ -188,5 +190,5 @@ chrome.extension.sendMessage request, (response) ->
       #
       document.onscroll = ->
         clearInterval onscrollTimer if onscrollTimer
-        onscrollTimer = setTimeout onscrollFunc, 300
+        onscrollTimer = setTimeout onscrollCallback, 300
 
