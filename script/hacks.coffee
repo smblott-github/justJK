@@ -31,19 +31,24 @@ replaceValue Dom, "getActiveElement", (result, args) ->
 
 # Vimium's search box is not an input element.  So, we shouldn't handle keys if the search box is active.
 #
-doUnlessInputActiveOrig = Dom.doUnlessInputActive
-
-Dom.doUnlessInputActive = (args...) ->
-  return doUnlessInputActiveOrig.apply Dom, args
-  # Note: @/this here is Dom.
-  if (@filterVisibleElements @getElementsByClassName "vimiumReset vimiumHUD").length
-    return true # Propagate.
-  #
-  doUnlessInputActiveOrig.apply Dom, args
-
-# Vimium's search box is not an input element.  So, we shouldn't handle keys if the search box is active.
+# TODO: Not sure whether this is necessary.
 #
-vimiumFinderTimer = Util.setInterval 1000, ->
+doUnlessInputActiveOrig = Dom.doUnlessInputActive
+vimiumElement           = null
+
+document.addEventListener "DOMNodeInsertedIntoDocument",
+  (mutation) ->
+    if className = mutation?.srcElement?.className
+      if className is "vimiumReset vimiumHUD"
+        echo "vimiumElement!"
+        vimiumElement = mutation.srcElement
+  #
   true
 
+Dom.doUnlessInputActive = (args...) ->
+  if vimiumElement
+    if Dom.visible vimiumElement
+      return true # Propagate.
+  #
+  doUnlessInputActiveOrig.apply Dom, args
 
