@@ -52,6 +52,7 @@ elements //li[starts-with(@class,'uiUnifiedStory')]
 like     /photo.php?fbid=
 like     /l.php?u=
 dislike  apps.facebook.com
+dislike  fb_action_types=instapp
 prefer   external
 
 site     plus.google.com

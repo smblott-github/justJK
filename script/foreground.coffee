@@ -116,7 +116,7 @@ followLink = (xPath) ->
     # up last, and therefore will be selected with "pop", below.
     anchors = anchors.reverse().sort Score.compareHRef config
     #
-    if false
+    if true
       for a in anchors
         echo "#{Score.scoreHRef config, a} #{a}"
     #

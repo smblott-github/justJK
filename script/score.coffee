@@ -22,8 +22,6 @@ Score = justJK.Score =
       when "external"
         if not stringContains href, window.location.host
           score += 20
-        # else
-        #   score += 20 if stringContains href, "%3A%2F%2" # == "://" URI encoded
       #
       # Default to a small preference for external links.
       else
@@ -35,11 +33,15 @@ Score = justJK.Score =
     #
     if config?.like
       for lk in config.like
-        score += 2 if stringContains href, lk
+        score += 20 if stringContains href, lk
     #
     if config?.dislike
       for dlk in config.dislike
-        score -= 2 if stringContains href, dlk
+        score -= 20 if stringContains href, dlk
+    #
+    # Dislike redirects.
+    if stringContains href, "%3A%2F%2F" # == "://" URI encoded
+      score -= 30
     #
     score
 
