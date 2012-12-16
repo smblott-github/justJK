@@ -3,6 +3,7 @@ justJK = window.justJK ?= {}
 #
 Util   = justJK.Util
 Const  = justJK.Const
+Cache  = justJK.Cache
 Dom    = justJK.Dom
 Scroll = justJK.Scroll
 Score  = justJK.Score
@@ -58,7 +59,7 @@ addHighlightOnClickHandlers = (elements) ->
 # Handle logical navigation.
 #
 navigate = (xPath, move) ->
-  elements = addHighlightOnClickHandlers Dom.getElementList xPath
+  elements = addHighlightOnClickHandlers Cache.callCache "navigate", -> Dom.getElementList xPath
   n = elements.length
   #
   if 0 < n
@@ -164,21 +165,21 @@ chrome.extension.sendMessage request, (response) ->
       keypress.combo "down",  -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
       keypress.combo "up",    -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
       #
-      request =
-        request: "lastID"
-        host:     window.location.host
-        pathname: window.location.pathname
+      # request =
+      #   request: "lastID"
+      #   host:     window.location.host
+      #   pathname: window.location.pathname
       #
-      chrome.extension.sendMessage request, (response) ->
-        if not currentElement
-          if response?.id
-            for element in Dom.getElementList xPath
-              if element.id and response.id is element.id
-                return highlight element
-          #
-          # Go to first element.
-          #
-          navigate xPath, 0
+      # chrome.extension.sendMessage request, (response) ->
+      #   if not currentElement
+      #     if response?.id
+      #       for element in Dom.getElementList xPath
+      #         if element.id and response.id is element.id
+      #           return highlight element
+      #     #
+      #     # Go to first element.
+      #     #
+      #     navigate xPath, 0
       #
       # ########################
       # Highlight new selection on scroll.

@@ -22,6 +22,7 @@
          "css"        : [ "css/highlight.css" ],
          "js"         : [ "third-party/keypress.js",
                           "script/util.js",
+                          "script/cache.js",
                           "script/dom.js",
                           "script/scroll.js",
                           "script/score.js",
