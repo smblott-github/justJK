@@ -109,6 +109,8 @@ followLink = (xPath) ->
     anchors = Array.prototype.slice.call anchors, 0
     hrefs   = Util.flattenList ( Util.extractHRefs(a) for a in anchors when a.href and not Util.stringStartsWith a.href, "javascript:" )
     hrefs   = Util.topRanked hrefs, (href) -> Score.scoreHRef config, href
+    # For equal-scoring HREFs, prefer the longer one.
+    hrefs   = hrefs.sort (a,b) -> a.length - b.length
     #
     if true
       for a in hrefs
@@ -117,7 +119,7 @@ followLink = (xPath) ->
     if 0 < hrefs.length
       chrome.extension.sendMessage
         request: "open"
-        url:      hrefs[0]
+        url:      hrefs.pop()
         # No callback
     else
       # No links?  Try "clicking" on the element.
