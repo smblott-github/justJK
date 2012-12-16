@@ -104,17 +104,21 @@ followLink = (xPath) ->
   element = if xPath is Const.nativeBindings then Dom.getActiveElement() else currentElement
   #
   if element
-    # anchors = element.getElementsByTagName "a"
+    # Anchors is a list of anchors.
+    #
     anchors = Dom.getElementsByTagName element, "a"
     anchors = Dom.filterVisibleElements anchors
     anchors = Array.prototype.slice.call anchors, 0
-    anchors = ( a.href for a in anchors when a.href and not Util.stringStartsWith a.href, "javascript:" )
+    anchors = Util.flattenList ( Util.extractHRefs(a) for a in anchors when a.href and not Util.stringStartsWith a.href, "javascript:" )
+    # Anchors is now a list of HREFs.
+    #
     # Reverse the list so that, when there are multiple top-scoring HREFs, the originally first of those ends
-    # up last.
+    # up last, and therefore will be selected with "pop", below.
     anchors = anchors.reverse().sort Score.compareHRef config
     #
-    for a in anchors
-      echo "#{Score.scoreHRef config, a} #{a}"
+    if false
+      for a in anchors
+        echo "#{Score.scoreHRef config, a} #{a}"
     #
     if 0 < anchors.length
       chrome.extension.sendMessage

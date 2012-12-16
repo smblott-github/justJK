@@ -33,8 +33,7 @@ Dom = justJK.Dom =
   #   true
 
   # Is element visible?
-  visible: (element) ->
-    height = 0
+  visible: (element,href) ->
     for e in @offsetParents element
       if e.offsetHeight <= 0
         return false
@@ -49,14 +48,14 @@ Dom = justJK.Dom =
           top = @offsetTop e
           for p in @offsetParents e
             bottom = @offsetBottom p
-            if bottom < top
+            if bottom <= top
               return false
     #
     true
 
   # Filter out hidden elements.
   filterVisibleElements: (elements) ->
-    e for e in elements when @visible e
+    e for e in elements when @visible e, e.href
 
   # Return active element.
   # WARNING: This operation is proxied in "hacks.coffee".

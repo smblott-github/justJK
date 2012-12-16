@@ -22,6 +22,11 @@ Util = justJK.Util =
   flatten: (obj,func) ->
     val while obj and [ val, obj ] = func obj
 
+  # From: "http://rosettacode.org/wiki/Flatten_a_list#CoffeeScript"
+  #
+  flattenList: (arr) ->
+    arr.reduce ((xs, el) -> if Array.isArray el then xs.concat Util.flattenList el else xs.concat [el]), []
+
   # Sometimes, a function call is triggered unnecessarily multiple times in quick succession.  "onlyOnce",
   # here, arranges to call a function 100ms after it was last asked to do so.  However, it quietly swallows
   # successive calls which arrive too rapidly.  Typical use is as an "onscroll" handler, in which we really
@@ -37,4 +42,19 @@ Util = justJK.Util =
   onlyOnce: (func) ->
     clearInterval @onlyOnceTimer if @onlyOnceTimer
     @onlyOnceTimer = setTimeout @onlyOnceFunc(func), 100
+
+  # Extract HREFs from an anchor.
+  #
+  extractHRefRegExp: new RegExp "^https?%3A%2F%2"
+
+  extractHRefs: (anchor) ->
+    anchors = [ anchor.href ]
+    #
+    if anchor.search
+      for arg in anchor.search.split "&"
+        [ key, value ] = arg.split "="
+        if @extractHRefRegExp.test value
+          anchors.push decodeURIComponent value
+    #
+    anchors
 

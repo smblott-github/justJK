@@ -22,8 +22,8 @@ Score = justJK.Score =
       when "external"
         if not stringContains href, window.location.host
           score += 20
-        else
-          score += 20 if stringContains href, "%3A%2F%2" # == "://" URI encoded
+        # else
+        #   score += 20 if stringContains href, "%3A%2F%2" # == "://" URI encoded
       #
       # Default to a small preference for external links.
       else
@@ -43,13 +43,16 @@ Score = justJK.Score =
     #
     score
 
+  # scoreAnchor: (config,anchor) ->
+  #   ( @scoreHRef(config,a) for a in @extractHRefs anchor ).reduce Util.max, -1000
+
   compareHRef: (config) -> (a,b) ->
-      aScore = Score.scoreHRef config, a
-      bScore = Score.scoreHRef config, b
-      #
-      if aScore == bScore
-        if stringStartsWith(a,b) or stringStartsWith b, a
-          return a.length - b.length
-      #
-      aScore - bScore
+    aScore = Score.scoreHRef config, a
+    bScore = Score.scoreHRef config, b
+    #
+    if aScore == bScore
+      if stringStartsWith(a,b) or stringStartsWith b, a
+        return a.length - b.length
+    #
+    aScore - bScore
 
