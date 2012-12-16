@@ -76,6 +76,9 @@ Dom = justJK.Dom =
     element while xPathResult and element = xPathResult.iterateNext()
 
   # Return list of elements matching given XPath expression sorted by their position within the window.
+  # Additionally, strip out elements which aren't very high.  Many of these are in fact hidden.
+  # TODO: Integrate "@visible" here.
+  #
   getElementList: (xPath) ->
     (e for e in @evaluateXPath xPath when 5 < e.offsetHeight).sort @byElementPosition
 
