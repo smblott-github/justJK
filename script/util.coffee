@@ -63,6 +63,7 @@ Util = justJK.Util =
     if list.length
       [ first, rest... ] = list
       max = scorer first
+      tops.push first
       for obj in rest
         score = scorer obj
         if max < score
