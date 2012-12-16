@@ -37,25 +37,19 @@ Dom = justJK.Dom =
     height = 0
     for e in @offsetParents element
       if e.offsetHeight <= 0
-        echo "height"
-        echo e
-        echo e.scrollHeight
         return false
     #
     for e in @parentNodes element
       if style = window.getComputedStyle(e)
         if style.display is "none"
-          echo "display"
           return false
         if style.visibility is "hidden"
-          echo "visibility"
           return false
         if style.overflow is "hidden"
           top = @offsetTop e
           for p in @offsetParents e
             bottom = @offsetBottom p
             if bottom < top
-              echo "overflow"
               return false
     #
     true
@@ -88,11 +82,19 @@ Dom = justJK.Dom =
 
   # Compare two elements by their top position within the window.
   byElementPosition: (a,b) ->
-    Dom.offsetTop(a) - Dom.offsetTop(b)
+      aTop = Dom.offsetTop a
+      bTop = Dom.offsetTop b
+      if aTop == bTop then Dom.offsetLeft(a) - Dom.offsetLeft(b) else aTop - bTop
+    # Dom.offsetTop(a) - Dom.offsetTop(b)
 
   # Return offset of the top of element vis-a-vis the top of the window.
   offsetTop: (element) ->
     ( e.offsetTop for e in @offsetParents element when e.offsetTop )
+      .reduce Util.sum, 0
+
+  # Return offset of the left of element vis-a-vis the left of the window.
+  offsetLeft: (element) ->
+    ( e.offsetLeft for e in @offsetParents element when e.offsetLeft )
       .reduce Util.sum, 0
 
   # Return offset of the bottom of element vis-a-vis the top of the window.

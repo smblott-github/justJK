@@ -40,9 +40,11 @@ path     ^/search
 elements //li[ @class='g' or starts-with(@class,'g ') or contains(@class,' g ')  ]
 dislike  /search
 dislike  ://webcache.googleusercontent.com/
+prefer   external
 
 site     google .com .ie .co.uk .de .fr
 path     ^/reader/
+prefer   external
 
 site     www.facebook.com
 header   //div[@id='pagelet_bluebar']/div[@id='blueBarHolder']/div['blueBar'] | //div[@id='timeline_sticky_header']
@@ -50,31 +52,59 @@ elements //li[starts-with(@class,'uiUnifiedStory')]
 like     /photo.php?fbid=
 like     /l.php?u=
 dislike  apps.facebook.com
+prefer   external
 
 site     plus.google.com
 header   //div[@id='gb'] | //div[@role='navigation']
 elements //div[@id='contentPane']//div[@guidedhelpid='streamcontent']//div[starts-with(@id,'update-')]
 dislike  ://webcache.googleusercontent.com/
+prefer   external
 
 site     slashdot.org
 elements //article[starts-with(@id,'firehose-')]
+prefer   external
 
 site     www.broadsheet.ie
 path     ^/$
 path     ^/page/
 elements //div[@class='post']/article[starts-with(@id,'post-')]
+prefer   external
 
 site     www.yesiknowthat.com
 path     ^/$
 path     ^/page/
+prefer   internal
 
 site     www.reddit.com
 elements //div[@id='siteTable']/div[contains(@class,'thing')]
+prefer   external
 
 site     twitter.com
 header   //div[starts-with(@class,'topbar')]/div[@class='global-nav']
 elements //div[starts-with(@class,'new-tweets-bar')]
 elements //div[@id='stream-items-id']/div[@data-item-type='tweet']
+prefer   external
+
+site     www.irishtimes.com
+path     ^/$
+elements //span[@id='headline-image-wide']
+elements //ul[@class='story-list']/li
+elements //div[@class='sub-section']/a[starts-with(@class,'section-top-story')]
+elements //div[starts-with(@class,'sub-section')]/div[@id='hys']
+prefer   internal
+
+site     www.independent.ie
+path     ^/$
+elements //div[@id='mainStory']//h1
+elements //div[@class='column first']/h2
+elements //div[@class='column']/h2
+elements //div[@class='section-news']//div[starts-with(@class,'content')]
+prefer   internal
+
+site     www.thejournal.ie
+path     ^/$
+elements //div[starts-with(@class,'post ')]
+prefer   internal
 
 # ##############################################################################
 # Paths only (the site is left empty) ...

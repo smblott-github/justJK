@@ -12,21 +12,36 @@ Score  = justJK.Score
 #
 echo   = Util.echo
 
+replace = (obj,method,func) ->
+  orig = obj[method]
+  unless orig
+    echo "   ... does not exist!"
+  obj[method] = (args...) ->
+    func (orig.apply obj, args), args
+
 # With Facebook's native bindings, the active element is some "H5" object deep within the actual post.
 # To find a link worth following, we must first got up the document tree a bit.
 #
-getActiveElementOrig = Dom.getActiveElement
+replace Dom, "getActiveElement", (result, args) ->
+  element = result
+  #
+  if window.location.host is "www.facebook.com"
+    while element and element.nodeName.toLowerCase() isnt "li"
+      element = element.parentNode
+  #
+  if element then element else result
 
-Dom.getActiveElement = (args...) ->
-    element = getActiveElementOrig.apply Dom, args
-    #
-    if window.location.host is "www.facebook.com"
-      while element and element.nodeName isnt "LI"
-        element = element.parentNode
-      #
-      return element if element
-    #
-    getActiveElementOrig.apply Dom, args
+# # Do not follow certain social networking links.
+# #
+# poorHRefs = [ "facebook.com/dialog", "twitter.com/share",  ]
+# 
+# replace Score, "scoreHRef", (score, args) ->
+#   [ like, dislike, href ] = args
+#   for str in poorHRefs
+#     if Util.stringContains href, str
+#       score -= 1000000
+#   #
+#   score
 
 # Vimium's search box is not an input element.  So, we shouldn't handle keys if the search box is active.
 #
