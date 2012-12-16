@@ -12,8 +12,9 @@ Util = justJK.Util =
   echo:              (args...)          -> console.log arg for arg in args
   stringContains:    (haystack, needle) -> haystack.indexOf(needle) != -1
   stringStartsWith:  (haystack, needle) -> haystack.indexOf(needle) ==  0
-  sum:               (a, b)             -> a + b
-  max:               (a, b)             -> Math.max a, b
+  setInterval:       (ms, func)         -> window.setInterval func, ms
+  sum:               (args...)          -> args.reduce ( (p,c) -> p + c ), 0
+  max:               (args...)          -> Math.max.apply Math, args
 
   show: (thing) ->
     Util.echo thing

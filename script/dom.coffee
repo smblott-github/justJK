@@ -17,22 +17,6 @@ Dom = justJK.Dom =
   getElementsByClassName: (name) ->
     e for e in document.getElementsByTagName '*' when e.className is name
 
-  # # Is element visible?
-  # visible: (element) ->
-  #   window.getComputedStyle(element).display isnt "none" and
-  #     @offsetParents(element)
-  #       .reduce ( (p,e) -> p and 0 < e.offsetHeight ), true
-
-  # # Is element visible?
-  # visible: (element) ->
-  #   for e in @parentNodes element
-  #     return false if e.offsetHeight <= 0
-  #     if style = window.getComputedStyle(e)
-  #       return false if style.display    is "none"
-  #       return false if style.visibility is "hidden"
-  #   #
-  #   true
-
   # Is element visible?
   visible: (element,href) ->
     for e in @offsetParents(element)[1..]
@@ -95,13 +79,11 @@ Dom = justJK.Dom =
 
   # Return offset of the top of element vis-a-vis the top of the window.
   offsetTop: (element) ->
-    ( e.offsetTop for e in @offsetParents element when e.offsetTop )
-      .reduce Util.sum, 0
+    Util.sum ( e.offsetTop for e in @offsetParents element when e.offsetTop )...
 
   # Return offset of the left of element vis-a-vis the left of the window.
   offsetLeft: (element) ->
-    ( e.offsetLeft for e in @offsetParents element when e.offsetLeft )
-      .reduce Util.sum, 0
+    Util.sum ( e.offsetLeft for e in @offsetParents element when e.offsetLeft )...
 
   # Return offset of the bottom of element vis-a-vis the top of the window.
   offsetBottom: (element) ->
@@ -123,8 +105,7 @@ Dom = justJK.Dom =
 
   # Return largest position of the bottom of a fixed banner.
   pageTopAdjustment: (xPath) ->
-    ( @offsetBottom banner for banner in @evaluateXPath xPath when @isFixed banner )
-      .reduce Util.max, 0
+    Math.max 0, Math.max ( @offsetBottom banner for banner in @evaluateXPath xPath when @isFixed banner )...
 
   # Call function "func" unless an input element is active.
   # WARNING: This operation is proxied in "hacks.coffee".
