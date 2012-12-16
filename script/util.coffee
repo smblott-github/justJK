@@ -58,3 +58,18 @@ Util = justJK.Util =
     #
     anchors
 
+  topRanked: (list, scorer) ->
+    tops = []
+    if list.length
+      [ first, rest... ] = list
+      max = scorer first
+      for obj in rest
+        score = scorer obj
+        if max < score
+          tops = [ obj ]
+          max = score
+        else
+          if max == score
+            tops.push obj
+    #
+    tops

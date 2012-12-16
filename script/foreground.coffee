@@ -104,30 +104,24 @@ followLink = (xPath) ->
   element = if xPath is Const.nativeBindings then Dom.getActiveElement() else currentElement
   #
   if element
-    # Anchors is a list of anchors.
-    #
     anchors = Dom.getElementsByTagName element, "a"
     anchors = Dom.filterVisibleElements anchors
     anchors = Array.prototype.slice.call anchors, 0
-    anchors = Util.flattenList ( Util.extractHRefs(a) for a in anchors when a.href and not Util.stringStartsWith a.href, "javascript:" )
-    # Anchors is now a list of HREFs.
-    #
-    # Reverse the list so that, when there are multiple top-scoring HREFs, the originally first of those ends
-    # up last, and therefore will be selected with "pop", below.
-    anchors = anchors.reverse().sort Score.compareHRef config
+    hrefs   = Util.flattenList ( Util.extractHRefs(a) for a in anchors when a.href and not Util.stringStartsWith a.href, "javascript:" )
+    hrefs   = Util.topRanked hrefs, (href) -> Score.scoreHRef config, href
     #
     if true
-      for a in anchors
+      for a in hrefs
         echo "#{Score.scoreHRef config, a} #{a}"
     #
-    if 0 < anchors.length
+    if 0 < hrefs.length
       chrome.extension.sendMessage
         request: "open"
-        url:      anchors.pop()
+        url:      hrefs[0]
         # No callback
     else
-      # No links.  Try "clicking" the the element.
-      if typeof element.click is "function"
+      # No links?  Try "clicking" on the element.
+      if element.click and typeof element.click is "function"
         element.click.apply element
 
 # ####################################################################
