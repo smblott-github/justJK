@@ -13,6 +13,7 @@ Dom = justJK.Dom =
   namespaceResolver: (namespace) -> if namespace == "xhtml" then "http://www.w3.org/1999/xhtml" else null
 
   # Return list of all elements of given class name.
+  # Only used in "hacks.coffee"; although, it is used on every keystroke!
   getElementsByClassName: (name) ->
     e for e in document.getElementsByTagName '*' when e.className is name
 
