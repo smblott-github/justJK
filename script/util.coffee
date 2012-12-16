@@ -45,7 +45,7 @@ Util = justJK.Util =
 
   # Extract HREFs from an anchor.
   #
-  extractHRefRegExp: new RegExp "^https?%3A%2F%2"
+  extractHRefRegExp: new RegExp "^https?%3A%2F%2F" # "%3A%2F%2F" is "://"
 
   extractHRefs: (anchor) ->
     anchors = [ anchor.href ]
