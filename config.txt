@@ -51,6 +51,7 @@ header   //div[@id='pagelet_bluebar']/div[@id='blueBarHolder']/div['blueBar'] | 
 elements //li[starts-with(@class,'uiUnifiedStory')]
 like     /photo.php?fbid=
 like     /l.php?u=
+dislike  /ajax/sharer/
 dislike  apps.facebook.com
 dislike  fb_action_types=instapp
 prefer   external

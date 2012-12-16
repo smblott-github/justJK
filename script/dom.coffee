@@ -35,21 +35,24 @@ Dom = justJK.Dom =
 
   # Is element visible?
   visible: (element,href) ->
-    for e in @offsetParents element
+    for e in @offsetParents(element)[1..]
       if e.offsetHeight <= 0
         return false
     #
     for e in @parentNodes element
       if style = window.getComputedStyle(e)
         if style.display is "none"
+          echo "fail display: #{href}"
           return false
         if style.visibility is "hidden"
+          echo "fail visibility: #{href}"
           return false
         if style.overflow is "hidden"
           top = @offsetTop e
           for p in @offsetParents e
             bottom = @offsetBottom p
             if bottom <= top
+              echo "fail overflow: #{href}"
               return false
     #
     true

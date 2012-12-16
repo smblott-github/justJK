@@ -95,37 +95,38 @@ navigate = (xPath, move) ->
 # ####################################################################
 # Handle <enter>.
 #
+followLinkElement = (element) ->
+  anchors = Dom.getElementsByTagName element, "a"
+  anchors = Dom.filterVisibleElements anchors
+  anchors = Array.prototype.slice.call anchors, 0
+  hrefs   = Util.flattenList ( Util.extractHRefs(a) for a in anchors when a.href and not Util.stringStartsWith a.href, "javascript:" )
+  #
+  if true
+    for a in hrefs
+      echo "#{Score.scoreHRef config, a} #{a}"
+  #
+  hrefs   = Util.topRanked hrefs, (href) -> Score.scoreHRef config, href
+  # For equal-scoring HREFs, prefer longer ones.
+  hrefs   = hrefs.sort (a,b) -> a.length - b.length
+  #
+  if 0 < hrefs.length
+    chrome.extension.sendMessage
+      request: "open"
+      url:      hrefs.pop()
+      # No callback
+  else
+    # No links?  Try "clicking" on the element.
+    if element.click and typeof element.click is "function"
+      element.click.apply element
+
 followLink = (xPath) ->
   #
-  # If the active element is an anchor then we follow the link regardless.
+  # If the active element is an anchor then we click it regardless.
   if document.activeElement?.nodeName is "A"
     return document.activeElement.click()
   #
   element = if xPath is Const.nativeBindings then Dom.getActiveElement() else currentElement
-  #
-  if element
-    anchors = Dom.getElementsByTagName element, "a"
-    anchors = Dom.filterVisibleElements anchors
-    anchors = Array.prototype.slice.call anchors, 0
-    hrefs   = Util.flattenList ( Util.extractHRefs(a) for a in anchors when a.href and not Util.stringStartsWith a.href, "javascript:" )
-    #
-    if true
-      for a in hrefs
-        echo "#{Score.scoreHRef config, a} #{a}"
-    #
-    hrefs   = Util.topRanked hrefs, (href) -> Score.scoreHRef config, href
-    # For equal-scoring HREFs, prefer longer ones.
-    hrefs   = hrefs.sort (a,b) -> a.length - b.length
-    #
-    if 0 < hrefs.length
-      chrome.extension.sendMessage
-        request: "open"
-        url:      hrefs.pop()
-        # No callback
-    else
-      # No links?  Try "clicking" on the element.
-      if element.click and typeof element.click is "function"
-        element.click.apply element
+  followLinkElement element if element
 
 # ####################################################################
 # Main: install listener and highlight previous element (or first).

@@ -13,6 +13,16 @@ Score = justJK.Score =
   scoreHRef: (config, href) ->
     score = 0
     #
+    # Truly dislike the current URL.
+    if href is window.location.href
+      score -= 1000
+    #
+    # Or if they differ only in a trailing "#".
+    if href.length + 1 == window.location.href
+      if stringStartsWith window.location.href, href
+        if window.location.href.substring(href.length) is "#"
+          score -= 1000
+    #
     # Prefer internal/external links.
     switch config?.prefer
       when "internal"
@@ -33,11 +43,11 @@ Score = justJK.Score =
     #
     if config?.like
       for lk in config.like
-        score += 20 if stringContains href, lk
+        score += 15 if stringContains href, lk
     #
     if config?.dislike
       for dlk in config.dislike
-        score -= 20 if stringContains href, dlk
+        score -= 15 if stringContains href, dlk
     #
     # Dislike redirects.
     if stringContains href, "%3A%2F%2F" # == "://" URI encoded
