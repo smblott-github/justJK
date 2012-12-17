@@ -97,10 +97,10 @@ navigate = (xPath, move) ->
 # Handle <enter>.
 #
 followLinkElement = (element) ->
-  anchors = Dom.getElementsByTagName element, "a"
+  anchors = element.getElementsByTagName "a"
   anchors = Dom.filterVisibleElements anchors
   anchors = Array.prototype.slice.call anchors, 0
-  hrefs   = Util.flattenList ( Util.extractHRefs(a) for a in anchors when a.href and not Util.stringStartsWith a.href, "javascript:" )
+  hrefs   = Util.flatten ( Util.extractHRefs(a) for a in anchors when a.href and not Util.stringStartsWith a.href, "javascript:" )
   #
   if true
     for a in hrefs
@@ -175,31 +175,33 @@ chrome.extension.sendMessage request, (response) ->
           pathname: window.location.pathname
         
         chrome.extension.sendMessage request, (response) ->
-          if not currentElement
-            if response?.id
-              for element in Dom.getElementList xPath
-                if element.id and response.id is element.id
-                  return highlight element
-            #
-            # Go to first element.
-            #
-            navigate xPath, 0
+          Cache.eleCacheStart ->
+            if not currentElement
+              if response?.id
+                for element in Dom.getElementList xPath
+                  if element.id and response.id is element.id
+                    return highlight element
+              #
+              # Go to first element.
+              #
+              navigate xPath, 0
         
       # ########################
       # Highlight new selection on scroll.
       #
       document.onscroll = ->
         Util.onlyOnce ->
-          pageTop = Scroll.pageTop config.header
-          pageBottom = pageTop + window.innerHeight
-          #
-          # Stick with the current element if it's in a reasonable position.
-          if currentElement
-            [ top, bottom ] = Dom.offsetTopBottom currentElement
-            return if pageTop < bottom - 60
-            # return if top < pageTop < bottom - 60
-          #
-          for element in Dom.getElementList config.xPath
-            if pageTop <= Dom.offsetTop(element) or pageBottom - 300 < Dom.offsetBottom(element)
-              return highlight element, false # "false" here means "do not scroll".
+          Cache.eleCacheStart ->
+            pageTop = Scroll.pageTop config.header
+            pageBottom = pageTop + window.innerHeight
+            #
+            # Stick with the current element if it's in a reasonable position.
+            if currentElement
+              [ top, bottom ] = Dom.offsetTopBottom currentElement
+              return if pageTop < bottom - 60
+              # return if top < pageTop < bottom - 60
+            #
+            for element in Dom.getElementList config.xPath
+              if pageTop <= Dom.offsetTop(element) or pageBottom - 300 < Dom.offsetBottom(element)
+                return highlight element, false # "false" here means "do not scroll".
 

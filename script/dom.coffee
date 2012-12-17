@@ -13,45 +13,6 @@ Dom = justJK.Dom =
   xPathResultType: XPathResult.ANY_TYPE
   namespaceResolver: (namespace) -> if namespace == "xhtml" then "http://www.w3.org/1999/xhtml" else null
 
-  # Return list of all elements of given class name.
-  # Only used in "hacks.coffee"; although, it is used on every keystroke!
-  getElementsByClassName: (name) ->
-    e for e in document.getElementsByTagName '*' when e.className is name
-
-  # Is element visible?
-  visible: (element,href) ->
-    for e in @offsetParents(element)[1..]
-      if e.offsetHeight <= 0
-        return false
-    #
-    for e in @parentNodes element
-      if style = window.getComputedStyle(e)
-        if style.display is "none"
-          echo "fail display: #{href}"
-          return false
-        if style.visibility is "hidden"
-          echo "fail visibility: #{href}"
-          return false
-        if style.overflow is "hidden"
-          top = @offsetTop e
-          for p in @offsetParents e
-            bottom = @offsetBottom p
-            if bottom <= top
-              echo "fail overflow: #{href}"
-              return false
-    #
-    true
-
-  # Filter out hidden elements.
-  filterVisibleElements: (elements) ->
-    # e for e in elements when @visible e, e.href
-    e for e in elements when Cache.eleCacheUse "filterVisibleElements", e, => @visible e, e.href
-
-  # Return active element.
-  # WARNING: This operation is proxied in "hacks.coffee".
-  getActiveElement: ->
-    document.activeElement
-
   # Return list of elements matching given XPath expression.
   evaluateXPath: (xPath) ->
     return [] unless xPath
@@ -65,24 +26,54 @@ Dom = justJK.Dom =
     #
     element while xPathResult and element = xPathResult.iterateNext()
 
+  # Return active element.
+  # WARNING: This operation is proxied in "hacks.coffee".
+  getActiveElement: ->
+    document.activeElement
+
+  # Is element visible?
+  visible: (element,href) ->
+    Cache.eleCacheUse "visible", element, =>
+      for e in @offsetParents(element)[1..]
+        if e.offsetHeight <= 0
+          return false
+      #
+      for e in @parentNodes element
+        if style = window.getComputedStyle(e)
+          if style.display is "none"
+            return false
+          if style.visibility is "hidden"
+            return false
+          if style.overflow is "hidden"
+            top = @offsetTop e
+            for p in @offsetParents e
+              bottom = @offsetBottom p
+              if bottom <= top
+                return false
+      #
+      true
+
+  # Filter out hidden elements.
+  filterVisibleElements: (elements) ->
+    e for e in elements when @visible e, e.href
+
   # Return list of elements matching given XPath expression sorted by their position within the window.
   # Additionally, strip out elements which aren't very high.  Many of these are in fact hidden.
   # TODO: Integrate "@visible" here.
   #
   getElementList: (xPath) ->
-    (e for e in @evaluateXPath xPath when 5 < e.offsetHeight).sort @byElementPosition
+    (e for e in @evaluateXPath xPath when @visible e).sort @byElementPosition
 
   # Compare two elements by their top position within the window.
   byElementPosition: (a,b) ->
       aTop = Dom.offsetTop a
       bTop = Dom.offsetTop b
       if aTop == bTop then Dom.offsetLeft(a) - Dom.offsetLeft(b) else aTop - bTop
-    # Dom.offsetTop(a) - Dom.offsetTop(b)
 
   # Return offset of the top of element vis-a-vis the top of the window.
   offsetTop: (element) ->
-    Cache.eleCacheUse "offSetTop", element,
-      => Util.sum ( e.offsetTop for e in @offsetParents element when e.offsetTop )...
+    Cache.eleCacheUse "offSetTop", element, =>
+      Util.sum ( e.offsetTop for e in @offsetParents element when e.offsetTop )...
 
   # Return offset of the left of element vis-a-vis the left of the window.
   offsetLeft: (element) ->
@@ -103,20 +94,21 @@ Dom = justJK.Dom =
 
   # Return list of element and all its parent nodes.
   parentNodes: (element) ->
-    Cache.eleCacheUse "parentNodes", element, ->
-      Util.flatten element, (e) ->
-        Cache.eleCacheUse "parentNodesList", e, -> [ e, e.parentNode   ]
+    Cache.eleCacheUse "parentNodes", element, =>
+      if not element then [] else [ element ].concat @parentNodes element.parentNode
 
   # Return list of an element and all of its offset parents.
   offsetParents: (element) ->
-    Cache.eleCacheUse "offsetParents", element, ->
-      Util.flatten element, (e) ->
-        Cache.eleCacheUse "offsetParentsList", e, -> [ e, e.offsetParent ]
+    Cache.eleCacheUse "offsetParents", element, =>
+      if not element then [] else [ element ].concat @offsetParents element.offsetParent
 
   # Is the position of element fixed?
   isFixed: (element) ->
-    Cache.eleCacheUse "isFixed", element,
-      => "fixed" in ( window.getComputedStyle(e).position for e in @offsetParents element )
+    Cache.eleCacheUse "isFixed", element, =>
+      if element
+        window.getComputedStyle(element).position is "fixed" or @isFixed element.offsetParent
+      else
+        false
 
   # Return largest position of the bottom of a fixed banner.
   pageTopAdjustment: (xPath) ->
@@ -131,10 +123,4 @@ Dom = justJK.Dom =
     #
     Cache.eleCacheStart func
     return false # Prevent propagation.
-
-  getElementsByTagName: (element,tag, result=[]) ->
-    result.push element if element.nodeName.toLowerCase() is tag
-    @getElementsByTagName child, tag, result for child in element.children
-    #
-    result
 

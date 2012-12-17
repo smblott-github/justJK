@@ -10,9 +10,14 @@ Const = justJK.Const =
 
 Util = justJK.Util =
   echo:              (args...)          -> console.log arg for arg in args
+  setInterval:       (ms, func)         -> window.setInterval func, ms
+  setTimeout:        (ms, func)         -> window.setTimeout  func, ms
+  #
   stringContains:    (haystack, needle) -> haystack.indexOf(needle) != -1
   stringStartsWith:  (haystack, needle) -> haystack.indexOf(needle) ==  0
-  setInterval:       (ms, func)         -> window.setInterval func, ms
+  #
+  flatten:           (arr)              -> [].concat.apply [], arr
+  #
   sum:               (args...)          -> args.reduce ( (p,c) -> p + c ), 0
   max:               (args...)          -> Math.max.apply Math, args
 
@@ -20,58 +25,35 @@ Util = justJK.Util =
     Util.echo thing
     thing
 
-  flatten: (obj,func) ->
-    val while obj and [ val, obj ] = func obj
-
   # From: "http://rosettacode.org/wiki/Flatten_a_list#CoffeeScript"
   #
-  flattenList: (arr) ->
-    arr.reduce ((xs, el) -> if Array.isArray el then xs.concat Util.flattenList el else xs.concat [el]), []
 
   # Sometimes, a function call is triggered unnecessarily multiple times in quick succession.  "onlyOnce",
-  # here, arranges to call a function 100ms after it was last asked to do so.  However, it quietly swallows
-  # successive calls which arrive too rapidly.  Typical use is as an "onscroll" handler, in which we really
-  # only care about the final position.
+  # here, arranges to call a function 100ms after it was last asked to do so.  It quietly swallows successive
+  # calls which arrive too rapidly.
   #
-  onlyOnceTimer: null
-  #
-  onlyOnceFunc: (func) ->
-    ->
-      Util.onlyOnceTimer = null
-      func()
-  #
-  onlyOnce: (func) ->
-    clearInterval @onlyOnceTimer if @onlyOnceTimer
-    @onlyOnceTimer = setTimeout @onlyOnceFunc(func), 100
-
-  # Extract HREFs from an anchor.
-  #
-  extractHRefRegExp: new RegExp "^https?%3A%2F%2F" # "%3A%2F%2F" is "://"
-
-  extractHRefs: (anchor) ->
-    anchors = [ anchor.href ]
+  onlyOnce: do ->
+    timer = null
     #
-    if anchor.search
-      for arg in anchor.search.split "&"
-        [ key, value ] = arg.split "="
-        if @extractHRefRegExp.test value
-          anchors.push decodeURIComponent value
-    #
-    anchors
+    (func) ->
+      clearInterval timer if timer
+      timer = Util.setTimeout 100, ->
+        timer = null
+        func()
 
+  # Extract HREFs from an anchor, yielding list.
+  #
+  extractHRefs: do ->
+    regexp = new RegExp "=(https?%3A%2F%2F[^&=]*)" # "%3A%2F%2F" is "://"
+    #
+    (anchor) ->
+      [ anchor.href ].concat( decodeURIComponent href for href, i in anchor.search.match(regexp) or [] when i % 2 )
+
+  # Score each element (href) in list, returning a new list containing only those which are top ranking.
+  #
   topRanked: (list, scorer) ->
-    tops = []
-    if list.length
-      [ first, rest... ] = list
-      max = scorer first
-      tops.push first
-      for obj in rest
-        score = scorer obj
-        if max < score
-          tops = [ obj ]
-          max = score
-        else
-          if max == score
-            tops.push obj
+    scores = list.map (href) -> [ href, scorer href ]
+    max    = Math.max ( score for [ href, score ] in scores )...
     #
-    tops
+    href for [ href, score ] in scores when score is max
+

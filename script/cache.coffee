@@ -5,7 +5,7 @@ Util   = justJK.Util
 #
 echo   = Util.echo
 
-jjkCache = "__someObscureJJKNonsense_!_"
+jjkCache = "__someObscure-justJK-Nonsense_((=$$!_"
 
 Cache = justJK.Cache =
   domCache: {}
@@ -17,6 +17,7 @@ Cache = justJK.Cache =
   #
   eleHit:   0
   eleTot:   0
+  eleHits:  {}
   #
   useDomCache: false
   useEleCache: true
@@ -45,10 +46,14 @@ Cache = justJK.Cache =
     #
     if --@eleCount == 0
       @eleStamp = null
-      echo "*** #{@eleHit/@eleTot}"
+      echo "*** #{@eleHit/@eleTot} #{@eleHit} of #{@eleTot}"
+      for id of @eleHits
+        echo "    #{@eleHits[id]} #{id}"
+      @eleHit = @eleTot = 0
+      @eleHits = {}
 
   eleCacheUse: (id,element,func) ->
-    if @eleStamp
+    if element and @eleStamp
       @eleTot += 1
       element[jjkCache] = { stamp: "init" } unless element[jjkCache]
       #
@@ -56,6 +61,8 @@ Cache = justJK.Cache =
         # Cache valid.
         if element[jjkCache][id]?
           @eleHit += 1
+          @eleHits[id] = 0 unless @eleHits[id]
+          @eleHits[id] += 1
           return element[jjkCache][id]
       else
         # Cache invalid.
