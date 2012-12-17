@@ -112,7 +112,7 @@ Dom = justJK.Dom =
 
   # Return largest position of the bottom of a fixed banner.
   pageTopAdjustment: (xPath) ->
-    Cache.callCache "pageTopAdjustment-#{xPath}", =>
+    Cache.callDomCache xPath, =>
       Math.max 0, Math.max ( @offsetBottom banner for banner in @evaluateXPath xPath when @isFixed banner )...
 
   # Call function "func" unless an input element is active.

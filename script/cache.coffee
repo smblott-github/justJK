@@ -19,24 +19,27 @@ Cache = justJK.Cache =
   eleTot:   0
   eleHits:  {}
   #
-  useDomCache: false
-  useEleCache: true
+  useDomCache: true
 
   clearDomCache: ->
+    # echo "callDomCache clearing"
     if 0 < @domCount
+      # echo "   done."
       @domCache = {}
       @domCount = 0
 
-  callCache: (id, func) ->
+  callDomCache: (id, func) ->
     #
     if not @useDomCache
       return func()
     #
     if id of @domCache
+      # echo "callDomCache hit: #{id}"
       @domCache[id]
     else
-      @domCache[id] = func()
+      # echo "callDomCache miss: #{id}"
       @domCount += 1
+      @domCache[id] = func()
 
   eleCacheStart: (func) ->
     if @eleCount++ == 0
@@ -46,9 +49,9 @@ Cache = justJK.Cache =
     #
     if --@eleCount == 0
       @eleStamp = null
-      echo "*** #{@eleHit/@eleTot} #{@eleHit} of #{@eleTot}"
-      for id of @eleHits
-        echo "    #{@eleHits[id]} #{id}"
+      # echo "*** #{@eleHit/@eleTot} #{@eleHit} of #{@eleTot}"
+      # for id of @eleHits
+      #   echo "    #{@eleHits[id]} #{id}"
       @eleHit = @eleTot = 0
       @eleHits = {}
 
@@ -76,8 +79,12 @@ Cache = justJK.Cache =
 # ################
 
 if Cache.useDomCache
-  watcher = (name) -> (mutation) -> Cache.clearDomCache()
+  watcher = (name) ->
+    (mutation) ->
+      # Util.echo "watcher: #{name}"
+      Cache.clearDomCache()
   #
-  for event in [ "DOMSubtreeModified", "DOMNodeInserted", "DOMNodeRemoved", "DOMNodeRemovedFromDocument", "DOMNodeInsertedIntoDocument", "DOMAttrModified" ]
+  # for event in [ "DOMSubtreeModified", "DOMNodeInserted", "DOMNodeRemoved", "DOMNodeRemovedFromDocument", "DOMNodeInsertedIntoDocument", "DOMAttrModified" ]
+  for event in [ "DOMSubtreeModified" ]
     document.addEventListener event, watcher(event), true
 

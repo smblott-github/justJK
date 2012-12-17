@@ -31,18 +31,14 @@ Scroll = justJK.Scroll =
     (delta) ->
       if @timer
         clearInterval @timer
-        @timer = null
-        if target
-          window.scrollTo window.pageXOffset, target
-          target = null
+        window.scrollTo window.pageXOffset, target
       #
-      target = window.pageYOffset + delta / 4
+      target = window.pageYOffset + delta # / 4
       offset = window.pageYOffset
       start  = Date.now()
       duration = @duration # + @durationScale * Math.sqrt Math.abs delta
       #
-      intervalFunc = =>
-        # factor = Math.sqrt Math.sqrt (Date.now() - start) / duration
+      @timer = Util.setInterval @interval, =>
         factor = (Date.now() - start) / duration
         #
         if 1 <= factor
@@ -52,8 +48,6 @@ Scroll = justJK.Scroll =
         #
         y = factor * delta + offset
         window.scrollBy 0, y - window.pageYOffset
-      #
-      @timer = setInterval intervalFunc, @interval
 
   smoothScrollToElement: (element, header) ->
     @smoothScrollByDelta Dom.offsetTop(element) - @pageTop header

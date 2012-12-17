@@ -59,13 +59,16 @@ addHighlightOnClickHandlers = (elements) ->
 # Handle logical navigation.
 #
 navigate = (xPath, move) ->
-  elements = addHighlightOnClickHandlers Cache.callCache "navigate", -> Dom.getElementList xPath
+  elements = addHighlightOnClickHandlers Cache.callDomCache "navigate", -> Dom.getElementList xPath
   n = elements.length
   #
   if 0 < n
     index = (i for e, i in elements when e.classList.contains Const.highlightCSS)
     if index.length == 0
       return highlight elements[0]
+    #
+    if 1 < index.length
+      echo "lastJK error: multiple elements selected"
     #
     index = index[0]
     #
