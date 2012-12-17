@@ -145,6 +145,11 @@ chrome.extension.sendMessage request, (response) ->
   echo "justJK xPath: #{xPath}"
   #
   switch xPath
+    #
+    when Const.nativeBindings
+      unless "no-enter" in config.options
+        keypress.combo "enter", -> Dom.doUnlessInputActive -> followLink xPath
+    #
     when Const.simpleBindings
       keypress.combo "j",     -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
       keypress.combo "k",     -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
@@ -152,9 +157,6 @@ chrome.extension.sendMessage request, (response) ->
       #
       keypress.combo "down",  -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
       keypress.combo "up",    -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
-    #
-    when Const.nativeBindings
-      keypress.combo "enter", -> Dom.doUnlessInputActive -> followLink xPath
     #
     else
       keypress.combo "j",     -> Dom.doUnlessInputActive -> navigate   xPath,  1
@@ -165,22 +167,24 @@ chrome.extension.sendMessage request, (response) ->
       keypress.combo "down",  -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
       keypress.combo "up",    -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
       #
-      # request =
-      #   request: "lastID"
-      #   host:     window.location.host
-      #   pathname: window.location.pathname
-      #
-      # chrome.extension.sendMessage request, (response) ->
-      #   if not currentElement
-      #     if response?.id
-      #       for element in Dom.getElementList xPath
-      #         if element.id and response.id is element.id
-      #           return highlight element
-      #     #
-      #     # Go to first element.
-      #     #
-      #     navigate xPath, 0
-      #
+      # 
+      window.addEventListener "DOMContentLoaded", ->
+        request =
+          request: "lastID"
+          host:     window.location.host
+          pathname: window.location.pathname
+        
+        chrome.extension.sendMessage request, (response) ->
+          if not currentElement
+            if response?.id
+              for element in Dom.getElementList xPath
+                if element.id and response.id is element.id
+                  return highlight element
+            #
+            # Go to first element.
+            #
+            navigate xPath, 0
+        
       # ########################
       # Highlight new selection on scroll.
       #

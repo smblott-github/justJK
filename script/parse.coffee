@@ -29,7 +29,7 @@ Parse = justJK.Parse =
 
     sites      = {}
     paths      = []
-    directives = "site path elements header like dislike prefer"
+    directives = "site path elements header like dislike prefer option"
     directives = directives.trim().split /\s+/
 
     # Strip some whitespace, comments, empty lines and lines which don't seem to contain directives.
@@ -54,6 +54,7 @@ Parse = justJK.Parse =
       like      = []
       dislike   = []
       prefer    = "internal"
+      options   = []
       #
       site = ( line.trim() for line in site.split "\n" )
       #
@@ -70,6 +71,7 @@ Parse = justJK.Parse =
             when "like"     then like.push      line
             when "dislike"  then dislike.push   line
             when "prefer"   then prefer =       line
+            when "option"   then options.push   line
       #
       xPath.push Const.nativeBindings unless xPath.length
       xPath = xPath.join "|"
@@ -86,6 +88,7 @@ Parse = justJK.Parse =
             like:    like
             dislike: dislike
             prefer:  prefer
+            options: options
           for s in @sites host
             sites[s] ?= []
             sites[s].push entry
@@ -102,6 +105,7 @@ Parse = justJK.Parse =
               like:    like
               dislike: dislike
               prefer:  prefer
+              options: options
 
     #
     #

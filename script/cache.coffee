@@ -5,26 +5,72 @@ Util   = justJK.Util
 #
 echo   = Util.echo
 
-Cache = justJK.Cache =
-  cache: {}
-  count: 0
+jjkCache = "__someObscureJJKNonsense_!_"
 
-  clearCache: ->
-    if 0 < @count
-      @cache = {}
-      @count = 0
+Cache = justJK.Cache =
+  domCache: {}
+  domCount: 0
+  #
+  eleCache: {}
+  eleCount: 0
+  eleStamp: null
+  #
+  eleHit:   0
+  eleTot:   0
+  #
+  useDomCache: false
+  useEleCache: true
+
+  clearDomCache: ->
+    if 0 < @domCount
+      @domCache = {}
+      @domCount = 0
 
   callCache: (id, func) ->
-    if id of @cache
-      echo "cache hit: #{id}"
-      @cache[id]
+    #
+    if not @useDomCache
+      return func()
+    #
+    if id of @domCache
+      @domCache[id]
     else
-      echo "cache miss: #{id}"
-      @cache[id] = func()
-      @count += 1
+      @domCache[id] = func()
+      @domCount += 1
 
-watcher = (name) -> (mutation) -> Cache.clearCache()
+  eleCacheStart: (func) ->
+    if @eleCount++ == 0
+      @eleStamp = Date.now()
+    #
+    func()
+    #
+    if --@eleCount == 0
+      @eleStamp = null
+      echo "*** #{@eleHit/@eleTot}"
 
-for event in [ "DOMSubtreeModified", "DOMNodeInserted", "DOMNodeRemoved", "DOMNodeRemovedFromDocument", "DOMNodeInsertedIntoDocument", "DOMAttrModified" ]
-  document.addEventListener event, watcher(event), true
+  eleCacheUse: (id,element,func) ->
+    if @eleStamp
+      @eleTot += 1
+      element[jjkCache] = { stamp: "init" } unless element[jjkCache]
+      #
+      if element[jjkCache]?.stamp and element[jjkCache].stamp is @eleStamp
+        # Cache valid.
+        if element[jjkCache][id]?
+          @eleHit += 1
+          return element[jjkCache][id]
+      else
+        # Cache invalid.
+        element[jjkCache] = { stamp: @eleStamp }
+      #
+      return element[jjkCache][id] = func()
+    #
+    func()
+
+
+# ################
+
+if Cache.useDomCache
+  watcher = (name) -> (mutation) -> Cache.clearDomCache()
+  #
+  for event in [ "DOMSubtreeModified", "DOMNodeInserted", "DOMNodeRemoved", "DOMNodeRemovedFromDocument", "DOMNodeInsertedIntoDocument", "DOMAttrModified" ]
+    document.addEventListener event, watcher(event), true
 

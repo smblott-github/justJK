@@ -3,6 +3,7 @@ justJK = window.justJK ?= {}
 #
 Util   = justJK.Util
 Const  = justJK.Const
+Cache  = justJK.Cache
 #
 echo   = Util.echo
 show   = Util.show
@@ -43,7 +44,8 @@ Dom = justJK.Dom =
 
   # Filter out hidden elements.
   filterVisibleElements: (elements) ->
-    e for e in elements when @visible e, e.href
+    # e for e in elements when @visible e, e.href
+    e for e in elements when Cache.eleCacheUse "filterVisibleElements", e, => @visible e, e.href
 
   # Return active element.
   # WARNING: This operation is proxied in "hacks.coffee".
@@ -79,33 +81,47 @@ Dom = justJK.Dom =
 
   # Return offset of the top of element vis-a-vis the top of the window.
   offsetTop: (element) ->
-    Util.sum ( e.offsetTop for e in @offsetParents element when e.offsetTop )...
+    Cache.eleCacheUse "offSetTop", element,
+      => Util.sum ( e.offsetTop for e in @offsetParents element when e.offsetTop )...
 
   # Return offset of the left of element vis-a-vis the left of the window.
   offsetLeft: (element) ->
-    Util.sum ( e.offsetLeft for e in @offsetParents element when e.offsetLeft )...
+    Cache.eleCacheUse "offSetLeft", element,
+      => Util.sum ( e.offsetLeft for e in @offsetParents element when e.offsetLeft )...
 
   # Return offset of the bottom of element vis-a-vis the top of the window.
   offsetBottom: (element) ->
-    element.offsetHeight + @offsetTop element
+    Cache.eleCacheUse "offSetBottom", element,
+      => element.offsetHeight + @offsetTop element
 
   # Return both the offsets of the top and the bottom of element vis-a-vis the top of the window.
   offsetTopBottom: (element) ->
-    offsetTop = @offsetTop element
-    [ offsetTop, offsetTop + element.offsetHeight ]
+    Cache.eleCacheUse "offSetTopBottom", element,
+      =>
+        offsetTop = @offsetTop element
+        [ offsetTop, offsetTop + element.offsetHeight ]
 
   # Return list of element and all its parent nodes.
+  parentNodes: (element) ->
+    Cache.eleCacheUse "parentNodes", element, ->
+      Util.flatten element, (e) ->
+        Cache.eleCacheUse "parentNodesList", e, -> [ e, e.parentNode   ]
+
   # Return list of an element and all of its offset parents.
-  parentNodes:   (element) -> Util.flatten element, (e) -> [ e, e.parentNode   ]
-  offsetParents: (element) -> Util.flatten element, (e) -> [ e, e.offsetParent ]
+  offsetParents: (element) ->
+    Cache.eleCacheUse "offsetParents", element, ->
+      Util.flatten element, (e) ->
+        Cache.eleCacheUse "offsetParentsList", e, -> [ e, e.offsetParent ]
 
   # Is the position of element fixed?
   isFixed: (element) ->
-    "fixed" in ( window.getComputedStyle(e).position for e in @offsetParents element )
+    Cache.eleCacheUse "isFixed", element,
+      => "fixed" in ( window.getComputedStyle(e).position for e in @offsetParents element )
 
   # Return largest position of the bottom of a fixed banner.
   pageTopAdjustment: (xPath) ->
-    Math.max 0, Math.max ( @offsetBottom banner for banner in @evaluateXPath xPath when @isFixed banner )...
+    Cache.callCache "pageTopAdjustment-#{xPath}", =>
+      Math.max 0, Math.max ( @offsetBottom banner for banner in @evaluateXPath xPath when @isFixed banner )...
 
   # Call function "func" unless an input element is active.
   # WARNING: This operation is proxied in "hacks.coffee".
@@ -113,7 +129,7 @@ Dom = justJK.Dom =
     if document.activeElement.nodeName in Const.verboten
       return true # Propagate.
     #
-    func()
+    Cache.eleCacheStart func
     return false # Prevent propagation.
 
   getElementsByTagName: (element,tag, result=[]) ->

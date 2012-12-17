@@ -38,6 +38,7 @@ path     ^/search
 # The following XPath misses the case where the 'g' is at the end of the
 # list ... which doesn't seem to com eup in practice.
 elements //li[ @class='g' or starts-with(@class,'g ') or contains(@class,' g ')  ]
+elements //p[starts-with(@class,'sp_cnt')]/a[@class='spell']/..
 dislike  /search
 dislike  ://webcache.googleusercontent.com/
 prefer   external
@@ -45,6 +46,15 @@ prefer   external
 site     google .com .ie .co.uk .de .fr
 path     ^/reader/
 prefer   external
+
+# Native bindings and no enter key ... justJK is completely disabled.
+site     mail.google.com
+option   no-enter
+
+site     www.youtube.com
+path     ^/results
+elements //ol[@id='search-results']/li
+prefer   internal
 
 site     www.facebook.com
 header   //div[@id='pagelet_bluebar']/div[@id='blueBarHolder']/div['blueBar'] | //div[@id='timeline_sticky_header']
@@ -105,7 +115,12 @@ prefer   internal
 
 site     www.thejournal.ie
 path     ^/$
-elements //div[starts-with(@class,'post ')]
+elements //div[starts-with(@class,'post ')]/div/h4/../..
+prefer   internal
+
+site     www.thesun.co.uk
+path     ^/sol/homepage/$
+elements //div[starts-with(@data-vr-zone,'mainGrid')]/div[contains(@class,'-teaser')]
 prefer   internal
 
 # ##############################################################################
