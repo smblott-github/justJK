@@ -64,7 +64,7 @@ navigate = (xPath, move) ->
   n = elements.length
   #
   if 0 < n
-    index = (i for e, i in elements when e.classList.contains Const.highlightCSS)
+    index = ( i for e, i in elements when e.classList.contains Const.highlightCSS )
     if index.length == 0
       return highlight elements[0]
     #
@@ -109,6 +109,8 @@ followLink = (xPath) ->
   element = if xPath is Const.nativeBindings then Dom.getActiveElement() else currentElement
   if element and element isnt document.body
     #
+    # Extract top-scoring URLs from element.
+    #
     urls = do ->
       maxScore = -Infinity
       updateMax = (score) -> if maxScore < score then maxScore = score else score
@@ -119,16 +121,17 @@ followLink = (xPath) ->
         #   filter out those that are not of interest ...
         #
         .reject((a) -> Util.stringStartsWith a.href, "javascript:")
-        .filter(Dom.filterVisibleElements, Dom)
+        .filter(Dom.visible, Dom)
         #
         # Now:
         #   extract URLs from the anchors ...
         #
         .map(Util.extractHRefs, Util)
         .flatten()
+        .map(Util.show, Util)
         # 
         # Now:
-        #   score each URL, keeping only those with the highest score.
+        #   score each URL, keeping only those with the highest score ...
         #
         .map(    (  url        ) -> [ url, updateMax Score.scoreHRef config, url ] )
         .filter( ( [url,score] ) -> score == maxScore )
