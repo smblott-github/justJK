@@ -16,23 +16,15 @@ Parse = justJK.Parse =
       "#{base}#{tld}" for tld in tlds
 
   parse: ->
-    siteListURL = chrome.extension.getURL "config.txt"
-
-    # From: "https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest/Using_XMLHttpRequest".
-    siteRequest = new XMLHttpRequest()
-    siteRequest.open 'GET', siteListURL, false
-    siteRequest.send()
-    config = if siteRequest.status is 200 then siteRequest.responseText else ""
-
-    # ####################################################################
-    # Parse sites.
-
+    #
     sites      = {}
     paths      = []
     directives = "site path elements header like dislike prefer option".trim().split /\s+/
+    #
+    config = Util.wget chrome.extension.getURL "config.txt"
 
     # Strip some whitespace, comments, empty lines and lines which don't seem to contain directives, then
-    # rebuild list.
+    # rebuild config.
     #
     config = "\n" + # This newline creates bogus entry, see below.
       _.chain( config.split "\n")
@@ -44,6 +36,8 @@ Parse = justJK.Parse =
         .value()
         .join("\n")
 
+    # Prototype configuration.
+    #
     proto = ->
       host      : null
       header    : null
@@ -59,28 +53,24 @@ Parse = justJK.Parse =
         path: "pathnames"
       #
       install: (opt,val) ->
-        opt = @map[opt] if @map[opt]
+        opt = @map[opt] if opt of @map
         #
         if _.isArray @[opt]
           @[opt].push val
         else
           @[opt] = val
 
-    # Parse site list.
+    # Parse configuration.
     #
     for site in (config.split "\nsite")[1..] # Skip bogus first entry.
+      [ host, site... ] = ( line.trim() for line in site.split "\n" )
       conf = proto()
-      site = ( line.trim() for line in site.split "\n" )
-      #
-      # Host, here, may be the empty string.
-      [ host, site... ] = site
       #
       for line in site
         [ directive, line... ] = line.split /\s+/
         conf.install directive, line.join " "
       #
-      conf.xPath.push Const.nativeBindings unless conf.xPath.length
-      conf.xPath = conf.xPath.join " | "
+      conf.xPath = conf.xPath.join(" | ") or Const.nativeBindings
       #
       if host
         conf.pathnames.push "^/" unless conf.pathnames.length

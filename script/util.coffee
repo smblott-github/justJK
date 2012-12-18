@@ -66,3 +66,9 @@ Util = justJK.Util =
       else
         [ anchor.href ]
 
+  wget: (url) ->
+    request = new XMLHttpRequest()
+    request.open 'GET', url, false
+    request.send()
+    if request.status is 200 then request.responseText else ""
+
