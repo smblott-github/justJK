@@ -11,44 +11,44 @@ Scroll = justJK.Scroll
 Score  = justJK.Score
 #
 echo   = Util.echo
-
-replaceValue = (obj,method,func) ->
-  orig = obj[method]
-  obj[method] = (args...) ->
-    func (orig.apply obj, args), args
+_      = window._
 
 # With Facebook's native bindings, the active element is some "H5" object deep within the actual post.
 # To find a link worth following, we must first got up the document tree a bit.
 #
-replaceValue Dom, "getActiveElement", (result, args) ->
-  element = result
-  #
-  if window.location.host is "www.facebook.com"
-    while element and element.nodeName.toLowerCase() isnt "li"
-      element = element.parentNode
-  #
-  if element then element else result
+Dom.getActiveElement = _.wrap (_.bindR Dom, Dom.getActiveElement),
+  (func,args...) ->
+    switch window.location.host
+      when "www.facebook.com"
+        element = active = func args...
+        while element and element.nodeName.toLowerCase() isnt "li"
+          element = element.parentNode
+        #
+        return element or active
+        #
+      else
+        return func args...
 
 # Vimium's search box is not an input element.  So, we shouldn't handle keys if the search box is active.
+# Whether this is necessary depends upon the order in which chrome layers its extensions.
 #
-# TODO: Not sure whether this is necessary.
-#
-doUnlessInputActiveOrig = Dom.doUnlessInputActive
-vimiumElement           = null
-
-document.addEventListener "DOMNodeInsertedIntoDocument",
-  (mutation) ->
-    if className = mutation?.srcElement?.className
-      if className is "vimiumReset vimiumHUD"
-        echo "vimiumElement!"
-        vimiumElement = mutation.srcElement
+do ->
+  vimiumElement = null
   #
-  true
-
-Dom.doUnlessInputActive = (args...) ->
-  if vimiumElement
-    if Dom.visible vimiumElement
-      return true # Propagate.
+  document.addEventListener "DOMNodeInsertedIntoDocument",
+    (mutation) ->
+      if not vimiumElement
+        if className = mutation?.srcElement?.className
+          if className is "vimiumReset vimiumHUD"
+            vimiumElement = mutation.srcElement
+    #
+    true
   #
-  doUnlessInputActiveOrig.apply Dom, args
+  Dom.doUnlessInputActive = _.wrap (_.bindR Dom, Dom.doUnlessInputActive),
+    (func,args...) ->
+      if vimiumElement
+        if Dom.visible vimiumElement
+          return true # Propagate.
+      #
+      func args...
 

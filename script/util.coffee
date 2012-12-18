@@ -1,5 +1,7 @@
 
 justJK = window.justJK ?= {}
+#
+_      = window._
 
 Const = justJK.Const =
   jjkAttribute:   "__justJKExtra__smblott_"
@@ -15,8 +17,6 @@ Util = justJK.Util =
   #
   stringContains:    (haystack, needle) -> haystack.indexOf(needle) != -1
   stringStartsWith:  (haystack, needle) -> haystack.indexOf(needle) ==  0
-  #
-  flatten:           (arr)              -> [].concat.apply [], arr
   #
   sum:               (args...)          -> args.reduce ( (p,c) -> p + c ), 0
   max:               (args...)          -> Math.max.apply Math, args
@@ -34,19 +34,6 @@ Util = justJK.Util =
     Util.echo thing
     thing
 
-  # Sometimes, a function call is triggered unnecessarily multiple times in quick succession.  "onlyOnce",
-  # here, arranges to call a function 100ms after it was last asked to do so.  It quietly swallows successive
-  # calls which arrive too rapidly.
-  #
-  onlyOnce: do ->
-    timer = null
-    #
-    (func) ->
-      clearInterval timer if timer
-      timer = Util.setTimeout 100, ->
-        timer = null
-        func()
-
   # Extract HREFs from an anchor, yielding list.
   #
   extractHRefs: do ->
@@ -58,9 +45,25 @@ Util = justJK.Util =
 
   # Score each element (href) in list, returning a new list containing only those which are top ranking.
   #
-  topRanked: (list, scorer) ->
-    scores = list.map (href) -> [ href, scorer href ]
-    max    = Math.max ( score for [ href, score ] in scores )...
+  topRanked: (list, utility) ->
+    max    = -Infinity
+    #
+    update = (score) -> if max < score then max = score else score
+    scores = ( [ href, update utility href ] for href in list )
     #
     href for [ href, score ] in scores when score is max
+
+# ####################################################################
+# Additional underscore bindings.
+# From: "https://gist.github.com/2624704".
+#
+
+
+do ->
+  to_reverse = ['bind', 'throttle' ]
+  mixin = {}
+
+  for name in to_reverse then do (name) ->
+    mixin["#{name}R"] = (args..., f) -> _(f)[name](args...)
+  _.mixin mixin
 

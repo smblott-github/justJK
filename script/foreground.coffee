@@ -9,6 +9,7 @@ Scroll = justJK.Scroll
 Score  = justJK.Score
 #
 echo   = Util.echo
+_      = window._
 
 # ####################################################################
 # State.
@@ -99,28 +100,6 @@ navigate = (xPath, move) ->
 # ####################################################################
 # Handle <enter>.
 #
-followLinkElement = (element) ->
-  anchors = element.getElementsByTagName "a"
-  anchors = Dom.filterVisibleElements anchors
-  anchors = Array.prototype.slice.call anchors, 0
-  hrefs   = Util.flatten ( Util.extractHRefs(a) for a in anchors when a.href and not Util.stringStartsWith a.href, "javascript:" )
-  #
-  if true
-    for a in hrefs
-      echo "#{Score.scoreHRef config, a} #{a}"
-  #
-  hrefs   = Util.topRanked hrefs, (href) -> Score.scoreHRef config, href
-  #
-  if 0 < hrefs.length
-    chrome.extension.sendMessage
-      request: "open"
-      url:      hrefs[0]
-      # No callback
-  else
-    # No links?  Try "clicking" on the element.
-    if element.click and typeof element.click is "function"
-      element.click.apply element
-
 followLink = (xPath) ->
   #
   # If the active element is an anchor then we click it regardless.
@@ -128,7 +107,44 @@ followLink = (xPath) ->
     return document.activeElement.click()
   #
   element = if xPath is Const.nativeBindings then Dom.getActiveElement() else currentElement
-  followLinkElement element if element
+  if element and element isnt document.body
+    #
+    urls = do ->
+      maxScore = -Infinity
+      updateMax = (score) -> if maxScore < score then maxScore = score else score
+      #
+      _.chain(element.getElementsByTagName "a")
+        # 
+        # We have a list of anchors, now:
+        #   filter out those that are not of interest ...
+        #
+        .reject((a) -> Util.stringStartsWith a.href, "javascript:")
+        .filter(Dom.filterVisibleElements, Dom)
+        #
+        # Now:
+        #   extract URLs from the anchors ...
+        #
+        .map(Util.extractHRefs, Util)
+        .flatten()
+        # 
+        # Now:
+        #   score each URL, keeping only those with the highest score.
+        #
+        .map(    (  url        ) -> [ url, updateMax Score.scoreHRef config, url ] )
+        .filter( ( [url,score] ) -> score == maxScore )
+        .map(    ( [url,score] ) -> url )
+        #
+        .value()
+    #
+    if 0 < urls.length
+      chrome.extension.sendMessage
+        request: "open"
+        url:      urls[0]
+        # No callback
+    else
+      # No URLs?  Try "clicking" on the element.
+      if element.click and typeof element.click is "function"
+        element.click.apply element
 
 # ####################################################################
 # Main: install listener and highlight previous element (or first).
@@ -192,8 +208,8 @@ chrome.extension.sendMessage request, (response) ->
       # ########################
       # Highlight new selection on scroll.
       #
-      document.onscroll = ->
-        Util.onlyOnce ->
+      document.onscroll =
+        _.throttleR 300, ->
           Cache.eleCacheStart ->
             pageTop = Scroll.pageTop config.header
             pageBottom = pageTop + window.innerHeight
