@@ -21,16 +21,18 @@ Util = justJK.Util =
   sum:               (args...)          -> args.reduce ( (p,c) -> p + c ), 0
   max:               (args...)          -> Math.max.apply Math, args
 
+  # A version of push for which the return value is the list, rather than the length of the list.
+  #
   push: (list,args...) ->
     list.push args...
     list
 
+  # Output/show thing then return it.  This can be placed into the middle of pipelines to see what's
+  # happening.
+  #
   show: (thing) ->
     Util.echo thing
     thing
-
-  # From: "http://rosettacode.org/wiki/Flatten_a_list#CoffeeScript"
-  #
 
   # Sometimes, a function call is triggered unnecessarily multiple times in quick succession.  "onlyOnce",
   # here, arranges to call a function 100ms after it was last asked to do so.  It quietly swallows successive
