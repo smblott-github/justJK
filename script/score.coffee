@@ -26,11 +26,11 @@ Score = justJK.Score =
     # Prefer internal/external links.
     switch config?.prefer
       when "internal"
-        if stringContains href, window.location.host
+        if 7 <= href.indexOf(window.location.host) <= 8
           score += 20
       #
       when "external"
-        if not stringContains href, window.location.host
+        if not ( 7 <= href.indexOf(window.location.host) <= 8 )
           score += 20
       #
       # Default to a small preference for external links.

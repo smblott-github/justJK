@@ -21,6 +21,10 @@ Util = justJK.Util =
   sum:               (args...)          -> args.reduce ( (p,c) -> p + c ), 0
   max:               (args...)          -> Math.max.apply Math, args
 
+  push: (list,args...) ->
+    list.push args...
+    list
+
   show: (thing) ->
     Util.echo thing
     thing
@@ -44,10 +48,11 @@ Util = justJK.Util =
   # Extract HREFs from an anchor, yielding list.
   #
   extractHRefs: do ->
-    regexp = new RegExp "=(https?%3A%2F%2F[^&=]*)" # "%3A%2F%2F" is "://"
+    # regexp = new RegExp "=(https?%3A%2F%2F[^&=]*)" # "%3A%2F%2F" is "://"
+    regexp = new RegExp "=(https?(://|%3A%2F%2F)[^&=]*)" # "%3A%2F%2F" is "://"
     #
     (anchor) ->
-      [ anchor.href ].concat( decodeURIComponent href for href, i in anchor.search.match(regexp) or [] when i % 2 )
+      Util.push ( decodeURIComponent href for href, i in anchor.search.match(regexp) or [] when i % 2 ), anchor.href
 
   # Score each element (href) in list, returning a new list containing only those which are top ranking.
   #

@@ -110,13 +110,11 @@ followLinkElement = (element) ->
       echo "#{Score.scoreHRef config, a} #{a}"
   #
   hrefs   = Util.topRanked hrefs, (href) -> Score.scoreHRef config, href
-  # For equal-scoring HREFs, prefer longer ones.
-  hrefs   = hrefs.sort (a,b) -> a.length - b.length
   #
   if 0 < hrefs.length
     chrome.extension.sendMessage
       request: "open"
-      url:      hrefs.pop()
+      url:      hrefs[0]
       # No callback
   else
     # No links?  Try "clicking" on the element.
@@ -162,10 +160,12 @@ chrome.extension.sendMessage request, (response) ->
       keypress.combo "up",    -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
     #
     else
-      keypress.combo "j",     -> Dom.doUnlessInputActive -> navigate   xPath,  1
-      keypress.combo "k",     -> Dom.doUnlessInputActive -> navigate   xPath, -1
-      keypress.combo ";",     -> Dom.doUnlessInputActive -> navigate   xPath,  0
-      keypress.combo "enter", -> Dom.doUnlessInputActive -> followLink xPath
+      keypress.combo "j",     -> Dom.doUnlessInputActive -> navigate xPath,  1
+      keypress.combo "k",     -> Dom.doUnlessInputActive -> navigate xPath, -1
+      keypress.combo ";",     -> Dom.doUnlessInputActive -> navigate xPath,  0
+      #
+      unless "no-enter" in config.options
+        keypress.combo "enter", -> Dom.doUnlessInputActive -> followLink xPath
       #
       keypress.combo "down",  -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
       keypress.combo "up",    -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
@@ -201,7 +201,8 @@ chrome.extension.sendMessage request, (response) ->
             # Stick with the current element if it's in a reasonable position.
             if currentElement
               [ top, bottom ] = Dom.offsetTopBottom currentElement
-              return if pageTop < bottom - 60
+              return if 0 <= bottom - pageTop <= 60
+              return if 0 <= top    - pageTop <= 60
               # return if top < pageTop < bottom - 60
             #
             for element in Dom.getElementList config.xPath
