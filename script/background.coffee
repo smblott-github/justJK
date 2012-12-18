@@ -16,44 +16,50 @@ _      = window._
 # www.google.co.uk ->
 #   www.google.co.uk, google.co.uk, co.uk, uk
 #
-prefixes = (host) ->
-  parts = host.split "."
-  parts[i..].join "." for i in [0...parts.length-1]
+config = do ->
+  prefixes = (host) ->
+    parts = host.split "."
+    parts[i..].join "." for i in [0...parts.length-1]
 
-config = (host,pathname) ->
-  # Check host.
-  if host and pathname
-    for hst in prefixes host
-      if hst of sites
-        for conf in sites[hst]
-          if conf.regexp.test pathname
-            return conf
-  # Check pathname.
-  for conf in paths
-    if conf.regexp.test pathname
-      return conf
-  return { xPath: Const.simpleBindings }
+  (host,pathname) ->
+    # Check host.
+    if host and pathname
+      for hst in prefixes host
+        if hst of sites
+          for conf in sites[hst]
+            if conf.regexp.test pathname
+              return conf
+    # Check pathname.
+    for conf in paths
+      if conf.regexp.test pathname
+        return conf
+    return { xPath: Const.simpleBindings }
 
 # ####################################################################
 # Save and look up most recent @id for a page.
 #
-mkKey = (host,pathname) -> "#{host}#{pathname}"
 
-saveID = (host, pathname, id) ->
-  # If the selected element does not have an id, then id here will be null.  It must nevertheless be recorded
-  # ... so that we don't later jump back to a previous element which *did* have an id.
-  if host and pathname
-    key = mkKey host, pathname
-    localStorage[key] = id
-  null
-
-lastID = (host,pathname) ->
-  if host and pathname
-    key = mkKey host, pathname
-    if key of localStorage
-      id = localStorage[key]
-      return { id: id }
-  null
+[ saveID, lastID ] = do ->
+  #
+  mkKey = (host,pathname) -> "#{host}[#{pathname}]"
+  #
+  saveID = (host, pathname, id) ->
+    # If the selected element does not have an id, then id here will be null.  It must nevertheless be recorded
+    # ... so that we don't later jump back to a previous element which *did* have an id.
+    if host and pathname
+      key = mkKey host, pathname
+      localStorage[key] = id
+    null
+  #
+  lastID = (host,pathname) ->
+    if host and pathname
+      key = mkKey host, pathname
+      if key of localStorage
+        id = localStorage[key]
+        return { id: id }
+    null
+  #
+  [ saveID, lastID ]
 
 # ####################################################################
 # Open URL in a new tab.
