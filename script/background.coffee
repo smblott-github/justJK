@@ -6,35 +6,37 @@ Const  = justJK.Const
 Parse  = justJK.Parse
 #
 echo   = Util.echo
+_      = window._
 
 [ sites, paths ] = Parse.parse()
 
 # ####################################################################
 # Lookup configuration.
-
+#
 # www.google.co.uk ->
 #   www.google.co.uk, google.co.uk, co.uk, uk
-domains = (host) ->
+#
+prefixes = (host) ->
   parts = host.split "."
   parts[i..].join "." for i in [0...parts.length-1]
 
 config = (host,pathname) ->
   # Check host.
   if host and pathname
-    for hst in domains host
+    for hst in prefixes host
       if hst of sites
-        for page in sites[hst]
-          if page.regexp.test pathname
-            return page
+        for conf in sites[hst]
+          if conf.regexp.test pathname
+            return conf
   # Check pathname.
-  for path in paths
-    if path.regexp.test pathname
-      return path
+  for conf in paths
+    if conf.regexp.test pathname
+      return conf
   return { xPath: Const.simpleBindings }
 
 # ####################################################################
 # Save and look up most recent @id for a page.
-
+#
 mkKey = (host,pathname) -> "#{host}#{pathname}"
 
 saveID = (host, pathname, id) ->
@@ -42,7 +44,6 @@ saveID = (host, pathname, id) ->
   # ... so that we don't later jump back to a previous element which *did* have an id.
   if host and pathname
     key = mkKey host, pathname
-    echo "#{id} <- #{key}"
     localStorage[key] = id
   null
 
@@ -51,7 +52,6 @@ lastID = (host,pathname) ->
     key = mkKey host, pathname
     if key of localStorage
       id = localStorage[key]
-      echo "#{id} -> #{key}"
       return { id: id }
   null
 
@@ -62,7 +62,6 @@ lastID = (host,pathname) ->
 #
 open = (url) ->
   if url
-    echo "open: #{url}"
     chrome.tabs.getSelected null, (tab) ->
       chrome.tabs.create { url: url, index: tab.index, selected: true }
 

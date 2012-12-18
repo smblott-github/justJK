@@ -3,17 +3,37 @@ justJK = window.justJK ?= {}
 #
 _      = window._
 
+# ####################################################################
+# Additional underscore bindings.
+# From: "https://gist.github.com/2624704".
+#
+do ->
+  mixin = {}
+  #
+  for name in [ "bind", "throttle" ]
+    do (name) ->
+      mixin["#{name}R"] = (args..., f) -> _(f)[name](args...)
+  #
+  _.mixin mixin
+
+# ####################################################################
+# Constants.
+#
 Const = justJK.Const =
   jjkAttribute:   "__justJKExtra__smblott_"
   highlightCSS:   "justjk_highlighted"
-  simpleBindings: "/justJKSimpleBindingsForJK"
-  nativeBindings: "/justJKNativeBindingsForJK"
+  simpleBindings: "/justJKSimpleBindingsForJK" # FIXME
+  nativeBindings: "/justJKNativeBindingsForJK" # FIXME
   verboten:       [ "INPUT", "TEXTAREA" ]
 
+# ####################################################################
+# Utilities.
+#
 Util = justJK.Util =
   echo:              (args...)          -> console.log arg for arg in args
   #
-  # It's more convenient to have setInterval and setTimeout accept the function as their *second* argument.
+  # It's sometimes more convenient to have setInterval and setTimeout expect the function as their *second*
+  # argument.
   #
   setInterval:       (ms, func)         -> window.setInterval func, ms
   setTimeout:        (ms, func)         -> window.setTimeout  func, ms
@@ -32,25 +52,17 @@ Util = justJK.Util =
     func()
     return result
 
-  # Extract HREFs from an anchor, yielding list.
+  # Extract URLs from an anchor, yielding list.  In particular, we try extracting URLs from the anchor's
+  # search term.
   #
-  extractHRefs: do ->
-    regexp = new RegExp "=(https?(://|%3A%2F%2F)[^&=]*)" # "%3A%2F%2F" is "://"
+  extractURLs: do ->
+    regexp = new RegExp "=(https?(://|%3A%2F%2F)[^&]*)" # "%3A%2F%2F" is "://"
     #
     (anchor) ->
-      Util.push ( decodeURIComponent href for href, i in anchor.search.match(regexp) or [] when i % 2 ), anchor.href
-
-# ####################################################################
-# Additional underscore bindings.
-# From: "https://gist.github.com/2624704".
-#
-
-do ->
-  mixin = {}
-  #
-  for name in [ "bind", "throttle" ]
-    do (name) ->
-      mixin["#{name}R"] = (args..., f) -> _(f)[name](args...)
-  #
-  _.mixin mixin
+      search = anchor.search.match(regexp)
+      #
+      if search?.length
+        Util.push (decodeURIComponent href for href, i in search when i % 2), anchor.href
+      else
+        [ anchor.href ]
 

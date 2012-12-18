@@ -126,7 +126,7 @@ followLink = (xPath) ->
         # Now:
         #   extract URLs from the anchors ...
         #
-        .map(Util.extractHRefs, Util)
+        .map(Util.extractURLs, Util)
         .flatten()
         .map(Util.show, Util)
         # 

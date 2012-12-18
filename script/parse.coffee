@@ -18,44 +18,58 @@ Parse = justJK.Parse =
   parse: ->
     siteListURL = chrome.extension.getURL "config.txt"
 
-    # From: `https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest/Using_XMLHttpRequest`.
+    # From: "https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest/Using_XMLHttpRequest".
     siteRequest = new XMLHttpRequest()
     siteRequest.open 'GET', siteListURL, false
     siteRequest.send()
-    siteList = if siteRequest.status is 200 then siteRequest.responseText else ""
+    config = if siteRequest.status is 200 then siteRequest.responseText else ""
 
     # ####################################################################
     # Parse sites.
 
     sites      = {}
     paths      = []
-    directives = "site path elements header like dislike prefer option"
-    directives = directives.trim().split /\s+/
+    directives = "site path elements header like dislike prefer option".trim().split /\s+/
 
-    # Strip some whitespace, comments, empty lines and lines which don't seem to contain directives.
+    # Strip some whitespace, comments, empty lines and lines which don't seem to contain directives, then
+    # rebuild list.
     #
-    siteParse = ( s.trim() for s in siteList.split "\n"                            )
-    siteParse = ( s        for s in siteParse when s.indexOf("#") isnt 0           )
-    siteParse = ( s        for s in siteParse when s                               )
-    siteParse = ( s        for s in siteParse when s.split(/\s+/)[0] in directives )
+    config = "\n" + # This newline creates bogus entry, see below.
+      _.chain( config.split "\n")
+        #
+        .map(    (s) -> s.trim() )
+        .reject( (s) -> s.length is 0 or s[0] is "#" )
+        .filter( (s) -> s.split(/\s+/)[0] in directives )
+        #
+        .value()
+        .join("\n")
 
-    # Rebuild site list.
-    # Prepend blank line so that the split on "\nsite", below, works.
-    #
-    siteList  = "\n" + siteParse.join "\n"
+    proto = ->
+      host      : null
+      header    : null
+      xPath     : []
+      pathnames : []
+      like      : []
+      dislike   : []
+      prefer    : "internal"
+      options   : []
+      #
+      map:
+        elements: "xPath"
+        path: "pathnames"
+      #
+      install: (opt,val) ->
+        opt = @map[opt] if @map[opt]
+        #
+        if _.isArray @[opt]
+          @[opt].push val
+        else
+          @[opt] = val
 
     # Parse site list.
     #
-    for site in (siteList.split "\nsite")[1..] # Skip bogus first entry.
-      host      = null
-      header    = null
-      xPath     = []
-      pathnames = []
-      like      = []
-      dislike   = []
-      prefer    = "internal"
-      options   = []
-      #
+    for site in (config.split "\nsite")[1..] # Skip bogus first entry.
+      conf = proto()
       site = ( line.trim() for line in site.split "\n" )
       #
       # Host, here, may be the empty string.
@@ -63,51 +77,33 @@ Parse = justJK.Parse =
       #
       for line in site
         [ directive, line... ] = line.split /\s+/
-        if line = line.join " "
-          switch directive
-            when "path"     then pathnames.push line
-            when "elements" then xPath.push     line
-            when "header"   then header =       line
-            when "like"     then like.push      line
-            when "dislike"  then dislike.push   line
-            when "prefer"   then prefer =       line
-            when "option"   then options.push   line
+        conf.install directive, line.join " "
       #
-      xPath.push Const.nativeBindings unless xPath.length
-      xPath = xPath.join "|"
+      conf.xPath.push Const.nativeBindings unless conf.xPath.length
+      conf.xPath = conf.xPath.join " | "
       #
       if host
-        pathnames.push "^/" if pathnames.length == 0
+        conf.pathnames.push "^/" unless conf.pathnames.length
         #
-        for p in pathnames
-          entry =
-            path:    p
-            regexp:  new RegExp p
-            xPath:   xPath
-            header:  header
-            like:    like
-            dislike: dislike
-            prefer:  prefer
-            options: options
-          for s in @sites host
-            sites[s] ?= []
-            sites[s].push entry
+        for path in conf.pathnames
+          entry = _.clone conf
+          _.extend entry,
+            path:    path
+            regexp:  new RegExp path
+          #
+          for site in @sites host
+            sites[site] ?= []
+            sites[site].push entry
         #
       else
         # No host.
-        if xPath
-          for p in pathnames
-            paths.push
-              path:    p
-              regexp:  new RegExp p
-              xPath:   xPath
-              header:  header
-              like:    like
-              dislike: dislike
-              prefer:  prefer
-              options: options
-
-    #
+        for path in conf.pathnames
+          entry = _.clone conf
+          _.extend entry,
+            path:    path
+            regexp:  new RegExp path
+          #
+          paths.push entry
     #
     [ sites, paths ]
 

@@ -10,6 +10,7 @@
 
    "background": {
       "scripts": [
+         "third-party/underscore-min.js",
          "script/util.js",
          "script/parse.js",
          "script/background.js"
@@ -20,16 +21,17 @@
       {
          "matches"    : [ "<all_urls>" ],
          "css"        : [ "css/highlight.css" ],
-         "js"         : [ "third-party/keypress.js",
-                          "third-party/underscore-min.js",
-                          "script/util.js",
-                          "script/cache.js",
-                          "script/dom.js",
-                          "script/scroll.js",
-                          "script/score.js",
-                          "script/hacks.js",
-                          "script/foreground.js"
-                        ],
+         "js"         : [
+            "third-party/keypress.js",
+            "third-party/underscore-min.js",
+            "script/util.js",
+            "script/cache.js",
+            "script/dom.js",
+            "script/scroll.js",
+            "script/score.js",
+            "script/hacks.js",
+            "script/foreground.js"
+            ],
          "run_at"     : "document_start",
 //       "run_at"     : "document_end",
          "all_frames" :  false
