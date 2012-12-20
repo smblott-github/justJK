@@ -35,21 +35,12 @@ Dom = justJK.Dom =
   visible: (element) ->
     Cache.eleCacheUse "visible", element, =>
       for ele in @offsetParents(element)[1..]
-        if ele.offsetHeight <= 0
-          return false
+        return false if ele.offsetHeight <= 0
       #
       for ele in @parentNodes element
         if style = window.getComputedStyle ele
-          if style.display is "none"
-            return false
-          if style.visibility is "hidden"
-            return false
-          if style.overflow is "hidden"
-            top = @offsetTop ele
-            for parent in @offsetParents ele
-              bottom = @offsetBottom parent
-              if bottom <= top
-                return false
+          return false if style.display    is "none"
+          return false if style.visibility is "hidden"
       #
       true
 
@@ -101,7 +92,9 @@ Dom = justJK.Dom =
   #
   offsetParents: (element) ->
     Cache.eleCacheUse "offsetParents", element, =>
-      if not element then [] else [ element ].concat @offsetParents element.offsetParent
+      return [] unless element
+      return [] if element.nodeName is "BODY"
+      return [ element ].concat @offsetParents element.offsetParent
 
   # Is the position of element fixed?
   #

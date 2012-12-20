@@ -66,9 +66,25 @@ Util = justJK.Util =
       else
         [ anchor.href ]
 
+  # Synchronous wget.
+  #
   wget: (url) ->
     request = new XMLHttpRequest()
     request.open 'GET', url, false
     request.send()
     if request.status is 200 then request.responseText else ""
+
+  throttle: do ->
+    timer = null
+    delay = 300
+    #
+    (func) ->
+      ->
+        if timer
+          clearTimeout timer
+        #
+        timer = Util.setTimeout delay, ->
+          timer = null
+          func()
+
 

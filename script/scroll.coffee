@@ -29,17 +29,19 @@ Scroll = justJK.Scroll =
     target = null
     #
     (delta) ->
-      if @timer
-        clearInterval @timer
-        window.scrollTo window.pageXOffset, target
+      base =
+        if @timer
+          clearInterval @timer
+          target
+        else
+          window.pageYOffset
       #
-      target = window.pageYOffset + delta # / 4
+      target = base + delta
       offset = window.pageYOffset
       start  = Date.now()
-      duration = @duration # + @durationScale * Math.sqrt Math.abs delta
       #
       @timer = Util.setInterval @interval, =>
-        factor = (Date.now() - start) / duration
+        factor = (Date.now() - start) / @duration
         #
         if 1 <= factor
           clearInterval @timer
