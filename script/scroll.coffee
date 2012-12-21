@@ -32,6 +32,11 @@ Scroll = justJK.Scroll =
     target   = null
     #
     (delta, accumulate=false) ->
+      # If delta is not defined, then just respond true/false to indicate whether we are currently scrolling
+      # (or not).
+      if not delta?
+        return timer?
+      #
       current =
         if timer
           clearInterval timer

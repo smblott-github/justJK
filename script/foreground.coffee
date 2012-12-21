@@ -72,6 +72,18 @@ navigate = (xPath, move) ->
       echo "lastJK error: multiple elements selected"
     #
     index = index[0]
+    #
+    # Consider sticking with the current element.
+    if move and not Scroll.smoothScrollByDelta()
+      pageTop = Scroll.pageTop config.header
+      pageBottom = window.pageYOffset + window.innerHeight
+      [ top, bottom ] = Dom.offsetTopBottom elements[index]
+      switch move
+        when -1
+          return highlight elements[index] if top < pageTop
+        when 1
+          return highlight elements[index] if pageTop < top
+    #
     newIndex = Math.min n-1, Math.max 0, if move then index + move else 0
     if newIndex isnt index
       return highlight elements[newIndex]
