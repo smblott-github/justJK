@@ -72,25 +72,6 @@ navigate = (xPath, move) ->
       echo "lastJK error: multiple elements selected"
     #
     index = index[0]
-    #
-    # When mixing logical scrolling with other scrolling, the selected element can be in a variety of
-    # positions.  The UX is better with the following adjustments.
-    #
-    if false # Disabled, for the moment ... because the UX is not better so.
-      if move and not Scroll.scrolling()
-        element = elements[index]
-        #
-        if currentElement and element is currentElement
-          elementTop = Dom.offsetTop element
-          pageTop = Scroll.pageTop config.header
-          #
-          switch move
-            when  1 then return highlight element if pageTop    < elementTop
-            when -1 then return highlight element if elementTop < pageTop
-          # Drop through.
-    #
-    # Normal navigation.
-    #
     newIndex = Math.min n-1, Math.max 0, if move then index + move else 0
     if newIndex isnt index
       return highlight elements[newIndex]
@@ -217,18 +198,25 @@ chrome.extension.sendMessage request, (response) ->
         document.onscroll =
           Util.throttle ->
             Cache.eleCacheStart ->
-              pageTop = Scroll.pageTop config.header
-              pageBottom = pageTop + window.innerHeight
+              pageTop = window.pageYOffset + Dom.pageTopAdjustment config.header
+              pageBottom = window.pageYOffset + window.innerHeight
+              pageFocus1 = pageTop + (pageBottom - pageTop) * 0.2
+              pageFocus2 = pageTop + (pageBottom - pageTop) * 0.7
               #
               # Stick with the current element if it's in a reasonable position.
               if currentElement
                 [ top, bottom ] = Dom.offsetTopBottom currentElement
-                return if 0 <= bottom - pageTop <= 60
-                return if 0 <= top    - pageTop <= 60
-                return if pageTop < top and bottom < pageBottom
-                # return if top < pageTop < bottom - 60
+                return if pageTop < top and bottom < pageBottom          # Still wholly on page.
+                return if top <= pageFocus1 <= bottom                    # Spans focus point 1.
               #
-              for element in Dom.getElementList config.xPath
-                if pageTop <= Dom.offsetTop(element) or pageBottom - 300 < Dom.offsetBottom(element)
-                  return highlight element, false # "false" here means "do not scroll".
+              elements = Dom.getElementList config.xPath
+              if elements.length
+                for element in elements
+                  [ top, bottom ] = Dom.offsetTopBottom element
+                  #
+                  return highlight element, false if pageTop < top
+                  return highlight element, false if pageFocus2 < bottom
+                #
+                # Must be off the bottom.  Highlight the last element.
+                return highlight elements.pop(), false
 

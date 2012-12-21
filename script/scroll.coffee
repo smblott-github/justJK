@@ -11,45 +11,47 @@ Util   = justJK.Util
 echo   = Util.echo
 
 Scroll = justJK.Scroll = 
-  #
-  vanillaScrollStep:  70
-  offset:             20
-  #
-  duration:           250
-  durationScale:      6
-  interval:           20
-  #
-  timer:              null
 
-  scrolling:            -> @timer != null
-  pageTop: (header)     -> window.pageYOffset + @offset + Dom.pageTopAdjustment header
-  vanillaScroll: (move) -> @smoothScrollByDelta if move then move * @vanillaScrollStep else 0 - window.pageYOffset
+  pageTop: do ->
+    offset = 20
+    #
+    (header) ->
+      window.pageYOffset + offset + Dom.pageTopAdjustment header
+
+  vanillaScroll: do ->
+    vanillaScrollStep = 60
+    #
+    (move) ->
+      @smoothScrollByDelta (if move then move * vanillaScrollStep else 0 - window.pageYOffset), true
 
   smoothScrollByDelta: do ->
-    target = null
+    duration = 250
+    interval = 20
     #
-    (delta) ->
-      base =
-        if @timer
-          clearInterval @timer
-          target
+    timer    = null
+    target   = null
+    #
+    (delta, accumulate=false) ->
+      current =
+        if timer
+          clearInterval timer
+          if accumulate then target else window.pageYOffset
         else
           window.pageYOffset
       #
-      target = base + delta
-      offset = window.pageYOffset
+      target = current + delta
       start  = Date.now()
       #
-      @timer = Util.setInterval @interval, =>
-        factor = (Date.now() - start) / @duration
+      timer = Util.setInterval interval, =>
+        factor = (Date.now() - start) / duration
         #
         if 1 <= factor
-          clearInterval @timer
-          @timer = null
+          clearInterval timer
+          timer = null
           factor = 1
         #
-        y = factor * delta + offset
-        window.scrollBy 0, y - window.pageYOffset
+        pos = current + factor * delta
+        window.scrollBy 0, pos - window.pageYOffset
 
   smoothScrollToElement: (element, header) ->
     @smoothScrollByDelta Dom.offsetTop(element) - @pageTop header
