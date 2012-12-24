@@ -37,6 +37,12 @@ Scroll = justJK.Scroll =
       if not delta?
         return timer?
       #
+      dur = duration
+      int = interval
+      #
+      # Partial idea .... currently no-op.
+      if typeof accumulate is 'number'
+        dur = duration
       current =
         if timer
           clearInterval timer
@@ -47,8 +53,8 @@ Scroll = justJK.Scroll =
       target = current + delta
       start  = Date.now()
       #
-      timer = Util.setInterval interval, =>
-        factor = (Date.now() - start) / duration
+      timer = Util.setInterval int, =>
+        factor = (Date.now() - start) / dur
         #
         if 1 <= factor
           clearInterval timer
@@ -60,4 +66,29 @@ Scroll = justJK.Scroll =
 
   smoothScrollToElement: (element, header) ->
     @smoothScrollByDelta Dom.offsetTop(element) - @pageTop header
+
+  autoscroll: do ->
+    base  = 400
+    scale = 0.7
+    rate  = null
+    timer = null
+    stamp = null
+    #
+    (faster) ->
+      clearInterval timer if timer
+      echo faster
+      #
+      if faster
+        rate = if not rate then base else Math.floor rate * scale
+        timer = Util.setInterval rate, -> window.scrollBy 0, 2
+      #
+      else
+        rate = if not rate then base else Math.floor rate / scale
+        #
+        return timer = rate = stamp = null if base <= rate
+        return timer = rate = stamp = null if stamp and Date.now() - stamp < 300
+        return timer = rate = stamp = null if document.body.offsetHeight <= window.pageYOffset + window.innerHeight
+        #
+        stamp = Date.now()
+        timer = Util.setInterval rate, -> window.scrollBy 0, 2
 

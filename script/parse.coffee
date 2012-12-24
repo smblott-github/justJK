@@ -46,7 +46,7 @@ Parse = justJK.Parse =
       like      : []
       dislike   : []
       prefer    : "internal"
-      options   : []
+      option    : []
       #
       map:
         elements: "xPath"

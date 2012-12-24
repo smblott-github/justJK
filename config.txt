@@ -120,9 +120,11 @@ prefer   neither
 
 site     www.thesun.co.uk
 path     ^/sol/homepage/$
+path     ^/sol/homepage/.*/$
 elements //div[starts-with(@class,'main-splash-outer')]
 elements //div[starts-with(@data-vr-zone,'mainGrid')]/div[contains(@class,'-teaser')]
 prefer   internal
+like     .html
 dislike  #comment-rig
 
 site     www.argos.ie

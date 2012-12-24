@@ -73,7 +73,8 @@ navigate = (xPath, move) ->
     #
     index = index[0]
     #
-    # Consider sticking with the current element.
+    # Consider sticking with the current element ... specifically, if scrolling to the otherwise correct
+    # element would involve jumping past the current element.
     if move and not Scroll.smoothScrollByDelta()
       pageTop = Scroll.pageTop config.header
       pageBottom = window.pageYOffset + window.innerHeight
@@ -82,7 +83,8 @@ navigate = (xPath, move) ->
         when -1
           return highlight elements[index] if top < pageTop
         when 1
-          return highlight elements[index] if pageTop < top
+          if pageBottom < document.body.offsetHeight
+            return highlight elements[index] if pageTop < top
     #
     newIndex = Math.min n-1, Math.max 0, if move then index + move else 0
     if newIndex isnt index
@@ -123,7 +125,10 @@ followLink = (xPath) ->
         #
         .map(Util.extractURLs, Util)
         .flatten()
-        .map(Util.show, Util)
+        # .map(Util.show, Util)
+        .map (url) ->
+          echo "#{Score.scoreHRef config, url} #{url}"
+          url
         # 
         # Now:
         #   score each URL, keeping only those with the highest score ...
@@ -159,30 +164,32 @@ chrome.extension.sendMessage request, (response) ->
   xPath = config.xPath
   echo "justJK xPath: #{xPath}"
   #
+  Util.keypress "s", -> Dom.doUnlessInputActive -> Scroll.autoscroll true
+  Util.keypress "shift s", -> Dom.doUnlessInputActive -> Scroll.autoscroll false
   switch xPath
     #
     when Const.nativeBindings
-      unless "no-enter" in config.options
-        keypress.combo "enter", -> Dom.doUnlessInputActive -> followLink xPath
+      unless "no-enter" in config.option
+        Util.keypress "enter", -> Dom.doUnlessInputActive -> followLink xPath
     #
     when Const.simpleBindings
-      keypress.combo "j",     -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
-      keypress.combo "k",     -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
-      keypress.combo ";",     -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  0
+      Util.keypress "j",     -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
+      Util.keypress "k",     -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
+      Util.keypress ";",     -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  0
       #
-      keypress.combo "down",  -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
-      keypress.combo "up",    -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
+      Util.keypress "down",  -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
+      Util.keypress "up",    -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
     #
     else
-      keypress.combo "j",     -> Dom.doUnlessInputActive -> navigate xPath,  1
-      keypress.combo "k",     -> Dom.doUnlessInputActive -> navigate xPath, -1
-      keypress.combo ";",     -> Dom.doUnlessInputActive -> navigate xPath,  0
+      Util.keypress "j",     -> Dom.doUnlessInputActive -> navigate xPath,  1
+      Util.keypress "k",     -> Dom.doUnlessInputActive -> navigate xPath, -1
+      Util.keypress ";",     -> Dom.doUnlessInputActive -> navigate xPath,  0
       #
-      unless "no-enter" in config.options
-        keypress.combo "enter", -> Dom.doUnlessInputActive -> followLink xPath
+      unless "no-enter" in config.option
+        Util.keypress "enter", -> Dom.doUnlessInputActive -> followLink xPath
       #
-      keypress.combo "down",  -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
-      keypress.combo "up",    -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
+      Util.keypress "down",  -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
+      Util.keypress "up",    -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
       #
       # 
       window.addEventListener "DOMContentLoaded", ->

@@ -40,8 +40,9 @@ Score = justJK.Score =
         else
           score += 3 if not internal
     #
-    # Slightly prefer non-static looking links.
-    score += 1 if stringContains href, "?"
+    # # Slightly prefer non-static looking links.
+    # # Don't do this.  It picks some twitter links.
+    # score += 1 if stringContains href, "?"
     #
     for lk in ( config.like or [] )
       score += 15 if stringContains href, lk

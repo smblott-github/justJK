@@ -52,6 +52,15 @@ Util = justJK.Util =
     func()
     return result
 
+  # Keypress wrapper.
+  #
+  keypress: (keys, func) ->
+    keypress.register_combo
+      keys            : keys
+      on_keydown      : func
+      prevent_default : false
+      is_exclusive    : true
+
   # Extract URLs from an anchor, yielding list.  In particular, we try extracting URLs from the anchor's
   # search term.
   #
