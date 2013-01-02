@@ -199,16 +199,17 @@ chrome.extension.sendMessage request, (response) ->
           pathname: window.location.pathname
         
         chrome.extension.sendMessage request, (response) ->
-          Cache.eleCacheStart ->
-            if not currentElement
-              if response?.id
-                for element in Dom.getElementList xPath
-                  if element.id and response.id is element.id
-                    return highlight element
-              #
-              # Go to first element.
-              #
-              navigate xPath, 0
+          unless "no-focus" in config.option
+            Cache.eleCacheStart ->
+              if not currentElement
+                if response?.id
+                  for element in Dom.getElementList xPath
+                    if element.id and response.id is element.id
+                      return highlight element
+                #
+                # Go to first element.
+                #
+                navigate xPath, 0
         
       # ########################
       # Highlight new selection on scroll.
