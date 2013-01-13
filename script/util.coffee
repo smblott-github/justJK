@@ -68,6 +68,10 @@ Util = justJK.Util =
     regexp = new RegExp "=(https?(://|%3A%2F%2F)[^&]*)" # "%3A%2F%2F" is "://"
     #
     (anchor) ->
+      # Youtube hack.
+      if anchor.host is "www.youtube.com" and anchor.pathname is "/watch"
+        anchor.pathname = "/watch_popup"
+      #
       search = anchor.search.match(regexp)
       #
       if search?.length
