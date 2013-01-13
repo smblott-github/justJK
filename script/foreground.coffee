@@ -102,6 +102,19 @@ followLink = (xPath) ->
   echo "followLink"
   if document.activeElement?.nodeName is "A"
     return document.activeElement.click()
+
+  # Youtube hack.
+  if window.location.host is "www.youtube.com" and window.location.pathname is "/watch"
+    url = window.location
+    window.location = "/watch_popup#{url.search}"
+    return
+
+  # Youtube hack.
+  if window.location.host is "www.youtube.com" and window.location.pathname is "/watch_popup"
+    url = window.location
+    window.location = "/watch#{url.search}"
+    return
+
   #
   element = if xPath is Const.nativeBindings then Dom.getActiveElement() else currentElement
   if element and element isnt document.body
@@ -197,7 +210,7 @@ chrome.extension.sendMessage request, (response) ->
         #
         if document.activeElement.nodeName in Const.verboten
           document.activeElement.blur()
-        
+
         request =
           request: "lastID"
           host:     window.location.host
