@@ -193,11 +193,16 @@ chrome.extension.sendMessage request, (response) ->
       #
       # 
       window.addEventListener "DOMContentLoaded", ->
+        # Grab back focus.
+        #
+        if document.activeElement.nodeName in Const.verboten
+          document.activeElement.blur()
+        
         request =
           request: "lastID"
           host:     window.location.host
           pathname: window.location.pathname
-        
+
         chrome.extension.sendMessage request, (response) ->
           unless "no-focus" in config.option
             Cache.eleCacheStart ->
