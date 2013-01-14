@@ -68,16 +68,18 @@ Util = justJK.Util =
     regexp = new RegExp "=(https?(://|%3A%2F%2F)[^&]*)" # "%3A%2F%2F" is "://"
     #
     (anchor) ->
-      # Youtube hack.
-      if anchor.host is "www.youtube.com" and anchor.pathname is "/watch"
-        anchor.pathname = "/watch_popup"
+      # # Youtube hack.
+      # if anchor.host is "www.youtube.com" and anchor.pathname is "/watch"
+      #   anchor.pathname = "/watch_popup"
       #
       search = anchor.search.match(regexp)
       #
-      if search?.length
-        Util.push (decodeURIComponent href for href, i in search when i % 2), anchor.href
-      else
-        [ anchor.href ]
+      urls = 
+        if search?.length
+          Util.push (decodeURIComponent href for href, i in search when i % 2), anchor.href
+        else
+          [ anchor.href ]
+      urls.map (url) -> url.replace "://www.youtube.com/watch?", "://www.youtube.com/watch_popup?"
 
   # Synchronous wget.
   #
