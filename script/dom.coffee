@@ -42,6 +42,9 @@ Dom = justJK.Dom =
           return false if style.display    is "none"
           return false if style.visibility is "hidden"
       #
+      [ top, bottom ] = @offsetTopBottom element
+      return false if bottom - top < 10
+      #
       true
 
   # Return list of elements matching given XPath expression sorted by their position within the window.
@@ -99,6 +102,7 @@ Dom = justJK.Dom =
   # Is the position of element fixed?
   #
   isFixed: (element) ->
+    return true
     Cache.eleCacheUse "isFixed", element, =>
       if element
         window.getComputedStyle(element).position is "fixed" or @isFixed element.offsetParent

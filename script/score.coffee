@@ -25,6 +25,10 @@ Score = justJK.Score =
         if stringStartsWith long, short
           score -= 1000 if long[long.length-1..] is "#"
     #
+    # Dislike mail links.
+    if stringStartsWith href, 'mailto:'
+      score -= 100
+    #
     # Prefer internal/external links.
     do ->
       internal = ( 7 <= href.indexOf(window.location.host) <= 8 )
