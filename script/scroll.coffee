@@ -90,5 +90,5 @@ Scroll = justJK.Scroll =
         return timer = rate = stamp = null if document.body.offsetHeight <= window.pageYOffset + window.innerHeight
         #
         stamp = Date.now()
-        timer = Util.setInterval rate, -> window.scrollBy 0, 2
+        timer = Util.setInterval rate, -> window.scrollBy 0, 1
 

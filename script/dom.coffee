@@ -34,6 +34,10 @@ Dom = justJK.Dom =
   # Is element visible?
   visible: (element) ->
     Cache.eleCacheUse "visible", element, =>
+      # for ele in @offsetParents(element)
+      #   style = window.getComputedStyle ele
+      #   console.log style.position
+      #
       for ele in @offsetParents(element)[1..]
         return false if ele.offsetHeight <= 0
       #
@@ -102,12 +106,14 @@ Dom = justJK.Dom =
   # Is the position of element fixed?
   #
   isFixed: (element) ->
-    return true
-    Cache.eleCacheUse "isFixed", element, =>
-      if element
-        window.getComputedStyle(element).position is "fixed" or @isFixed element.offsetParent
-      else
-        false
+    while element
+      style = window.getComputedStyle element
+      if style
+        switch style.position
+          when "fixed"    then return true
+          when "absolute" then return true
+      element = element.parentNode
+    return false
 
   # Return largest position of the bottom of a fixed element.
   # 

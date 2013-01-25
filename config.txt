@@ -57,6 +57,12 @@ elements //ol[@id='search-results']/li
 prefer   internal
 
 site     www.youtube.com
+path     ^/my_subscriptions
+elements //ol[@class='vm-video-list']/li
+header   //div[@id='vm-video-actions-bar']
+prefer   internal
+
+site     www.youtube.com
 path     ^/
 elements //ul/li[starts-with(@class,'feed-item-container')]
 like     /watch
@@ -79,10 +85,13 @@ dislike  fb_action_types=instapp
 prefer   external
 
 site     plus.google.com
+# header   //div[@id='gb']
 header   //div[@id='gb'] | //div[@role='navigation']
 elements //div[@id='contentPane']//div[@guidedhelpid='streamcontent']//div[starts-with(@id,'update-')]
 dislike  ://webcache.googleusercontent.com/
+dislike  /albums
 like     /photos/
+like     /posts/
 prefer   external
 
 site     slashdot.org
