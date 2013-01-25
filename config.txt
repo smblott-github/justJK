@@ -52,21 +52,14 @@ site     mail.google.com
 option   no-enter
 
 site     www.youtube.com
-path     ^/results
 elements //ol[@id='search-results']/li
-prefer   internal
-
-site     www.youtube.com
-path     ^/my_subscriptions
 elements //ol[@class='vm-video-list']/li
+elements //div[@class='feed-page']/ul/li
+elements //ul/li[starts-with(@class,'feed-item-container')]
+elements //ul[@class='gh-single-playlist']/li
 header   //div[@id='vm-video-actions-bar']
 prefer   internal
-
-site     www.youtube.com
-path     ^/
-elements //ul/li[starts-with(@class,'feed-item-container')]
-like     /watch
-prefer   internal
+like     watch_popup
 
 # site     www.youtube.com
 # path     ^/feed/subscriptions
