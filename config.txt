@@ -70,6 +70,8 @@ like     watch_popup
 site     www.facebook.com
 header   //div[@id='pagelet_bluebar']/div[@id='blueBarHolder']/div['blueBar'] | //div[@id='timeline_sticky_header']
 elements //li[starts-with(@class,'uiUnifiedStory')]
+like     /video/video.php
+like     /video/video.php
 like     /photo.php?fbid=
 like     /l.php?u=
 dislike  /ajax/sharer/

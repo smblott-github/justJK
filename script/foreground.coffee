@@ -112,6 +112,7 @@ followLink = (xPath) ->
   # Youtube hack.
   if window.location.host is "www.youtube.com" and window.location.pathname is "/watch_popup"
     url = window.location
+    # window.location = "/watch#{url.search}&autoplay=0"
     window.location = "/watch#{url.search}"
     return
 
