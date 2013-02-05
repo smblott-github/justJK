@@ -132,7 +132,10 @@ followLink = (xPath) ->
         #   filter out those that are not of interest ...
         #
         .reject((a) -> Util.stringStartsWith a.href, "javascript:")
-        .filter(Dom.visible, Dom)
+        # .map (url) ->
+        #   echo ">> #{url}"
+        #   url
+        # .filter(Dom.visible, Dom)
         #
         # Now:
         #   extract URLs from the anchors ...
