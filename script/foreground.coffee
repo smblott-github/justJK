@@ -181,8 +181,8 @@ chrome.extension.sendMessage request, (response) ->
   xPath = config.xPath
   echo "justJK xPath: #{xPath}"
   #
-  Util.keypress "s", -> Dom.doUnlessInputActive -> Scroll.autoscroll true
-  Util.keypress "shift s", -> Dom.doUnlessInputActive -> Scroll.autoscroll false
+  # Util.keypress "s", -> Dom.doUnlessInputActive -> Scroll.autoscroll true
+  # Util.keypress "shift s", -> Dom.doUnlessInputActive -> Scroll.autoscroll false
   switch xPath
     #
     when Const.nativeBindings
