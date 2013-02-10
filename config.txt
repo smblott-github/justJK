@@ -88,6 +88,7 @@ dislike  ://webcache.googleusercontent.com/
 like     /albums
 like     /photos/
 like     /posts/
+like     /u/0/
 prefer   external
 
 site     slashdot.org
