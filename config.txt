@@ -87,6 +87,7 @@ dislike  ://webcache.googleusercontent.com/
 like     /albums
 like     /photos/
 like     /posts/
+like     /u/0/
 prefer   external
 
 site     slashdot.org
@@ -154,6 +155,7 @@ prefer   internal
 # use native bindings
 site     groups.google.com
 path     ^/forum/
+option   no-enter
 
 site     www.steephill.tv
 path     /photos/
