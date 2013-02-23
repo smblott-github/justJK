@@ -50,5 +50,13 @@ do ->
         if Dom.visible vimiumElement
           return true # Propagate.
       #
+      switch window.location.host
+        when "plus.google.com"
+          active = document.activeElement
+          if active.nodeName is 'DIV'
+            if active.attributes.getNamedItem('g_editable')
+              # May have to also check that it's true!
+              return true # Propagate.
+      #
       func args...
 
