@@ -73,6 +73,9 @@ navigate = (xPath, move) ->
     #
     index = index[0]
     #
+    if move is Const.last
+      move = n - index - 1
+    #
     # Consider sticking with the current element ... specifically, if scrolling to the otherwise correct
     # element would involve jumping past the current element.
     if move and not Scroll.smoothScrollByDelta()
@@ -201,6 +204,7 @@ chrome.extension.sendMessage request, (response) ->
       Util.keypress "j",     -> Dom.doUnlessInputActive -> navigate xPath,  1
       Util.keypress "k",     -> Dom.doUnlessInputActive -> navigate xPath, -1
       Util.keypress ";",     -> Dom.doUnlessInputActive -> navigate xPath,  0
+      Util.keypress ":",     -> Dom.doUnlessInputActive -> navigate xPath,  Const.last
       #
       unless "no-enter" in config.option
         Util.keypress "enter", -> Dom.doUnlessInputActive -> followLink xPath

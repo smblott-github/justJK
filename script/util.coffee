@@ -25,6 +25,7 @@ Const = justJK.Const =
   simpleBindings: "/justJKSimpleBindingsForJK" # FIXME
   nativeBindings: "/justJKNativeBindingsForJK" # FIXME
   verboten:       [ "INPUT", "TEXTAREA" ]
+  last:           "last"
 
 # ####################################################################
 # Utilities.
