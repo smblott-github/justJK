@@ -235,7 +235,7 @@ chrome.extension.sendMessage request, (response) ->
                 #
                 # Go to first element.
                 #
-                navigate xPath, 0
+                # navigate xPath, 0
         
       # ########################
       # Highlight new selection on scroll.

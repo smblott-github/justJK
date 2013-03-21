@@ -1,0 +1,186 @@
+
+# ####################################################################
+# A brief explanation ...
+#
+# Lines like this are comments.
+#
+# The token "site" begins a new entry.  It must be the first word on
+# a line.
+#
+# If only the site is listed, then "j" and "k" are passed through the
+# underlying page.
+#
+# If no path is given, then the entry applies to the entire site.
+#
+# If no site is given, then paths are matched against every page.
+#
+# Multiple paths may be provided.
+#
+
+# ####################################################################
+# Header offsets (the header directive)
+#
+# Goal: try to adjust the scroll offset for pages known to have static
+# headers.  Content must not scroll up underneath such headers.
+# 
+# Basically, provide an XPath specification here.  The bottom of the
+# indicated element (which must be unique) is taken to be the top of the
+# normal page area.
+#
+# See Facebook, Google Plus and Twitter for examples.
+#
+
+# ##############################################################################
+# Sites ...
+
+site     google .com .ie .co.uk .de .fr
+path     ^/search
+# The following XPath misses the case where the 'g' is at the end of the
+# list ... which doesn't seem to com eup in practice.
+elements //li[ @class='g' or starts-with(@class,'g ') or contains(@class,' g ')  ]
+elements //p[starts-with(@class,'sp_cnt')]/a[@class='spell']/..
+dislike  /search
+dislike  ://webcache.googleusercontent.com/
+prefer   external
+
+site     google .com .ie .co.uk .de .fr
+path     ^/reader/
+prefer   external
+
+# Native bindings and no enter key ... justJK is completely disabled.
+site     mail.google.com
+option   no-enter
+
+site     www.youtube.com
+elements //ol[@id='search-results']/li
+elements //ol[@class='vm-video-list']/li
+elements //div[@class='feed-page']/ul/li
+elements //ul/li[starts-with(@class,'feed-item-container')]
+elements //ul[@class='gh-single-playlist']/li
+header   //div[@id='vm-video-actions-bar']
+prefer   internal
+like     watch_popup
+
+# site     www.youtube.com
+# path     ^/feed/subscriptions
+# elements //ul/li[starts-with(@class,'feed-item-container')]
+# like     /watch
+# prefer   internal
+
+site     www.facebook.com
+header   //div[@id='pagelet_bluebar']/div[@id='blueBarHolder']/div['blueBar'] | //div[@id='timeline_sticky_header']
+elements //li[starts-with(@class,'uiUnifiedStory')]
+like     /video/video.php
+like     /video/video.php
+like     /photo.php?fbid=
+like     /l.php?u=
+dislike  /ajax/sharer/
+dislike  apps.facebook.com
+dislike  fb_action_types=instapp
+prefer   external
+
+site     plus.google.com
+### # header   //div[@id='gb']
+### header   //div[@id='gb'] | //div[@role='navigation']
+### elements //div[@id='contentPane']//div[@guidedhelpid='streamcontent']//div[starts-with(@id,'update-')]
+dislike  ://webcache.googleusercontent.com/
+like     /albums
+like     /photos/
+like     /posts/
+like     /u/0/
+prefer   external
+
+site     slashdot.org
+elements //article[starts-with(@id,'firehose-')]
+prefer   external
+
+site     www.broadsheet.ie
+path     ^/$
+path     ^/page/
+elements //div[@class='post']/article[starts-with(@id,'post-')]
+prefer   external
+
+site     www.yesiknowthat.com
+path     ^/$
+path     ^/page/
+prefer   internal
+
+site     www.reddit.com
+elements //div[@id='siteTable']/div[contains(@class,'thing')]
+prefer   external
+
+site     twitter.com
+header   //div[starts-with(@class,'topbar')]/div[@class='global-nav']
+elements //li[@data-item-type='tweet']
+elements //div[starts-with(@class,'new-tweets-bar')]
+# elements //li[starts-with(@id,'stream-item-tweet')]
+# elements //div[@id='stream-items-id']/div[@data-item-type='tweet']
+prefer   external
+
+# site     www.irishtimes.com
+# path     ^/$
+# # elements //span[@id='headline-image-wide']
+# # elements //ul[@class='story-list']/li
+# # elements //div[@class='sub-section']/a[starts-with(@class,'section-top-story')]
+# # elements //div[starts-with(@class,'sub-section')]/div[@id='hys']
+# elements //div[@class='span3 story']
+# prefer   internal
+
+site http://www.feedly.com
+path /home
+
+# site     www.independent.ie
+# path     ^/$
+# elements //div[@id='mainStory']//h1
+# elements //div[@class='column first']/h2
+# elements //div[@class='column']/h2
+# elements //div[@class='section-news']//div[starts-with(@class,'content')]
+# prefer   internal
+
+site     www.thejournal.ie
+path     ^/$
+elements //div[starts-with(@class,'post ')]/div/h4/../..
+prefer   neither
+
+site     www.thesun.co.uk
+path     ^/sol/homepage/$
+path     ^/sol/homepage/.*/$
+elements //div[starts-with(@class,'main-splash-outer')]
+elements //div[starts-with(@data-vr-zone,'mainGrid')]/div[contains(@class,'-teaser')]
+prefer   internal
+like     .html
+dislike  #comment-rig
+
+site     www.argos.ie
+path     ^/webapp/wcs/stores/servlet/Search
+elements //ol[starts-with(@class,'browselister')]/li[starts-with(@class,'product')]
+prefer   internal
+
+# use native bindings
+site     groups.google.com
+path     ^/forum/
+option   no-enter
+
+site     www.steephill.tv
+path     /photos/
+elements //img[@width > 500 or substring-before(@width, 'px') > 500 or @height > 500 or substring-before(@height, 'px') > 500]
+# elements //tr/td/a/img
+# elements //div/p/img
+
+# ##############################################################################
+# Paths only (the site is left empty) ...
+
+# ############
+# VBulletin
+
+site
+path     /forumdisplay.php$
+elements //tbody/tr/td[starts-with(@id,'td_threadtitle')]
+like     /showthread.php
+like     goto=newpost
+
+site
+path     /showthread.php$
+elements //div[@id='posts']//table[starts-with(@id,'post')]/tbody/tr/td[starts-with(@id,'td_post')]
+option   no-focus
+

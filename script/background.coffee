@@ -44,6 +44,7 @@ config = do ->
   mkKey = (host,pathname) -> "#{host}[#{pathname}]"
   #
   saveID = (host, pathname, id) ->
+    return null
     # If the selected element does not have an id, then id here will be null.  It must nevertheless be recorded
     # ... so that we don't later jump back to a previous element which *did* have an id.
     if host and pathname
@@ -52,6 +53,7 @@ config = do ->
     null
   #
   lastID = (host,pathname) ->
+    return null
     if host and pathname
       key = mkKey host, pathname
       if key of localStorage
