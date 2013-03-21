@@ -117,21 +117,25 @@ elements //div[starts-with(@class,'new-tweets-bar')]
 # elements //div[@id='stream-items-id']/div[@data-item-type='tweet']
 prefer   external
 
-site     www.irishtimes.com
-path     ^/$
-elements //span[@id='headline-image-wide']
-elements //ul[@class='story-list']/li
-elements //div[@class='sub-section']/a[starts-with(@class,'section-top-story')]
-elements //div[starts-with(@class,'sub-section')]/div[@id='hys']
-prefer   internal
+# site     www.irishtimes.com
+# path     ^/$
+# # elements //span[@id='headline-image-wide']
+# # elements //ul[@class='story-list']/li
+# # elements //div[@class='sub-section']/a[starts-with(@class,'section-top-story')]
+# # elements //div[starts-with(@class,'sub-section')]/div[@id='hys']
+# elements //div[@class='span3 story']
+# prefer   internal
 
-site     www.independent.ie
-path     ^/$
-elements //div[@id='mainStory']//h1
-elements //div[@class='column first']/h2
-elements //div[@class='column']/h2
-elements //div[@class='section-news']//div[starts-with(@class,'content')]
-prefer   internal
+site http://www.feedly.com
+path /home
+
+# site     www.independent.ie
+# path     ^/$
+# elements //div[@id='mainStory']//h1
+# elements //div[@class='column first']/h2
+# elements //div[@class='column']/h2
+# elements //div[@class='section-news']//div[starts-with(@class,'content')]
+# prefer   internal
 
 site     www.thejournal.ie
 path     ^/$
