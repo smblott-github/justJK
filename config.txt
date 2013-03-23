@@ -126,9 +126,6 @@ prefer   external
 # elements //div[@class='span3 story']
 # prefer   internal
 
-site http://www.feedly.com
-path /home
-
 # site     www.independent.ie
 # path     ^/$
 # elements //div[@id='mainStory']//h1
@@ -157,8 +154,13 @@ elements //ol[starts-with(@class,'browselister')]/li[starts-with(@class,'product
 prefer   internal
 
 # use native bindings
+
 site     groups.google.com
 path     ^/forum/
+option   no-enter
+
+site     www.feedly.com
+path     ^/home
 option   no-enter
 
 site     www.steephill.tv
