@@ -31,7 +31,7 @@ Scroll = justJK.Scroll =
     timer    = null
     target   = null
     #
-    (delta, accumulate=false) ->
+    (delta, accumulate, callback) ->
       # If delta is not defined, then just respond true/false to indicate whether we are currently scrolling
       # (or not).
       if not delta?
@@ -40,9 +40,6 @@ Scroll = justJK.Scroll =
       dur = duration
       int = interval
       #
-      # Partial idea .... currently no-op.
-      if typeof accumulate is 'number'
-        dur = duration
       current =
         if timer
           clearInterval timer
@@ -56,7 +53,9 @@ Scroll = justJK.Scroll =
       timer = Util.setInterval int, =>
         factor = (Date.now() - start) / dur
         #
+        console.log factor
         if 1 <= factor
+          callback() if callback
           clearInterval timer
           timer = null
           factor = 1
@@ -65,7 +64,7 @@ Scroll = justJK.Scroll =
         window.scrollBy 0, pos - window.pageYOffset
 
   smoothScrollToElement: (element, header) ->
-    @smoothScrollByDelta Dom.offsetTop(element) - @pageTop header
+    @smoothScrollByDelta (Dom.offsetTop(element) - @pageTop header), false, -> element.focus()
 
   autoscroll: do ->
     base  = 400

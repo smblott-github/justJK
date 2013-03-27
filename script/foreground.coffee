@@ -29,7 +29,7 @@ highlight = (element, scroll=true) ->
       #
       currentElement = element
       currentElement.classList.add Const.highlightCSS
-      currentElement.focus()
+      # currentElement.focus()
       #
       chrome.extension.sendMessage
         request: "saveID"
