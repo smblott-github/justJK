@@ -126,13 +126,11 @@ elements //div[starts-with(@class,'trending')]
 header   //header[@role='banner']
 prefer   internal
 
-# site     www.independent.ie
-# path     ^/$
-# elements //div[@id='mainStory']//h1
-# elements //div[@class='column first']/h2
-# elements //div[@class='column']/h2
-# elements //div[@class='section-news']//div[starts-with(@class,'content')]
-# prefer   internal
+site     www.independent.ie
+path     ^/$
+elements //article
+header   //div[@class='bar']
+prefer   internal
 
 site     www.thejournal.ie
 path     ^/$
