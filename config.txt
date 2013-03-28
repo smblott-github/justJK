@@ -118,14 +118,13 @@ elements //div[starts-with(@class,'new-tweets-bar')]
 # elements //div[@id='stream-items-id']/div[@data-item-type='tweet']
 prefer   external
 
-# site     www.irishtimes.com
-# path     ^/$
-# # elements //span[@id='headline-image-wide']
-# # elements //ul[@class='story-list']/li
-# # elements //div[@class='sub-section']/a[starts-with(@class,'section-top-story')]
-# # elements //div[starts-with(@class,'sub-section')]/div[@id='hys']
-# elements //div[@class='span3 story']
-# prefer   internal
+site     www.irishtimes.com
+path     ^/$
+elements //div[contains(@class,'story')]
+elements //div[contains(@class,'columnist')]/a/..
+elements //div[starts-with(@class,'trending')]
+header   //header[@role='banner']
+prefer   internal
 
 # site     www.independent.ie
 # path     ^/$
