@@ -53,7 +53,7 @@ Parse = justJK.Parse =
     #
     proto = ->
       host      : null
-      header    : null
+      header    : []
       xPath     : []
       pathnames : []
       like      : []
@@ -84,6 +84,7 @@ Parse = justJK.Parse =
         [ directive, line... ] = line.split /\s+/
         conf.install directive, line.join " "
       #
+      conf.header = conf.header.join(" | ")
       conf.xPath = conf.xPath.join(" | ") or Const.nativeBindings
       conf.xPath = Parse.patch_xpath conf.xPath
       #
