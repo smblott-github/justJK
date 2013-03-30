@@ -158,13 +158,21 @@ path     ^/forum/
 option   no-enter
 
 site     www.feedly.com
-path     ^/home#subscription/feed
-path     ^/home#category
-elements //div[starts-with(@class,'u0Entry')]
-elements //div[starts-with(@class,'u12Entry')]
-elements //div[starts-with(@class,'topRecommendedEntry')]
-elements //div[starts-with(@class,'u4Entry ')]/div
-elements //div[@class='u4Entry']/div
+# path     ^/home#subscription/feed
+# path     ^/home#category
+path     ^/
+
+# elements //div[starts-with(@class,'u0Entry')]
+# elements //div[starts-with(@class,'u12Entry')]
+# elements //div[starts-with(@class,'topRecommendedEntry')]
+# elements //div[starts-with(@class,'u4Entry ')]/div
+# elements //div[@class='u4Entry']/div
+# elements //div[HAS/class/u4Entry]/div
+
+elements //div[HAS/class/topRecommendedEntry]
+elements //div[HAS/class/topRecommendedEntry]
+elements //div[HAS/class/u0Entry]
+elements //div[HAS/class/u12Entry]
 elements //div[HAS/class/u4Entry]/div
 offset   40
 prefer   external

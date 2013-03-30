@@ -7,9 +7,16 @@ Const  = justJK.Const
 Parse = justJK.Parse =
 
   patch_xpath: do ->
-    # parser = new RegExp "\[HAS/\s+/\s+]"
+    valid  = "[-_a-zA-Z0-9]+"
+    parser = new RegExp "(.*)HAS/(#{valid})/(#{valid})(.*)"
     (xPath) ->
-      # parse = xPath.split parse
+      #
+      if parse = parser.exec xPath
+        [ _, prefix, tag, value, suffix ] = parse
+        #
+        magic = "contains(concat(' ', @#{tag}, ' '), ' #{value} ')"
+        return Parse.patch_xpath prefix + magic + suffix
+      #
       return xPath
 
   sites: (host) ->
