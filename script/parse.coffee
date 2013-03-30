@@ -6,6 +6,12 @@ Const  = justJK.Const
 
 Parse = justJK.Parse =
 
+  patch_xpath: do ->
+    # parser = new RegExp "\[HAS/\s+/\s+]"
+    (xPath) ->
+      # parse = xPath.split parse
+      return xPath
+
   sites: (host) ->
     hosts = host.split /\s+/
     if Util.stringContains hosts[0], "."
@@ -19,7 +25,7 @@ Parse = justJK.Parse =
     #
     sites      = {}
     paths      = []
-    directives = "site path elements header like dislike prefer option".trim().split /\s+/
+    directives = "site path elements header like dislike prefer option offset".trim().split /\s+/
     #
     config = Util.wget chrome.extension.getURL "config.txt"
 
@@ -47,6 +53,7 @@ Parse = justJK.Parse =
       dislike   : []
       prefer    : "internal"
       option    : []
+      offset    : 0
       #
       map:
         elements: "xPath"
@@ -71,6 +78,7 @@ Parse = justJK.Parse =
         conf.install directive, line.join " "
       #
       conf.xPath = conf.xPath.join(" | ") or Const.nativeBindings
+      conf.xPath = Parse.patch_xpath conf.xPath
       #
       if host
         conf.pathnames.push "^/" unless conf.pathnames.length

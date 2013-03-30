@@ -117,10 +117,10 @@ Dom = justJK.Dom =
 
   # Return largest position of the bottom of a fixed element.
   # 
-  pageTopAdjustment: (xPath) ->
-    Cache.callDomCache xPath, =>
-      Math.max 0,
-        Math.max ( @offsetBottom element for element in @evaluateXPath xPath when @isFixed element )...
+  pageTopAdjustment: (config) ->
+    Cache.callDomCache config?.xPath, =>
+      Math.max (config?.offset || 0),
+        Math.max ( @offsetBottom element for element in @evaluateXPath config?.header when @isFixed element )...
 
   # Call function "func" unless an input element is active.
   # WARNING: This operation is proxied in "hacks.coffee".

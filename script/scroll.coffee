@@ -15,14 +15,23 @@ Scroll = justJK.Scroll =
   pageTop: do ->
     offset = 20
     #
-    (header) ->
-      window.pageYOffset + offset + Dom.pageTopAdjustment header
+    (config) ->
+      window.pageYOffset + offset + Dom.pageTopAdjustment config
 
   vanillaScroll: do ->
     vanillaScrollStep = 60
     #
     (move) ->
       @smoothScrollByDelta (if move then move * vanillaScrollStep else 0 - window.pageYOffset), true
+
+  scrollableThing: do ->
+    # ???
+    ->
+      return window
+      frames = Dom.getElementList "//iframe[@id='readable_iframe']"
+      if frames.length == 1
+        return frames[0]
+      return window
 
   smoothScrollByDelta: do ->
     duration = 250
@@ -39,13 +48,14 @@ Scroll = justJK.Scroll =
       #
       dur = duration
       int = interval
+      win = Scroll.scrollableThing()
       #
       current =
         if timer
           clearInterval timer
-          if accumulate then target else window.pageYOffset
+          if accumulate then target else win.pageYOffset
         else
-          window.pageYOffset
+          win.pageYOffset
       #
       target = current + delta
       start  = Date.now()
@@ -53,7 +63,6 @@ Scroll = justJK.Scroll =
       timer = Util.setInterval int, =>
         factor = (Date.now() - start) / dur
         #
-        console.log factor
         if 1 <= factor
           callback() if callback
           clearInterval timer
@@ -61,10 +70,10 @@ Scroll = justJK.Scroll =
           factor = 1
         #
         pos = current + factor * delta
-        window.scrollBy 0, pos - window.pageYOffset
+        win.scrollBy 0, pos - win.pageYOffset
 
-  smoothScrollToElement: (element, header) ->
-    @smoothScrollByDelta (Dom.offsetTop(element) - @pageTop header), false, -> element.focus()
+  smoothScrollToElement: (element, config) ->
+    @smoothScrollByDelta (Dom.offsetTop(element) - @pageTop config), false, -> element.focus()
 
   autoscroll: do ->
     base  = 400

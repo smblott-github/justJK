@@ -39,7 +39,7 @@ highlight = (element, scroll=true) ->
         # No callback.
     #
     if scroll
-      Scroll.smoothScrollToElement currentElement, config.header
+      Scroll.smoothScrollToElement currentElement, config
 
 # ####################################################################
 # Arm elements for highlighting on click.
@@ -80,7 +80,7 @@ navigate = (xPath, move) ->
     # Consider sticking with the current element ... specifically, if scrolling to the otherwise correct
     # element would involve jumping past the current element.
     if move and not Scroll.smoothScrollByDelta()
-      pageTop = Scroll.pageTop config.header
+      pageTop = Scroll.pageTop config
       pageBottom = window.pageYOffset + window.innerHeight
       [ top, bottom ] = Dom.offsetTopBottom elements[index]
       switch move
@@ -176,7 +176,7 @@ followLink = (xPath) ->
 request =
   request: "config"
   host:     window.location.host
-  pathname: window.location.pathname
+  pathname: window.location.pathname + window.location.hash
 
 chrome.extension.sendMessage request, (response) ->
   config = response
@@ -245,7 +245,7 @@ chrome.extension.sendMessage request, (response) ->
         document.onscroll =
           Util.throttle ->
             Cache.eleCacheStart ->
-              pageTop = window.pageYOffset + Dom.pageTopAdjustment config.header
+              pageTop = window.pageYOffset + Dom.pageTopAdjustment config
               pageBottom = window.pageYOffset + window.innerHeight
               pageFocus1 = pageTop + (pageBottom - pageTop) * 0.2
               pageFocus2 = pageTop + (pageBottom - pageTop) * 0.7

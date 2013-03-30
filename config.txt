@@ -121,8 +121,8 @@ prefer   external
 site     www.irishtimes.com
 path     ^/$
 elements //div[contains(@class,'story')]
-elements //div[contains(@class,'columnist')]/a/..
-elements //div[starts-with(@class,'trending')]
+# elements //div[contains(@class,'columnist')]/a/..
+# elements //div[starts-with(@class,'trending')]
 header   //header[@role='banner']
 prefer   internal
 
@@ -158,8 +158,16 @@ path     ^/forum/
 option   no-enter
 
 site     www.feedly.com
-path     ^/home
-option   no-enter
+path     ^/home#subscription/feed
+path     ^/home#category
+elements //div[starts-with(@class,'u0Entry')]
+elements //div[starts-with(@class,'u12Entry')]
+elements //div[starts-with(@class,'topRecommendedEntry')]
+elements //div[starts-with(@class,'u4Entry ')]/div
+elements //div[@class='u4Entry']/div
+elements //div[HAS/class/u4Entry]/div
+offset   40
+prefer   external
 
 site     www.steephill.tv
 path     /photos/
