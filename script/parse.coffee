@@ -87,6 +87,9 @@ Parse = justJK.Parse =
       conf.xPath = conf.xPath.join(" | ") or Const.nativeBindings
       conf.xPath = Parse.patch_xpath conf.xPath
       #
+      if conf.header
+        conf.header = Parse.patch_xpath conf.header
+      #
       if host
         conf.pathnames.push "^/" unless conf.pathnames.length
         #

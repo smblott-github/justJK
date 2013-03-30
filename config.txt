@@ -35,10 +35,8 @@
 
 site     google .com .ie .co.uk .de .fr
 path     ^/search
-# The following XPath misses the case where the 'g' is at the end of the
-# list ... which doesn't seem to com eup in practice.
-elements //li[ @class='g' or starts-with(@class,'g ') or contains(@class,' g ')  ]
-elements //p[starts-with(@class,'sp_cnt')]/a[@class='spell']/..
+elements //li[HAS/class/g]
+elements //p[HAS/class/sp_cnt]/a[@class='spell']/..
 dislike  /search
 dislike  ://webcache.googleusercontent.com/
 prefer   external
@@ -52,24 +50,18 @@ site     mail.google.com
 option   no-enter
 
 site     www.youtube.com
-elements //ol[@id='search-results']/li
-elements //ol[@class='vm-video-list']/li
-elements //div[@class='feed-page']/ul/li
-elements //ul/li[starts-with(@class,'feed-item-container')]
-elements //ul[@class='gh-single-playlist']/li
-header   //div[@id='vm-video-actions-bar']
+elements //ol[HAS/id/search-results]/li
+elements //ol[HAS/class/vm-video-list]/li
+elements //div[HAS/class/feed-page]/ul/li
+elements //ul/li[HAS/class/feed-item-container]
+elements //ul[HAS/class/gh-single-playlist]/li
+header   //div[HAS/id/vm-video-actions-bar]
 prefer   internal
 like     watch_popup
 
-# site     www.youtube.com
-# path     ^/feed/subscriptions
-# elements //ul/li[starts-with(@class,'feed-item-container')]
-# like     /watch
-# prefer   internal
-
 site     www.facebook.com
 header   //div[@id='pagelet_bluebar']/div[@id='blueBarHolder']/div['blueBar'] | //div[@id='timeline_sticky_header']
-elements //li[starts-with(@class,'uiUnifiedStory')]
+elements //li[HAS/class/uiUnifiedStory]
 like     /video/video.php
 like     /video/video.php
 like     /photo.php?fbid=
@@ -107,11 +99,11 @@ path     ^/page/
 prefer   internal
 
 site     www.reddit.com
-elements //div[@id='siteTable']/div[contains(@class,'thing')]
+elements //div[@id='siteTable']/div[HAS/class/thing]
 prefer   external
 
 site     twitter.com
-header   //div[starts-with(@class,'topbar')]/div[@class='global-nav']
+header   //div[HAS/class/topbar]/div[HAS/class/global-nav]
 elements //li[@data-item-type='tweet']
 elements //div[starts-with(@class,'new-tweets-bar')]
 # elements //li[starts-with(@id,'stream-item-tweet')]
@@ -120,9 +112,7 @@ prefer   external
 
 site     www.irishtimes.com
 path     ^/$
-elements //div[contains(@class,'story')]
-# elements //div[contains(@class,'columnist')]/a/..
-# elements //div[starts-with(@class,'trending')]
+elements //div[HAS/class/story]
 header   //header[@role='banner']
 prefer   internal
 
@@ -134,7 +124,7 @@ prefer   internal
 
 site     www.thejournal.ie
 path     ^/$
-elements //div[starts-with(@class,'post ')]/div/h4/../..
+elements //div[HAS/class/post]/div/h4/../..
 prefer   neither
 
 site     www.thesun.co.uk
@@ -148,27 +138,11 @@ dislike  #comment-rig
 
 site     www.argos.ie
 path     ^/webapp/wcs/stores/servlet/Search
-elements //ol[starts-with(@class,'browselister')]/li[starts-with(@class,'product')]
+elements //ol[HAS/class/browselister]/li[HAS/class/product]
 prefer   internal
 
-# use native bindings
-
-site     groups.google.com
-path     ^/forum/
-option   no-enter
-
 site     www.feedly.com
-# path     ^/home#subscription/feed
-# path     ^/home#category
 path     ^/
-
-# elements //div[starts-with(@class,'u0Entry')]
-# elements //div[starts-with(@class,'u12Entry')]
-# elements //div[starts-with(@class,'topRecommendedEntry')]
-# elements //div[starts-with(@class,'u4Entry ')]/div
-# elements //div[@class='u4Entry']/div
-# elements //div[HAS/class/u4Entry]/div
-
 elements //div[HAS/class/topRecommendedEntry]
 elements //div[HAS/class/topRecommendedEntry]
 elements //div[HAS/class/u0Entry]
@@ -180,8 +154,12 @@ prefer   external
 site     www.steephill.tv
 path     /photos/
 elements //img[@width > 500 or substring-before(@width, 'px') > 500 or @height > 500 or substring-before(@height, 'px') > 500]
-# elements //tr/td/a/img
-# elements //div/p/img
+
+# use native bindings
+
+site     groups.google.com
+path     ^/forum/
+option   no-enter
 
 # ##############################################################################
 # Paths only (the site is left empty) ...
@@ -190,13 +168,13 @@ elements //img[@width > 500 or substring-before(@width, 'px') > 500 or @height >
 # VBulletin
 
 site
-path     /forumdisplay.php$
+path     /forumdisplay.php
 elements //tbody/tr/td[starts-with(@id,'td_threadtitle')]
 like     /showthread.php
 like     goto=newpost
 
 site
-path     /showthread.php$
+path     /showthread.php
 elements //div[@id='posts']//table[starts-with(@id,'post')]/tbody/tr/td[starts-with(@id,'td_post')]
 option   no-focus
 
