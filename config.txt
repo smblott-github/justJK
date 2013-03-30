@@ -94,6 +94,13 @@ elements //div[HAS/class/story]
 header   //header[@role='banner']
 prefer   internal
 
+site     www.irishtimes.com
+path     ^/news/
+elements //div[HAS/class/article_holder]/section/p[HAS/class/no_name]
+header   //header[@role='banner']
+option   no-enter
+option   no-highlight
+
 site     www.independent.ie
 path     ^/$
 elements //article

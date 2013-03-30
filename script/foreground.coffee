@@ -26,10 +26,12 @@ highlight = (element, scroll=true) ->
       #
       if currentElement
         currentElement.classList.remove Const.highlightCSS
+        currentElement.classList.remove Const.currentClass
       #
       currentElement = element
-      currentElement.classList.add Const.highlightCSS
-      # currentElement.focus()
+      currentElement.classList.add Const.currentClass
+      unless "no-highlight" in config.option
+        currentElement.classList.add Const.highlightCSS
       #
       chrome.extension.sendMessage
         request: "saveID"
@@ -65,7 +67,7 @@ navigate = (xPath, move) ->
   n = elements.length
   #
   if 0 < n
-    index = ( i for e, i in elements when e.classList.contains Const.highlightCSS )
+    index = ( i for e, i in elements when e.classList.contains Const.currentClass )
     if index.length == 0
       return highlight elements[0]
     #

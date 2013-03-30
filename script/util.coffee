@@ -22,6 +22,7 @@ do ->
 Const = justJK.Const =
   jjkAttribute:   "__justJKExtra__smblott_"
   highlightCSS:   "justjk_highlighted"
+  currentClass:   "justjk_current"
   simpleBindings: "/justJKSimpleBindingsForJK" # FIXME
   nativeBindings: "/justJKNativeBindingsForJK" # FIXME
   verboten:       [ "INPUT", "TEXTAREA" ]
