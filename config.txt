@@ -1,23 +1,5 @@
 
 # ####################################################################
-# A brief explanation ...
-#
-# Lines like this are comments.
-#
-# The token "site" begins a new entry.  It must be the first word on
-# a line.
-#
-# If only the site is listed, then "j" and "k" are passed through the
-# underlying page.
-#
-# If no path is given, then the entry applies to the entire site.
-#
-# If no site is given, then paths are matched against every page.
-#
-# Multiple paths may be provided.
-#
-
-# ####################################################################
 # Header offsets (the header directive)
 #
 # Goal: try to adjust the scroll offset for pages known to have static
@@ -44,10 +26,6 @@ prefer   external
 site     google .com .ie .co.uk .de .fr
 path     ^/reader/
 prefer   external
-
-# Native bindings and no enter key ... justJK is completely disabled.
-site     mail.google.com
-option   no-enter
 
 site     www.youtube.com
 elements //ol[HAS/id/search-results]/li
@@ -142,7 +120,6 @@ elements //ol[HAS/class/browselister]/li[HAS/class/product]
 prefer   internal
 
 site     www.feedly.com
-path     ^/
 elements //div[HAS/class/topRecommendedEntry]
 elements //div[HAS/class/topRecommendedEntry]
 elements //div[HAS/class/u0Entry]
@@ -157,12 +134,16 @@ elements //img[@width > 500 or substring-before(@width, 'px') > 500 or @height >
 
 # use native bindings
 
+# Native bindings and no enter key ... justJK is completely disabled.
+site     mail.google.com
+option   no-enter
+
 site     groups.google.com
 path     ^/forum/
 option   no-enter
 
 # ##############################################################################
-# Paths only (the site is left empty) ...
+# Paths only (site must be included, but is left empty) ...
 
 # ############
 # VBulletin
