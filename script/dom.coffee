@@ -13,7 +13,7 @@ Dom = justJK.Dom =
   xPathResultType: XPathResult.ANY_TYPE
   namespaceResolver: (namespace) -> if namespace == "xhtml" then "http://www.w3.org/1999/xhtml" else null
 
-  # Return list of elements matching given XPath expression.
+  # Return list of elements matching given XPath expression (or empty list).
   evaluateXPath: (xPath) ->
     return [] unless xPath
     #
@@ -52,7 +52,7 @@ Dom = justJK.Dom =
       true
 
   # Return list of elements matching given XPath expression sorted by their position within the window.
-  # Additionally, strip out elements which aren't very high.  Many of these are in fact hidden.
+  # Additionally, strip out elements which aren't very tall.  Many of these are in fact hidden.
   #
   getElementList: (xPath) ->
     (e for e in @evaluateXPath xPath when @visible e).sort @byElementPosition

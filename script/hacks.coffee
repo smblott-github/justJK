@@ -60,3 +60,10 @@ do ->
       #
       func args...
 
+# Youtube.
+# Personal preference: full screen pop up for yout tube videos.
+#
+Util.extractURLs = _.wrap (_.bindR Util, Util.extractURLs),
+  (func,args...) ->
+    url.replace "://www.youtube.com/watch?", "://www.youtube.com/watch_popup?" for url in func args...
+

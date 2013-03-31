@@ -6,18 +6,22 @@ Const  = justJK.Const
 
 Parse = justJK.Parse =
 
+  # Xpath syntax for a tag (e.g. class) containg a token is archaic.
+  # Instead, allow terms of the form "//div[HAS/class/something]" and replace
+  # them with valid Xpath.
+  #
   patch_xpath: do ->
-    valid  = "[-_a-zA-Z0-9]+"
-    parser = new RegExp "(.*)HAS/(#{valid})/(#{valid})(.*)"
+    token  = "[-_a-zA-Z0-9]+"
+    parser = new RegExp "(.*)HAS/(#{token})/(#{token})(.*)"
     (xPath) ->
       #
       if parse = parser.exec xPath
         [ _, prefix, tag, value, suffix ] = parse
         #
-        magic = "contains(concat(' ', @#{tag}, ' '), ' #{value} ')"
-        return Parse.patch_xpath prefix + magic + suffix
-      #
-      return xPath
+        archaic = "contains(concat(' ', @#{tag}, ' '), ' #{value} ')"
+        Parse.patch_xpath prefix + archaic + suffix
+      else
+        xPath
 
   sites: (host) ->
     hosts = host.split /\s+/
@@ -33,8 +37,7 @@ Parse = justJK.Parse =
     sites      = {}
     paths      = []
     directives = "site path elements header like dislike prefer option offset".trim().split /\s+/
-    #
-    config = Util.wget chrome.extension.getURL "config.txt"
+    config     = Util.wget chrome.extension.getURL "config.txt"
 
     # Strip some whitespace, comments, empty lines and lines which don't seem to contain directives, then
     # rebuild config.
@@ -84,12 +87,11 @@ Parse = justJK.Parse =
         [ directive, line... ] = line.split /\s+/
         conf.install directive, line.join " "
       #
+      conf.xPath  = conf.xPath.join (" | ") or Const.nativeBindings
       conf.header = conf.header.join(" | ")
-      conf.xPath = conf.xPath.join(" | ") or Const.nativeBindings
-      conf.xPath = Parse.patch_xpath conf.xPath
       #
-      if conf.header
-        conf.header = Parse.patch_xpath conf.header
+      conf.xPath  = Parse.patch_xpath conf.xPath
+      conf.header = Parse.patch_xpath conf.header
       #
       if host
         conf.pathnames.push "^/" unless conf.pathnames.length

@@ -34,7 +34,7 @@ Const = justJK.Const =
 Util = justJK.Util =
   echo:              (args...)          -> console.log arg for arg in args
   #
-  # It's sometimes more convenient to have setInterval and setTimeout expect the function as their *second*
+  # SetInterval and setTimeout expect the function as their *second*
   # argument.
   #
   setInterval:       (ms, func)         -> window.setInterval func, ms
@@ -66,22 +66,18 @@ Util = justJK.Util =
   # Extract URLs from an anchor, yielding list.  In particular, we try extracting URLs from the anchor's
   # search term.
   #
+  # Warning: proxied in hacks.coffee.
+  #
   extractURLs: do ->
     regexp = new RegExp "=(https?(://|%3A%2F%2F)[^&]*)" # "%3A%2F%2F" is "://"
     #
     (anchor) ->
-      # # Youtube hack.
-      # if anchor.host is "www.youtube.com" and anchor.pathname is "/watch"
-      #   anchor.pathname = "/watch_popup"
-      #
       search = anchor.search.match(regexp)
       #
-      urls = 
-        if search?.length
-          Util.push (decodeURIComponent href for href, i in search when i % 2), anchor.href
-        else
-          [ anchor.href ]
-      urls.map (url) -> url.replace "://www.youtube.com/watch?", "://www.youtube.com/watch_popup?"
+      if search?.length
+        Util.push (decodeURIComponent href for href, i in search when i % 2), anchor.href
+      else
+        [ anchor.href ]
 
   # Synchronous wget.
   #
