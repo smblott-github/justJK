@@ -61,7 +61,7 @@ do ->
       func args...
 
 # Youtube.
-# Personal preference: full screen pop up for yout tube videos.
+# Personal preference: full screen pop up for youtube videos.
 #
 Util.extractURLs = _.wrap (_.bindR Util, Util.extractURLs),
   (func,args...) ->

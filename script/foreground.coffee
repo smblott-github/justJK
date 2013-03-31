@@ -105,23 +105,14 @@ navigate = (xPath, move) ->
 followLink = (xPath) ->
   #
   # If the active element is an anchor then we click it regardless.
-  echo "followLink"
   if document.activeElement?.nodeName is "A"
     return document.activeElement.click()
 
   # Youtube hack.
-  if window.location.host is "www.youtube.com" and window.location.pathname is "/watch"
-    url = window.location
-    window.location = "/watch_popup#{url.search}"
-    return
-
-  # Youtube hack.
-  if window.location.host is "www.youtube.com" and window.location.pathname is "/watch_popup"
-    url = window.location
-    # window.location = "/watch#{url.search}&autoplay=0"
-    window.location = "/watch#{url.search}"
-    return
-
+  if window.location.host is "www.youtube.com"
+    switch window.location.pathname
+      when "/watch"       then return window.location = "/watch_popup#{window.location.search}"
+      when "/watch_popup" then return window.location = "/watch#{window.location.search}"
   #
   element = if xPath is Const.nativeBindings then Dom.getActiveElement() else currentElement
   if element and element isnt document.body
@@ -138,17 +129,12 @@ followLink = (xPath) ->
         #   filter out those that are not of interest ...
         #
         .reject((a) -> Util.stringStartsWith a.href, "javascript:")
-        # .map (url) ->
-        #   echo ">> #{url}"
-        #   url
-        # .filter(Dom.visible, Dom)
         #
         # Now:
         #   extract URLs from the anchors ...
         #
         .map(Util.extractURLs, Util)
         .flatten()
-        # .map(Util.show, Util)
         .map (url) ->
           echo "#{Score.scoreHRef config, url} #{url}"
           url
