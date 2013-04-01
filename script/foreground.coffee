@@ -18,13 +18,16 @@ config         = {}
 # ####################################################################
 # Highlight an element and scroll it into view.
 #
+unhighlight = ->
+  if currentElement
+    currentElement.classList.remove Const.highlightCSS
+    currentElement.classList.remove Const.currentClass
+    currentElement = null
+
 highlight = (element, scroll=true) ->
   if element
     if element isnt currentElement
-      #
-      if currentElement
-        currentElement.classList.remove Const.highlightCSS
-        currentElement.classList.remove Const.currentClass
+      unhighlight()
       #
       currentElement = element
       currentElement.classList.add Const.currentClass
@@ -76,13 +79,12 @@ navigate = (xPath, move) ->
     # element would involve jumping past the current element.
     if move and not Scroll.smoothScrollByDelta()
       pageTop = Scroll.pageTop config
-      pageBottom = window.pageYOffset + window.innerHeight
-      [ top, bottom ] = Dom.offsetTopBottom elements[index]
+      top     = Dom.offsetTop elements[index]
       switch move
         when -1
           return highlight elements[index] if top < pageTop
         when 1
-          return highlight elements[index] if pageBottom < document.body.offsetHeight and pageTop < top
+          return highlight elements[index] if pageTop < top
     #
     newIndex = Math.min n-1, Math.max 0, if move then index + move else 0
     if newIndex isnt index
