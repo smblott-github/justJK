@@ -51,14 +51,11 @@ jjkAttribute = Const.jjkAttribute
 
 addHighlightOnClickHandlers = (elements) ->
   for element in elements
-    unless element[jjkAttribute]
+    unless jjkAttribute of elements
       do (element) ->
-        element.onclick = ->
-          highlight element, false # "false" here means "do not scroll".
-        #
+        element.onclick = -> highlight element, false
         element[jjkAttribute] = true
-  #
-  elements
+        element
 
 # ####################################################################
 # Handle logical navigation.
@@ -71,13 +68,12 @@ navigate = (xPath, move) ->
     index = ( i for e, i in elements when e.classList.contains Const.currentClass )
     return highlight elements[0] unless index.length
     #
-    echo "lastJK error: multiple elements selected" if 1 < index.length
     index = index[0]
     move  = n - index - 1 if move is Const.last
     #
     # Consider sticking with the current element ... specifically, if scrolling would involve jumping past the
     # current element.
-    if move and not Scroll.smoothScrollByDelta()
+    if move and not Scroll.smoothScrollByDelta() # That is, not already scrolling.
       pageTop = Scroll.pageTop config
       top     = Dom.offsetTop elements[index]
       switch move
