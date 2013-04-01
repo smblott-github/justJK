@@ -75,16 +75,14 @@ navigate = (xPath, move) ->
     index = index[0]
     move  = n - index - 1 if move is Const.last
     #
-    # Consider sticking with the current element ... specifically, if scrolling to the otherwise correct
-    # element would involve jumping past the current element.
+    # Consider sticking with the current element ... specifically, if scrolling would involve jumping past the
+    # current element.
     if move and not Scroll.smoothScrollByDelta()
       pageTop = Scroll.pageTop config
       top     = Dom.offsetTop elements[index]
       switch move
-        when -1
-          return highlight elements[index] if top < pageTop
-        when 1
-          return highlight elements[index] if pageTop < top
+        when  1 then return highlight elements[index] if pageTop < top and index is 0
+        when -1 then return highlight elements[index] if top < pageTop # and index is n-1 ???
     #
     newIndex = Math.min n-1, Math.max 0, if move then index + move else 0
     if newIndex isnt index
