@@ -87,8 +87,9 @@ Parse = justJK.Parse =
         [ directive, line... ] = line.split /\s+/
         conf.install directive, line.join " "
       #
-      conf.xPath  = conf.xPath.join (" | ") or Const.nativeBindings
       conf.header = conf.header.join(" | ")
+      conf.xPath  = conf.xPath.join (" | ")
+      conf.xPath  = Const.nativeBindings unless conf.xPath
       #
       conf.xPath  = Parse.patch_xpath conf.xPath
       conf.header = Parse.patch_xpath conf.header

@@ -37,32 +37,6 @@ header   //div[HAS/id/vm-video-actions-bar]
 prefer   internal
 like     watch_popup
 
-site     www.facebook.com
-header   //div[@id='pagelet_bluebar']/div[@id='blueBarHolder']/div['blueBar']
-header   //div[@id='timeline_sticky_header']
-elements //li[HAS/class/uiUnifiedStory]
-like     /video/video.php
-like     /video/video.php
-like     /photo.php?fbid=
-like     /l.php?u=
-dislike  /ajax/sharer/
-dislike  apps.facebook.com
-dislike  fb_action_types=instapp
-prefer   external
-
-site     plus.google.com
-# header   //div[@id='gb']
-header   //div[@id='gb']
-header   //div[@role='navigation']
-elements //div[@id='contentPane']//div[@guidedhelpid='streamcontent']//div[starts-with(@id,'update-')]
-dislike  ://webcache.googleusercontent.com/
-dislike  /posts/
-like     /albums
-like     /photos/
-like     /posts/
-like     /u/0/
-prefer   external
-
 site     slashdot.org
 elements //article[starts-with(@id,'firehose-')]
 prefer   external
@@ -141,8 +115,41 @@ site     www.steephill.tv
 path     /photos/
 elements //img[@width > 500 or substring-before(@width, 'px') > 500 or @height > 500 or substring-before(@height, 'px') > 500]
 
-# use native bindings
+# ##############################################################################
+# Use native bindings.
+#
+# Native bindings are used whenever a sites is matched but no elements are
+# specified.  Unless "option no-enter" is given, the enter key is still
+# active, selecting the currently active element.  Also, this configuration
+# allows the URL selected by the enter key to be customised.
+#
 
+site     plus.google.com
+## header   //div[@id='gb']
+## header   //div[@role='navigation']
+## elements //div[@id='contentPane']//div[@guidedhelpid='streamcontent']//div[starts-with(@id,'update-')]
+dislike  ://webcache.googleusercontent.com/
+dislike  /posts/
+like     /albums
+like     /photos/
+like     /posts/
+like     /u/0/
+prefer   external
+
+site     www.facebook.com
+# header   //div[@id='pagelet_bluebar']/div[@id='blueBarHolder']/div['blueBar']
+# header   //div[@id='timeline_sticky_header']
+# elements //li[HAS/class/uiUnifiedStory]
+like     /video/video.php
+like     /video/video.php
+like     /photo.php?fbid=
+like     /l.php?u=
+dislike  /ajax/sharer/
+dislike  apps.facebook.com
+dislike  fb_action_types=instapp
+prefer   external
+
+# ##############################################################################
 # Native bindings and no enter key ... justJK is completely disabled.
 site     mail.google.com
 option   no-enter
