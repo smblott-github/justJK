@@ -15,7 +15,6 @@ Dom = justJK.Dom =
 
   # Return list of elements matching given XPath expression (or empty list).
   evaluateXPath: (xPath) ->
-    echo "xpath: #{xPath}"
     try
       xPathResult = document.evaluate xPath, document, @namespaceResolver, @xPathResultType
       element while xPathResult and element = xPathResult.iterateNext()
@@ -109,10 +108,10 @@ Dom = justJK.Dom =
   # Return largest position of the bottom of a fixed header element.
   # 
   pageTopAdjustment: (config) ->
-    return 0 unless config?.header
-    Cache.callDomCache config?.header, =>
-      Math.max (config?.offset || 0),
-        Math.max ( @offsetBottom element for element in @evaluateXPath config?.header when @isFixed element )...
+    offset = config?.offset || 0
+    return offset unless config?.header
+    Cache.callDomCache "header", =>
+      Math.max offset, ( @offsetBottom element for element in @evaluateXPath config?.header when @isFixed element )...
 
   # Call function "func" unless an input element is active.
   # WARNING: This operation is proxied in "hacks.coffee".

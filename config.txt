@@ -76,6 +76,7 @@ elements //div[HAS/class/article_holder]/section/p[HAS/class/no_name]
 header   //header[@role='banner']
 option   no-enter
 option   no-highlight
+offset   40
 
 site     www.independent.ie
 path     ^/$

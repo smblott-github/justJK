@@ -61,9 +61,9 @@ Parse = justJK.Parse =
       pathnames : []
       like      : []
       dislike   : []
-      prefer    : "internal"
       option    : []
-      offset    : 0
+      prefer    : "internal"
+      offset    : "0"
       #
       map:
         elements: "xPath"
@@ -93,6 +93,8 @@ Parse = justJK.Parse =
       #
       conf.xPath  = Parse.patch_xpath conf.xPath
       conf.header = Parse.patch_xpath conf.header
+      #
+      conf.offset = parseInt conf.offset
       #
       if host
         conf.pathnames.push "^/" unless conf.pathnames.length

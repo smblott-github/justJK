@@ -85,8 +85,9 @@ navigate = (xPath, move) ->
           return highlight elements[index] if pageBottom < document.body.offsetHeight and pageTop < top
     #
     newIndex = Math.min n-1, Math.max 0, if move then index + move else 0
-    return highlight elements[newIndex] if newIndex isnt index
-    # Drop through.
+    if newIndex isnt index
+      return highlight elements[newIndex]
+    # Drop through, default to vanillaScroll.
   #
   Scroll.vanillaScroll move
 
@@ -158,7 +159,7 @@ request =
 
 chrome.extension.sendMessage request, (response) ->
   config = response
-  config.logical = false
+  config.logical = false # ??? unused??
   #
   xPath = config.xPath
   echo "justJK xPath: #{xPath}"
