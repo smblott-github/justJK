@@ -36,34 +36,6 @@ config = do ->
     return { xPath: Const.simpleBindings }
 
 # ####################################################################
-# Save and look up most recent @id for a page.
-#
-
-[ saveID, lastID ] = do ->
-  #
-  mkKey = (host,pathname) -> "#{host}[#{pathname}]"
-  #
-  saveID = (host, pathname, id) ->
-    return null
-    # If the selected element does not have an id, then id here will be null.  It must nevertheless be recorded
-    # ... so that we don't later jump back to a previous element which *did* have an id.
-    if host and pathname
-      key = mkKey host, pathname
-      localStorage[key] = id
-    null
-  #
-  lastID = (host,pathname) ->
-    return null
-    if host and pathname
-      key = mkKey host, pathname
-      if key of localStorage
-        id = localStorage[key]
-        return { id: id }
-    null
-  #
-  [ saveID, lastID ]
-
-# ####################################################################
 # Open URL in a new tab.
 # Create tab to the left of the current tab.  That way we end up back on the current tab when the new tab is
 # closed.
@@ -78,9 +50,9 @@ open = (url) ->
 
 chrome.extension.onMessage.addListener (request, sender, callback) ->
   switch request?.request
-    when "config" then callback config  request?.host, request?.pathname
-    when "saveID" then callback saveID  request?.host, request?.pathname, request?.id
-    when "lastID" then callback lastID  request?.host, request?.pathname
-    when "open"   then callback open    request?.url
+    when "config" then callback config request?.host, request?.pathname
+    when "open"   then callback open   request?.url
     else callback null
 
+    # when "saveID" then callback saveID  request?.host, request?.pathname, request?.id
+    # when "lastID" then callback lastID  request?.host, request?.pathname

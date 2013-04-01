@@ -28,21 +28,16 @@ highlight = (element, scroll=true) ->
   if element
     if element isnt currentElement
       unhighlight()
-      #
       currentElement = element
       currentElement.classList.add Const.currentClass
       currentElement.classList.add Const.highlightCSS unless "no-highlight" in config.option
-      #
-      chrome.extension.sendMessage
-        request: "saveID"
-        id:       currentElement.id
-        host:     window.location.host
-        pathname: window.location.pathname
-        # No callback.
       # Drop through.
     #
-    if scroll and currentElement
-      Scroll.smoothScrollToElement currentElement, config
+    if currentElement
+        document.activeElement.blur() if document.activeElement
+        element.focus()
+        #
+        Scroll.smoothScrollToElement currentElement, config if scroll
 
 # ####################################################################
 # Arm elements for highlighting on click.
@@ -55,7 +50,8 @@ addHighlightOnClickHandlers = (elements) ->
       do (element) ->
         element.onclick = -> highlight element, false
         element[jjkAttribute] = true
-        element
+  #
+  elements
 
 # ####################################################################
 # Handle logical navigation.
@@ -66,7 +62,7 @@ navigate = (xPath, move) ->
   #
   if 0 < n
     index = ( i for e, i in elements when e.classList.contains Const.currentClass )
-    return highlight elements[0] unless index.length
+    return highlight elements[0] if not index.length
     #
     index = index[0]
     move  = n - index - 1 if move is Const.last
@@ -75,14 +71,13 @@ navigate = (xPath, move) ->
     # current element.
     if move and not Scroll.smoothScrollByDelta() # That is, not already scrolling.
       pageTop = Scroll.pageTop config
-      top     = Dom.offsetTop elements[index]
+      eleTop  = Dom.offsetTop elements[index]
       switch move
-        when  1 then return highlight elements[index] if pageTop < top and index is 0
-        when -1 then return highlight elements[index] if top < pageTop # and index is n-1 ???
+        when  1 then return highlight elements[index] if pageTop < eleTop and index is 0
+        when -1 then return highlight elements[index] if eleTop < pageTop # and index is n-1 ???
     #
     newIndex = Math.min n-1, Math.max 0, if move then index + move else 0
-    if newIndex isnt index
-      return highlight elements[newIndex]
+    return highlight elements[newIndex] if newIndex isnt index
     # Drop through, default to vanillaScroll.
   #
   Scroll.vanillaScroll move
@@ -92,10 +87,10 @@ navigate = (xPath, move) ->
 #
 followLink = (xPath) ->
   #
-  # If the active element is an anchor then we click it regardless.
+  # If the active element is an anchor then we click it, regardless.
   return document.activeElement.click() if document.activeElement?.nodeName is "A"
-
-  # Youtube hack.
+  #
+  # Youtube hack.  Enter key on a youtube video page switches between normal and popup views.
   if window.location.host is "www.youtube.com"
     switch window.location.pathname
       when "/watch"       then return window.location = "/watch_popup#{window.location.search}"
@@ -122,6 +117,9 @@ followLink = (xPath) ->
         #
         .map(Util.extractURLs, Util)
         .flatten()
+        #
+        # Log the URLs and their scores ...
+        #
         .map (url) ->
           echo "#{Score.scoreHRef config, url} #{url}"
           url
@@ -135,7 +133,7 @@ followLink = (xPath) ->
         #
         .value()
     #
-    if 0 < urls.length
+    if urls.length
       chrome.extension.sendMessage
         request: "open"
         url:      urls[0]
@@ -155,10 +153,7 @@ request =
 
 chrome.extension.sendMessage request, (response) ->
   config = response
-  config.logical = false # ??? unused??
-  #
-  xPath = config.xPath
-  echo "justJK xPath: #{xPath}"
+  xPath  = config.xPath
   #
   switch xPath
     #
@@ -171,7 +166,6 @@ chrome.extension.sendMessage request, (response) ->
       Util.keypress "j",       -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
       Util.keypress "k",       -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
       Util.keypress ";",       -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  0
-      #
       Util.keypress "down",    -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
       Util.keypress "up",      -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
     #
@@ -180,64 +174,34 @@ chrome.extension.sendMessage request, (response) ->
       Util.keypress "k",       -> Dom.doUnlessInputActive -> navigate xPath, -1
       Util.keypress ";",       -> Dom.doUnlessInputActive -> navigate xPath,  0
       Util.keypress ":",       -> Dom.doUnlessInputActive -> navigate xPath,  Const.last
+      Util.keypress "down",    -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
+      Util.keypress "up",      -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
       #
       unless "no-enter" in config.option
         Util.keypress "enter", -> Dom.doUnlessInputActive -> followLink xPath
       #
-      Util.keypress "down",    -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
-      Util.keypress "up",      -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
-      #
-      # 
-      window.addEventListener "DOMContentLoaded", ->
-        # Grab back focus.
-        #
-        if document.activeElement?.nodeName in Const.verboten
-          document.activeElement.blur()
-
-        request =
-          request: "lastID"
-          host:     window.location.host
-          pathname: window.location.pathname
-
-        chrome.extension.sendMessage request, (response) ->
-          unless "no-focus" in config.option
-            Cache.eleCacheStart ->
-              if not currentElement
-                if response?.id
-                  for element in Dom.getElementList xPath
-                    if element.id and response.id is element.id
-                      return highlight element
+      document.onscroll =
+        Util.throttle ->
+          Cache.eleCacheStart ->
+            pageTop    = window.pageYOffset + Dom.pageTopAdjustment config
+            pageBottom = window.pageYOffset + window.innerHeight
+            pageFocus1 = pageTop + (pageBottom - pageTop) * 0.2
+            pageFocus2 = pageTop + (pageBottom - pageTop) * 0.7
+            #
+            # Stick with the current element if it's in a reasonable position.
+            if currentElement
+              [ top, bottom ] = Dom.offsetTopBottom currentElement
+              return if pageTop < top and bottom < pageBottom          # Still wholly on page.
+              return if top <= pageFocus1 <= bottom                    # Spans focus point 1.
+            #
+            elements = addHighlightOnClickHandlers Cache.callDomCache "navigate", -> Dom.getElementList xPath
+            if elements.length
+              for element in elements
+                [ top, bottom ] = Dom.offsetTopBottom element
                 #
-                # Go to first element.
-                #
-                # navigate xPath, 0
-        
-      # ########################
-      # Highlight new selection on scroll.
-      #
-      if true
-        document.onscroll =
-          Util.throttle ->
-            Cache.eleCacheStart ->
-              pageTop    = window.pageYOffset + Dom.pageTopAdjustment config
-              pageBottom = window.pageYOffset + window.innerHeight
-              pageFocus1 = pageTop + (pageBottom - pageTop) * 0.2
-              pageFocus2 = pageTop + (pageBottom - pageTop) * 0.7
+                return highlight element, false if pageTop < top
+                return highlight element, false if pageFocus2 < bottom
               #
-              # Stick with the current element if it's in a reasonable position.
-              if currentElement
-                [ top, bottom ] = Dom.offsetTopBottom currentElement
-                return if pageTop < top and bottom < pageBottom          # Still wholly on page.
-                return if top <= pageFocus1 <= bottom                    # Spans focus point 1.
-              #
-              elements = Dom.getElementList config.xPath
-              if elements.length
-                for element in elements
-                  [ top, bottom ] = Dom.offsetTopBottom element
-                  #
-                  return highlight element, false if pageTop < top
-                  return highlight element, false if pageFocus2 < bottom
-                #
-                # Must be off the bottom.  Highlight the last element.
-                return highlight elements.pop(), false
+              # Must be off the bottom.  Highlight the last element.
+              return highlight elements.pop(), false
 

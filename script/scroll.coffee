@@ -66,5 +66,5 @@ Scroll = justJK.Scroll =
         win.scrollBy 0, pos - win.pageYOffset
 
   smoothScrollToElement: (element, config) ->
-    @smoothScrollByDelta (Dom.offsetTop(element) - @pageTop config), false, -> element.focus()
+    @smoothScrollByDelta (Dom.offsetTop(element) - @pageTop config), false, => element.focus()
 
