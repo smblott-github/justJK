@@ -1,6 +1,5 @@
 
 justJK = window.justJK ?= {}
-#
 _      = window._
 
 # ####################################################################
@@ -11,8 +10,7 @@ do ->
   mixin = {}
   #
   for name in [ "bind", "throttle" ]
-    do (name) ->
-      mixin["#{name}R"] = (args..., f) -> _(f)[name](args...)
+    do (name) -> mixin["#{name}R"] = (args..., f) -> _(f)[name](args...)
   #
   _.mixin mixin
 
@@ -23,8 +21,8 @@ Const = justJK.Const =
   jjkAttribute:   "__justJKExtra__smblott_"
   highlightCSS:   "justjk_highlighted"
   currentClass:   "justjk_current"
-  simpleBindings: "/justJKSimpleBindingsForJK" # FIXME
-  nativeBindings: "/justJKNativeBindingsForJK" # FIXME
+  simpleBindings: "/justJKSimpleBindingsForJK" # Hack!
+  nativeBindings: "/justJKNativeBindingsForJK" # Hack!
   verboten:       [ "INPUT", "TEXTAREA" ]
   last:           "last"
 
@@ -34,8 +32,7 @@ Const = justJK.Const =
 Util = justJK.Util =
   echo:              (args...)          -> console.log arg for arg in args
   #
-  # SetInterval and setTimeout expect the function as their *second*
-  # argument.
+  # SetInterval and setTimeout, here, expect the function as their *second* argument.
   #
   setInterval:       (ms, func)         -> window.setInterval func, ms
   setTimeout:        (ms, func)         -> window.setTimeout  func, ms
@@ -50,9 +47,7 @@ Util = justJK.Util =
 
   # Call function then return result.
   #
-  result: (result,func) ->
-    func()
-    return result
+  result: (result,func) -> func(); result
 
   # Keypress wrapper.
   #
@@ -63,21 +58,16 @@ Util = justJK.Util =
       prevent_default : false
       is_exclusive    : true
 
-  # Extract URLs from an anchor, yielding list.  In particular, we try extracting URLs from the anchor's
+  # Extract URLs from an anchor, yielding list.  In particular, try extracting URLs from the anchor's
   # search term.
   #
   # Warning: proxied in hacks.coffee.
   #
-  extractURLs: do ->
-    regexp = new RegExp "=(https?(://|%3A%2F%2F)[^&]*)" # "%3A%2F%2F" is "://"
+  extractURLs: do ->               # "%3A%2F%2F" is "://"
+    regexp = new RegExp "=(https?(://|%3A%2F%2F)[^&]*)", "g"
     #
     (anchor) ->
-      search = anchor.search.match(regexp)
-      #
-      if search?.length
-        Util.push (decodeURIComponent href for href, i in search when i % 2), anchor.href
-      else
-        [ anchor.href ]
+      Util.push [ anchor.href ], (decodeURIComponent(matches[1]) while matches = regexp.exec anchor.search)...
 
   # Synchronous wget.
   #
@@ -87,17 +77,15 @@ Util = justJK.Util =
     request.send()
     if request.status is 200 then request.responseText else ""
 
+  # Throttle a function: call it only after 300ms have elapsed, and delay a further 300ms each time throttle
+  # is called.  Limitation: assumes 'func' is the same function each time.
+  #
   throttle: do ->
     timer = null
     delay = 300
     #
     (func) ->
       ->
-        if timer
-          clearTimeout timer
-        #
-        timer = Util.setTimeout delay, ->
-          timer = null
-          func()
-
+        clearTimeout timer if timer
+        timer = Util.setTimeout delay, -> timer = null; func()
 

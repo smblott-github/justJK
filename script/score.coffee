@@ -1,8 +1,6 @@
 
-justJK = window.justJK ?= {}
-#
-Util   = justJK.Util
-#
+justJK           = window.justJK ?= {}
+Util             = justJK.Util
 echo             = Util.echo
 stringContains   = Util.stringContains
 stringStartsWith = Util.stringStartsWith
@@ -14,8 +12,7 @@ Score = justJK.Score =
     score = 0
     #
     # Truly dislike the current URL.
-    if href is window.location.href
-      score -= 1000
+    return -1000 if href is window.location.href
     #
     # Or if they differ only in a trailing "#".
     if 1 == Math.abs href.length - window.location.href.length
@@ -23,7 +20,7 @@ Score = justJK.Score =
         [ short, long ] = if href.length < window.location.href.length then [ href, window.location.href ] else [ window.location.href, href ]
         #
         if stringStartsWith long, short
-          score -= 1000 if long[long.length-1..] is "#"
+          return -1000 if long[long.length-1..] is "#"
     #
     # Dislike mail links.
     if stringStartsWith href, 'mailto:'
@@ -32,30 +29,36 @@ Score = justJK.Score =
     # Prefer internal/external links.
     do ->
       internal = ( 7 <= href.indexOf(window.location.host) <= 8 )
+      external = not internal
       #
       switch config?.prefer
         when "internal"
           score += 20 if internal
+          score -= 20 if external
         #
         when "external"
-          score += 20 if not internal
+          score -= 20 if internal
+          score += 20 if external
         #
         # Default to a small preference for external links.
         else
-          score += 3 if not internal
+          score += 3 if external
     #
-    # # Slightly prefer non-static looking links.
-    # # Don't do this.  It picks some twitter links.
-    # score += 1 if stringContains href, "?"
+    do ->
+      for like in ( config.like or [] )
+        score += 15 if stringContains href, like
     #
-    for lk in ( config.like or [] )
-      score += 15 if stringContains href, lk
+    do ->
+      for dislike in ( config.dislike or [] )
+        score -= 15 if stringContains href, dislike
     #
-    for dlk in ( config.dislike or [] )
-      score -= 15 if stringContains href, dlk
-    #
-    # Dislike things which look like redirects.
-    score -= 30 if stringContains href, "%3A%2F%2F" # == "://" URI encoded
+    # Like redirects: they tend to go interesting places!
+    do ->
+      tail = href[1..]
+      score = 5 if stringContains tail, "http://"
+      score = 5 if stringContains tail, "https://"
+      score = 5 if stringContains tail, "http%3A%2F%2F" # == "://" URI encoded
+      score = 5 if stringContains tail, "https%3A%2F%2F" # == "://" URI encoded
     #
     score
 

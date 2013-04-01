@@ -1,10 +1,7 @@
 
-justJK = window.justJK ?= {}
-#
-Util   = justJK.Util
-#
-echo   = Util.echo
-
+justJK   = window.justJK ?= {}
+Util     = justJK.Util
+echo     = Util.echo
 jjkCache = "_justJK_EleCache__"
 
 Cache = justJK.Cache =
@@ -22,8 +19,7 @@ Cache = justJK.Cache =
     clearer = (mutation) -> Cache.clearDomCache()
     #
     for event in [ "DOMSubtreeModified" ]
-      do (event) ->
-        document.addEventListener event, clearer, true
+      do (event) -> document.addEventListener event, clearer, true
 
   # Element cache.
   #
@@ -33,14 +29,11 @@ Cache = justJK.Cache =
     Util.result func(), => @eleId = null
 
   eleCacheUse: (id,element,func) ->
-    if element and @eleId
-      cache = element[jjkCache]
-      #
-      unless cache and cache.eleId and cache.eleId is @eleId
-        cache = element[jjkCache] = { eleId: @eleId }
-      #
-      return cache[id] if cache[id]?
-      return cache[id] = func()
+    return func() unless element and @eleId
     #
-    func()
+    cache = element[jjkCache]
+    unless cache and cache.eleId and cache.eleId is @eleId
+      cache = element[jjkCache] = { eleId: @eleId }
+    #
+    return if id of cache then cache[id] else cache[id] = func()
 

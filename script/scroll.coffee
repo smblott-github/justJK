@@ -4,10 +4,8 @@
 #
 
 justJK = window.justJK ?= {}
-#
 Dom    = justJK.Dom
 Util   = justJK.Util
-#
 echo   = Util.echo
 
 Scroll = justJK.Scroll = 
@@ -22,16 +20,14 @@ Scroll = justJK.Scroll =
     vanillaScrollStep = 60
     #
     (move) ->
+      document.activeElement.blur() if document.activeElement
       @smoothScrollByDelta (if move then move * vanillaScrollStep else 0 - window.pageYOffset), true
 
-  scrollableThing: do ->
-    # ???
-    ->
-      return window
-      frames = Dom.getElementList "//iframe[@id='readable_iframe']"
-      if frames.length == 1
-        return frames[0]
-      return window
+  scrollableThing: ->
+    return window
+    # Broken.
+    frames = Dom.getElementList "//iframe[@id='readable_iframe']"
+    if frames.length == 1 then frames[0] else window
 
   smoothScrollByDelta: do ->
     duration = 250
@@ -43,19 +39,16 @@ Scroll = justJK.Scroll =
     (delta, accumulate, callback) ->
       # If delta is not defined, then just respond true/false to indicate whether we are currently scrolling
       # (or not).
-      if not delta?
-        return timer?
+      return timer? if not delta?
       #
-      dur = duration
-      int = interval
-      win = Scroll.scrollableThing()
+      dur     = duration
+      int     = interval
+      win     = Scroll.scrollableThing()
+      current = win.pageYOffset
       #
-      current =
-        if timer
-          clearInterval timer
-          if accumulate then target else win.pageYOffset
-        else
-          win.pageYOffset
+      if timer
+        clearInterval timer
+        current = target if accumulate
       #
       target = current + delta
       start  = Date.now()
@@ -64,39 +57,14 @@ Scroll = justJK.Scroll =
         factor = (Date.now() - start) / dur
         #
         if 1 <= factor
-          callback() if callback
           clearInterval timer
-          timer = null
+          timer  = null
           factor = 1
+          callback() if callback
         #
         pos = current + factor * delta
         win.scrollBy 0, pos - win.pageYOffset
 
   smoothScrollToElement: (element, config) ->
     @smoothScrollByDelta (Dom.offsetTop(element) - @pageTop config), false, -> element.focus()
-
-  autoscroll: do ->
-    base  = 400
-    scale = 0.7
-    rate  = null
-    timer = null
-    stamp = null
-    #
-    (faster) ->
-      clearInterval timer if timer
-      echo faster
-      #
-      if faster
-        rate = if not rate then base else Math.floor rate * scale
-        timer = Util.setInterval rate, -> window.scrollBy 0, 2
-      #
-      else
-        rate = if not rate then base else Math.floor rate / scale
-        #
-        return timer = rate = stamp = null if base <= rate
-        return timer = rate = stamp = null if stamp and Date.now() - stamp < 300
-        return timer = rate = stamp = null if document.body.offsetHeight <= window.pageYOffset + window.innerHeight
-        #
-        stamp = Date.now()
-        timer = Util.setInterval rate, -> window.scrollBy 0, 1
 

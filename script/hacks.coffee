@@ -3,13 +3,11 @@
 # handle known, site-specific issues, falling back to the general implementation as appropriate.
 
 justJK = window.justJK ?= {}
-#
 Util   = justJK.Util
 Const  = justJK.Const
 Dom    = justJK.Dom
 Scroll = justJK.Scroll
 Score  = justJK.Score
-#
 echo   = Util.echo
 _      = window._
 
@@ -32,6 +30,8 @@ Dom.getActiveElement = _.wrap (_.bindR Dom, Dom.getActiveElement),
 # Vimium's search box is not an input element.  So, we shouldn't handle keys if the search box is active.
 # Whether this is necessary depends upon the order in which chrome layers its extensions.
 #
+# Also: Google Plus text entry requires some special handling.
+#
 do ->
   vimiumElement = null
   #
@@ -53,9 +53,8 @@ do ->
       switch window.location.host
         when "plus.google.com"
           active = document.activeElement
-          if active.nodeName is 'DIV'
-            if active.attributes.getNamedItem('g_editable')
-              # May have to also check that it's true!
+          if active.nodeName.toLowerCase() is 'div'
+            if active.attributes.getNamedItem 'g_editable'
               return true # Propagate.
       #
       func args...

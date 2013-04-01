@@ -1,13 +1,11 @@
 
 justJK = window.justJK ?= {}
-#
 Util   = justJK.Util
 Const  = justJK.Const
 Cache  = justJK.Cache
 Dom    = justJK.Dom
 Scroll = justJK.Scroll
 Score  = justJK.Score
-#
 echo   = Util.echo
 _      = window._
 
@@ -30,8 +28,7 @@ highlight = (element, scroll=true) ->
       #
       currentElement = element
       currentElement.classList.add Const.currentClass
-      unless "no-highlight" in config.option
-        currentElement.classList.add Const.highlightCSS
+      currentElement.classList.add Const.highlightCSS unless "no-highlight" in config.option
       #
       chrome.extension.sendMessage
         request: "saveID"
@@ -39,8 +36,9 @@ highlight = (element, scroll=true) ->
         host:     window.location.host
         pathname: window.location.pathname
         # No callback.
+      # Drop through.
     #
-    if scroll
+    if scroll and currentElement
       Scroll.smoothScrollToElement currentElement, config
 
 # ####################################################################
@@ -68,16 +66,11 @@ navigate = (xPath, move) ->
   #
   if 0 < n
     index = ( i for e, i in elements when e.classList.contains Const.currentClass )
-    if index.length == 0
-      return highlight elements[0]
+    return highlight elements[0] unless index.length
     #
-    if 1 < index.length
-      echo "lastJK error: multiple elements selected"
-    #
+    echo "lastJK error: multiple elements selected" if 1 < index.length
     index = index[0]
-    #
-    if move is Const.last
-      move = n - index - 1
+    move  = n - index - 1 if move is Const.last
     #
     # Consider sticking with the current element ... specifically, if scrolling to the otherwise correct
     # element would involve jumping past the current element.
@@ -89,12 +82,10 @@ navigate = (xPath, move) ->
         when -1
           return highlight elements[index] if top < pageTop
         when 1
-          if pageBottom < document.body.offsetHeight
-            return highlight elements[index] if pageTop < top
+          return highlight elements[index] if pageBottom < document.body.offsetHeight and pageTop < top
     #
     newIndex = Math.min n-1, Math.max 0, if move then index + move else 0
-    if newIndex isnt index
-      return highlight elements[newIndex]
+    return highlight elements[newIndex] if newIndex isnt index
     # Drop through.
   #
   Scroll.vanillaScroll move
@@ -105,8 +96,7 @@ navigate = (xPath, move) ->
 followLink = (xPath) ->
   #
   # If the active element is an anchor then we click it regardless.
-  if document.activeElement?.nodeName is "A"
-    return document.activeElement.click()
+  return document.activeElement.click() if document.activeElement?.nodeName is "A"
 
   # Youtube hack.
   if window.location.host is "www.youtube.com"
@@ -173,39 +163,38 @@ chrome.extension.sendMessage request, (response) ->
   xPath = config.xPath
   echo "justJK xPath: #{xPath}"
   #
-  # Util.keypress "s", -> Dom.doUnlessInputActive -> Scroll.autoscroll true
-  # Util.keypress "shift s", -> Dom.doUnlessInputActive -> Scroll.autoscroll false
   switch xPath
     #
     when Const.nativeBindings
       unless "no-enter" in config.option
         Util.keypress "enter", -> Dom.doUnlessInputActive -> followLink xPath
+        Util.keypress ";",     -> Dom.doUnlessInputActive -> Scroll.vanillaScroll 0
     #
     when Const.simpleBindings
-      Util.keypress "j",     -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
-      Util.keypress "k",     -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
-      Util.keypress ";",     -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  0
+      Util.keypress "j",       -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
+      Util.keypress "k",       -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
+      Util.keypress ";",       -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  0
       #
-      Util.keypress "down",  -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
-      Util.keypress "up",    -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
+      Util.keypress "down",    -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
+      Util.keypress "up",      -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
     #
     else
-      Util.keypress "j",     -> Dom.doUnlessInputActive -> navigate xPath,  1
-      Util.keypress "k",     -> Dom.doUnlessInputActive -> navigate xPath, -1
-      Util.keypress ";",     -> Dom.doUnlessInputActive -> navigate xPath,  0
-      Util.keypress ":",     -> Dom.doUnlessInputActive -> navigate xPath,  Const.last
+      Util.keypress "j",       -> Dom.doUnlessInputActive -> navigate xPath,  1
+      Util.keypress "k",       -> Dom.doUnlessInputActive -> navigate xPath, -1
+      Util.keypress ";",       -> Dom.doUnlessInputActive -> navigate xPath,  0
+      Util.keypress ":",       -> Dom.doUnlessInputActive -> navigate xPath,  Const.last
       #
       unless "no-enter" in config.option
         Util.keypress "enter", -> Dom.doUnlessInputActive -> followLink xPath
       #
-      Util.keypress "down",  -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
-      Util.keypress "up",    -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
+      Util.keypress "down",    -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
+      Util.keypress "up",      -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
       #
       # 
       window.addEventListener "DOMContentLoaded", ->
         # Grab back focus.
         #
-        if document.activeElement.nodeName in Const.verboten
+        if document.activeElement?.nodeName in Const.verboten
           document.activeElement.blur()
 
         request =
@@ -233,7 +222,7 @@ chrome.extension.sendMessage request, (response) ->
         document.onscroll =
           Util.throttle ->
             Cache.eleCacheStart ->
-              pageTop = window.pageYOffset + Dom.pageTopAdjustment config
+              pageTop    = window.pageYOffset + Dom.pageTopAdjustment config
               pageBottom = window.pageYOffset + window.innerHeight
               pageFocus1 = pageTop + (pageBottom - pageTop) * 0.2
               pageFocus2 = pageTop + (pageBottom - pageTop) * 0.7

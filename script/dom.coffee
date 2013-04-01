@@ -15,29 +15,21 @@ Dom = justJK.Dom =
 
   # Return list of elements matching given XPath expression (or empty list).
   evaluateXPath: (xPath) ->
-    return [] unless xPath
-    #
+    echo "xpath: #{xPath}"
     try
       xPathResult = document.evaluate xPath, document, @namespaceResolver, @xPathResultType
-      #
+      element while xPathResult and element = xPathResult.iterateNext()
     catch error
       Util.echo "justJK xPath error: #{xPath}"
       return []
-    #
-    element while xPathResult and element = xPathResult.iterateNext()
 
   # Return active element.
   # WARNING: This operation is proxied in "hacks.coffee".
-  getActiveElement: ->
-    document.activeElement
+  getActiveElement: -> document.activeElement
 
-  # Is element visible?
+  # Is element (sufficiently) visible?
   visible: (element) ->
     Cache.eleCacheUse "visible", element, =>
-      # for ele in @offsetParents(element)
-      #   style = window.getComputedStyle ele
-      #   console.log style.position
-      #
       for ele in @offsetParents(element)[1..]
         return false if ele.offsetHeight <= 0
       #
@@ -47,9 +39,7 @@ Dom = justJK.Dom =
           return false if style.visibility is "hidden"
       #
       [ top, bottom ] = @offsetTopBottom element
-      return false if bottom - top < 10
-      #
-      true
+      if bottom - top < 10 then false else true
 
   # Return list of elements matching given XPath expression sorted by their position within the window.
   # Additionally, strip out elements which aren't very tall.  Many of these are in fact hidden.
@@ -82,7 +72,7 @@ Dom = justJK.Dom =
     Cache.eleCacheUse "offSetBottom", element, =>
       element.offsetHeight + @offsetTop element
 
-  # Return both the offsets of the top and the bottom of element vis-a-vis the top of the window.
+  # Return the offsets of the top and the bottom of element vis-a-vis the top of the window.
   #
   offsetTopBottom: (element) ->
     Cache.eleCacheUse "offSetTopBottom", element, =>
@@ -99,26 +89,28 @@ Dom = justJK.Dom =
   #
   offsetParents: (element) ->
     Cache.eleCacheUse "offsetParents", element, =>
-      return [] unless element
-      return [] if element.nodeName is "BODY"
-      return [ element ].concat @offsetParents element.offsetParent
+      if element?.nodeName and element.nodeName isnt "BODY"
+        [ element ].concat @offsetParents element.offsetParent
+      else
+        []
 
   # Is the position of element fixed?
   #
   isFixed: (element) ->
     while element
-      style = window.getComputedStyle element
-      if style
+      if style = window.getComputedStyle element
         switch style.position
           when "fixed"    then return true
           when "absolute" then return true
       element = element.parentNode
-    return false
+    #
+    false
 
-  # Return largest position of the bottom of a fixed element.
+  # Return largest position of the bottom of a fixed header element.
   # 
   pageTopAdjustment: (config) ->
-    Cache.callDomCache config?.xPath, =>
+    return 0 unless config?.header
+    Cache.callDomCache config?.header, =>
       Math.max (config?.offset || 0),
         Math.max ( @offsetBottom element for element in @evaluateXPath config?.header when @isFixed element )...
 
@@ -126,9 +118,6 @@ Dom = justJK.Dom =
   # WARNING: This operation is proxied in "hacks.coffee".
   #
   doUnlessInputActive: (func) ->
-    if document.activeElement.nodeName in Const.verboten
-      return true # Propagate.
-    #
-    Cache.eleCacheStart func
-    return false # Prevent propagation.
+    return true if document.activeElement.nodeName in Const.verboten # Propagate.
+    Cache.eleCacheStart func; false                                  # Do not propagate
 
