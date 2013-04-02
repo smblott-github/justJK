@@ -33,11 +33,13 @@ highlight = (element, scroll=true) ->
       currentElement.classList.add Const.highlightCSS unless "no-highlight" in config.option
       # Drop through.
     #
-    if currentElement
-        document.activeElement.blur() if document.activeElement
-        element.focus()
-        #
-        Scroll.smoothScrollToElement currentElement, config if scroll
+    if currentElement and scroll
+      # Grab the focus, but only if we're actually scrolling to an element.  If we're just scrolling
+      # independently of justJK, then leave the focus where it is.
+      document.activeElement.blur() if document.activeElement
+      element.focus()
+      #
+      Scroll.smoothScrollToElement currentElement, config if scroll
 
 # ####################################################################
 # Arm elements for highlighting on click.
@@ -48,7 +50,7 @@ addHighlightOnClickHandlers = (elements) ->
   for element in elements
     unless jjkAttribute of elements
       do (element) ->
-        element.onclick = -> highlight element, false
+        element.onclick = -> highlight element, true
         element[jjkAttribute] = true
   #
   elements
