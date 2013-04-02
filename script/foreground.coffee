@@ -49,9 +49,12 @@ jjkAttribute = Const.jjkAttribute
 addHighlightOnClickHandlers = (elements) ->
   for element in elements
     unless jjkAttribute of elements
-      do (element) ->
-        element.onclick = -> highlight element, true
-        element[jjkAttribute] = true
+      element[jjkAttribute] = true
+      clicker = element.onclick
+      do (element,clicker) ->
+        element.onclick = ->
+          highlight element, true
+          clicker.apply element if clicker
   #
   elements
 
