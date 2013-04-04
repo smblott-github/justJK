@@ -116,6 +116,11 @@ site     www.steephill.tv
 path     /photos/
 elements //img[@width > 500 or substring-before(@width, 'px') > 500 or @height > 500 or substring-before(@height, 'px') > 500]
 
+site     huffingtonpost com .co.uk
+path     .*.html
+elements //div[HAS/class/articleBody]/p
+option   no-highlight
+
 # ##############################################################################
 # Use native bindings.
 #
