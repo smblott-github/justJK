@@ -121,6 +121,9 @@ path     .*.html
 elements //div[HAS/class/articleBody]/p
 option   no-highlight
 
+site     live.cyclingnews.com
+elements //ol/li
+
 # ##############################################################################
 # Use native bindings.
 #
