@@ -108,6 +108,7 @@ followLink = (xPath) ->
     #
     urls = do ->
       maxScore = -Infinity
+      echo "--"
       updateMax = (score) -> if maxScore < score then maxScore = score else score
       #
       _.chain(element.getElementsByTagName "a")
@@ -144,9 +145,22 @@ followLink = (xPath) ->
         url:      urls[0]
         # No callback
     else
-      # No URLs?  Try "clicking" on the element.
-      if element.click and typeof element.click is "function"
-        element.click.apply element
+      # # No URLs?  Try "clicking" on the element.
+      # if element.click and typeof element.click is "function"
+      #   element.click.apply element
+      #
+      # es = element.getElementsByTagName('*')
+      # for i in [0..es.length]
+      #   if e = es[i]
+      #     console.log e
+      #     console.log e.onclick
+      #     console.log e.click
+      #     if e.click and typeof e.click is "function"
+      #       console.log "hit click"
+      #       return e.click.apply element
+      #     if e.onclick and typeof e.onclick is "function"
+      #       console.log "hit onclick"
+      #       return e.onclick.apply element
 
 # ####################################################################
 # Main: install listener and highlight previous element (or first).
