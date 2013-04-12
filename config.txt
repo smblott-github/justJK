@@ -124,6 +124,15 @@ option   no-highlight
 site     live.cyclingnews.com
 elements //ol/li
 
+site     www.cyclingnews.com
+path     ^/news/
+elements //div[@id='content_main']/p
+option   no-highlight
+
+site     www.telelafouly.ch
+path     /en/webcam
+elements //div[@id='webcam']/a/img
+
 # ##############################################################################
 # Use native bindings.
 #
