@@ -149,18 +149,15 @@ followLink = (xPath) ->
       # if element.click and typeof element.click is "function"
       #   element.click.apply element
       #
-      # es = element.getElementsByTagName('*')
-      # for i in [0..es.length]
-      #   if e = es[i]
-      #     console.log e
-      #     console.log e.onclick
-      #     console.log e.click
-      #     if e.click and typeof e.click is "function"
-      #       console.log "hit click"
-      #       return e.click.apply element
-      #     if e.onclick and typeof e.onclick is "function"
-      #       console.log "hit onclick"
-      #       return e.onclick.apply element
+      for e in [ element ] # element.getElementsByTagName('*')
+        echo "hello!"
+        if e.click and typeof e.click is "function"
+          console.log "hit click"
+          return e.click.apply element
+        # The following doesn't seem to do anything, ???
+        if e.onclick and typeof e.onclick is "function"
+          console.log "hit onclick"
+          return e.onclick.apply element
 
 # ####################################################################
 # Main: install listener and highlight previous element (or first).
