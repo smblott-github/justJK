@@ -87,7 +87,10 @@ prefer   internal
 site     www.thejournal.ie
 path     ^/$
 elements //div[HAS/class/post]/div/h4/../..
-prefer   neither
+prefer   internal
+like     /jrnl.ie/
+like     /jrnl.ie/
+like     /jrnl.ie/
 
 site     www.thesun.co.uk
 path     ^/sol/homepage/$
