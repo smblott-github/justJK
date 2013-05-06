@@ -91,6 +91,7 @@ prefer   internal
 like     /jrnl.ie/
 like     /jrnl.ie/
 like     /jrnl.ie/
+dislike  www.facebook.com
 
 site     www.thesun.co.uk
 path     ^/sol/homepage/$
