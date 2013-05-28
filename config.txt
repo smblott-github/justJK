@@ -152,6 +152,7 @@ site     plus.google.com
 ## elements //div[@id='contentPane']//div[@guidedhelpid='streamcontent']//div[starts-with(@id,'update-')]
 dislike  ://webcache.googleusercontent.com/
 dislike  /posts/
+dislike  maps.google.com
 like     /albums
 like     /photos/
 like     /posts/
