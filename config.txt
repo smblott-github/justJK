@@ -102,6 +102,11 @@ prefer   internal
 like     .html
 dislike  #comment-rig
 
+site     www.ukclimbing.com
+path     ^/forums/$
+elements //tbody[@id='ftable']/tr
+prefer   internal
+
 site     www.argos.ie
 path     ^/webapp/wcs/stores/servlet/Search
 elements //ol[HAS/class/browselister]/li[HAS/class/product]
