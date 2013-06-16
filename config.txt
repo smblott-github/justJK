@@ -73,6 +73,7 @@ offset   35
 site     www.irishtimes.com
 path     ^/news/
 path     ^/business/
+path     ^/sport/
 elements //div[HAS/class/article_holder]/section/p[HAS/class/no_name]
 option   no-enter
 option   no-highlight
