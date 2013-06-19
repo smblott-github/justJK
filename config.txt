@@ -122,6 +122,13 @@ elements //div[HAS/class/u4Entry]/div
 offset   40
 prefer   external
 
+site     duckduckgo.com
+header   //div[@id='header']
+elements //div[@id='links']/div[HAS/class/results_links_deep]
+elements //div[@id='official_site']
+elements //div[HAS/class/links_zero_click]
+prefer   external
+
 site     www.steephill.tv
 path     /photos/
 elements //img[@width > 500 or substring-before(@width, 'px') > 500 or @height > 500 or substring-before(@height, 'px') > 500]
