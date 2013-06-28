@@ -66,3 +66,14 @@ Util.extractURLs = _.wrap (_.bindR Util, Util.extractURLs),
   (func,args...) ->
     url.replace "://www.youtube.com/watch?", "://www.youtube.com/watch_popup?" for url in func args...
 
+# ####################################################################
+# Feedsportal hack.
+
+if window.location.host is "da.feedsportal.com"
+  echo "da.feedsportal.com"
+  anchors = document.getElementsByTagName "a"
+  if anchors.length
+    echo "redirect: #{log}"
+    loc = anchors.pop()
+    window.location = loc.href
+
