@@ -71,9 +71,12 @@ Util.extractURLs = _.wrap (_.bindR Util, Util.extractURLs),
 
 if window.location.host is "da.feedsportal.com"
   echo "da.feedsportal.com"
-  anchors = document.getElementsByTagName "a"
-  if anchors.length
-    echo "redirect: #{log}"
-    loc = anchors.pop()
-    window.location = loc.href
+  Util.setInterval 1000, ->
+    anchors = document.getElementsByTagName "a"
+    if anchors.length
+      loc = anchors[anchors.length - 1]
+      echo "redirect: #{loc}"
+      window.location = loc.href
+    else
+      echo "no anchors"
 
