@@ -174,22 +174,27 @@ like     /posts/
 like     /u/0/
 prefer   external
 
-site     www.facebook.com
+# site     www.facebook.com
+# path     ^/pages/
+# elements //li[HAS/class/fbTimelineUnit]
 # header   //div[@id='pagelet_bluebar']/div[@id='blueBarHolder']/div['blueBar']
 # header   //div[@id='timeline_sticky_header']
-# elements //li[HAS/class/uiUnifiedStory]
-like     /video/video.php
-like     /video/video.php
-like     /photo.php?fbid=
-like     /l.php?u=
-dislike  /ajax/sharer/
-dislike  apps.facebook.com
-dislike  fb_action_types=instapp
-prefer   external
+# like     /video/video.php
+# like     /video/video.php
+# like     /photo.php?fbid=
+# like     /l.php?u=
+# dislike  /ajax/sharer/
+# dislike  apps.facebook.com
+# dislike  fb_action_types=instapp
+# prefer   external
 
 site     www.facebook.com
-path     ^/pages/
-header   //li[HAS/class/fbTimelineUnit]
+header   //div[@id='pagelet_bluebar']/div[@id='blueBarHolder']/div['blueBar']
+header   //div[@id='timeline_sticky_header']
+header   //div[HAS/class/fbTimelineStickyHeader]
+header   //div[HAS/class/stickyHeaderWrap]
+elements //li[HAS/class/uiUnifiedStory]
+elements //li[HAS/class/fbTimelineUnit]
 like     /video/video.php
 like     /video/video.php
 like     /photo.php?fbid=
