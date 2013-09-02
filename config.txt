@@ -187,6 +187,18 @@ dislike  apps.facebook.com
 dislike  fb_action_types=instapp
 prefer   external
 
+site     www.facebook.com
+path     ^/pages/
+header   //li[HAS/class/fbTimelineUnit]
+like     /video/video.php
+like     /video/video.php
+like     /photo.php?fbid=
+like     /l.php?u=
+dislike  /ajax/sharer/
+dislike  apps.facebook.com
+dislike  fb_action_types=instapp
+prefer   external
+
 # ##############################################################################
 # Native bindings and no enter key ... justJK is completely disabled.
 site     mail.google.com
