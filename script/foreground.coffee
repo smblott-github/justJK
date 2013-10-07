@@ -123,6 +123,7 @@ followLink = (xPath) ->
         #
         .map(Util.extractURLs, Util)
         .flatten()
+        .reject((a) -> 0 == a.length)
         #
         # Log the URLs and their scores ...
         #
@@ -140,6 +141,7 @@ followLink = (xPath) ->
         .value()
     #
     if urls.length
+      echo "choosing: #{urls[0]}"
       chrome.extension.sendMessage
         request: "open"
         url:      urls[0]
