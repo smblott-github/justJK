@@ -53,23 +53,13 @@ do ->
       echo window.location.host
       switch window.location.host
         when "plus.google.com"
-          echo "plus.google.com"
           active = document.activeElement
-          echo active.nodeName.toLowerCase()
-          echo active
           if active.nodeName.toLowerCase() is 'div'
             if active.attributes.getNamedItem 'g_editable'
-              return true # Propagate.
-            if active.attributes.getNamedItem 'editable'
               return true # Propagate.
         when "talkgadget.google.com"
-          echo "talkgadget.google.com"
           active = document.activeElement
-          echo active.nodeName.toLowerCase()
-          echo active
           if active.nodeName.toLowerCase() is 'div'
-            if active.attributes.getNamedItem 'g_editable'
-              return true # Propagate.
             if active.attributes.getNamedItem 'editable'
               return true # Propagate.
       #
