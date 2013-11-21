@@ -47,7 +47,7 @@ highlight = (element, scroll=true) ->
 jjkAttribute = Const.jjkAttribute
 
 addHighlightOnClickHandlers = (elements) ->
-  for element in elements
+  for element in [] # disabled elements
     unless jjkAttribute of elements
       element[jjkAttribute] = true
       clicker = element.onclick
