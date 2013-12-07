@@ -240,3 +240,4 @@ elements //div[@id='posts']//table[starts-with(@id,'post')]/tbody/tr/td[starts-w
 option   no-focus
 prefer   external
 
+
