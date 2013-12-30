@@ -33,6 +33,7 @@ elements //ol[HAS/class/vm-video-list]/li
 elements //div[HAS/class/feed-page]/ul/li
 elements //ul/li[HAS/class/feed-item-container]
 elements //ul[HAS/class/gh-single-playlist]/li
+elements //ul[@id='channels-browse-content-list']/li
 # elements //li[HAS/class/feed-item-snippet]
 # elements //li[HAS/class/channels-content-item]
 header   //div[HAS/id/vm-video-actions-bar]
