@@ -17,7 +17,7 @@ Scroll = justJK.Scroll =
       window.pageYOffset + offset + Dom.pageTopAdjustment config
 
   vanillaScroll: do ->
-    vanillaScrollStep = 60
+    vanillaScrollStep = 80
     #
     (move) ->
       document.activeElement.blur() if document.activeElement
