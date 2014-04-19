@@ -172,6 +172,7 @@ request =
 chrome.extension.sendMessage request, (response) ->
   config = response
   xPath  = config.xPath
+  jump = 8
   console.log "xpath: #{xPath}"
   #
   switch xPath
@@ -187,6 +188,8 @@ chrome.extension.sendMessage request, (response) ->
       Util.keypress ";",       -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  0
       Util.keypress "down",    -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
       Util.keypress "up",      -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
+      Util.keypress "d",       -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  jump
+      Util.keypress "u",       -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -jump
     #
     else
       Util.keypress "j",       -> Dom.doUnlessInputActive -> navigate xPath,  1
@@ -195,6 +198,8 @@ chrome.extension.sendMessage request, (response) ->
       Util.keypress ":",       -> Dom.doUnlessInputActive -> navigate xPath,  Const.last
       Util.keypress "down",    -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
       Util.keypress "up",      -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
+      Util.keypress "d",       -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  jump
+      Util.keypress "u",       -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -jump
       #
       unless "no-enter" in config.option
         Util.keypress "enter", -> Dom.doUnlessInputActive -> followLink xPath
