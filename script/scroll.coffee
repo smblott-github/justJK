@@ -8,7 +8,14 @@ Dom    = justJK.Dom
 Util   = justJK.Util
 echo   = Util.echo
 
-Scroll = justJK.Scroll = 
+Scroll = justJK.Scroll =
+  activatedElement: null
+
+  setActive: (element) ->
+    while element and not element?.scrollBy
+      element = element.parentNode
+    console.log "choose #{element}"
+    @activatedElement = element
 
   pageTop: do ->
     offset = 20
@@ -24,7 +31,10 @@ Scroll = justJK.Scroll =
       @smoothScrollByDelta (if move then move * vanillaScrollStep else 0 - window.pageYOffset), true
 
   scrollableThing: ->
-    return window
+    return window if not document.body
+    return window if not @activatedElement
+    return window if not isRendered @activatedElement
+    return @activatedElement
     # Broken.
     frames = Dom.getElementList "//iframe[@id='readable_iframe']"
     if frames.length == 1 then frames[0] else window
@@ -67,4 +77,16 @@ Scroll = justJK.Scroll =
 
   smoothScrollToElement: (element, config) ->
     @smoothScrollByDelta (Dom.offsetTop(element) - @pageTop config), false, => element.focus()
+
+# ####################################
+# Install listener...
+
+do ->
+  install = (event,callback) ->
+    if document
+      document.addEventListener(event, callback, false)
+  #
+  install "DOMActivate", (event) ->
+    if event?.target
+      Scroll.setActive(event.target)
 
