@@ -44,7 +44,20 @@ Dom = justJK.Dom =
   # Additionally, strip out elements which aren't very tall.  Many of these are in fact hidden.
   #
   getElementList: (xPath) ->
-    (e for e in @evaluateXPath xPath when @visible e).sort @byElementPosition
+    @filterByContainment (e for e in @evaluateXPath xPath when @visible e).sort @byElementPosition
+
+  filterByContainment: (elements) ->
+    i = 0
+    while i < elements.length
+      if i and elements[i].contains elements[i-1]
+        i -= 1
+        elements[i...i+1] = []
+        continue
+      if i+1 < elements.length and elements[i].contains elements[i+1]
+        elements[i+1...i+2] = []
+        continue
+      i += 1
+    return elements
 
   # Compare two elements by their position within the window, top before bottom, then left before right.
   #
