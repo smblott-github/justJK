@@ -56,6 +56,13 @@ path     ^/page/
 prefer   internal
 
 site     www.reddit.com
+path     /comments/
+elements //div[@id='siteTable']/div[HAS/class/thing]
+elements //div[HAS/class/comment]
+# elements //div[@class='md']
+prefer   external
+
+site     www.reddit.com
 elements //div[@id='siteTable']/div[HAS/class/thing]
 prefer   external
 
