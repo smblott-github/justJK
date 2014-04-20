@@ -154,7 +154,7 @@ elements //div[HAS/class/articleBody]/p
 option   no-highlight
 
 site     live.cyclingnews.com
-elements //ol/li
+elements //ol[@id='liveReportConsolePreview']/li
 
 site     www.cyclingnews.com
 path     ^/news/
@@ -208,7 +208,7 @@ header   //div[HAS/class/fbTimelineStickyHeader]
 header   //div[HAS/class/stickyHeaderWrap]
 elements //li[HAS/class/uiUnifiedStory]
 elements //li[HAS/class/fbTimelineUnit]
-elements //div[HAS/class/userContentWrapper]
+elements //div[HAS/class/userContentWrapper]/..
 like     /video/video.php
 like     /video/video.php
 like     /photo.php?fbid=
