@@ -47,8 +47,24 @@ Dom = justJK.Dom =
     @filterByContainment (e for e in @evaluateXPath xPath when @visible e).sort @byElementPosition
 
   filterByContainment: (elements) ->
-    elements = ( elements[i] for i in [ 0...elements.length ] when i is 0 or not elements[i-1].contains elements[i] )
-    ( elements[i] for i in [ 0...elements.length ] when i+1 is elements.length or not elements[i+1].contains elements[i] )
+    # elements = ( elements[i] for i in [ 0...elements.length ] when i is 0 or not elements[i-1].contains elements[i] )
+    # ( elements[i] for i in [ 0...elements.length ] when i+1 is elements.length or not elements[i+1].contains elements[i] )
+    i = 0
+    while i+1 < elements.length
+      if elements[i].contains elements[i+1]
+        elements[i+1..i+1] = []
+      else
+        i += 1
+    #
+    i = 1
+    while i < elements.length
+      if elements[i].contains elements[i-1]
+        elements[i-1..i-1] = []
+      else
+        i += 1
+    #
+    elements
+
 
   # Compare two elements by their position within the window, top before bottom, then left before right.
   #
