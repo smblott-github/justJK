@@ -37,6 +37,7 @@ elements //ul[@id='channels-browse-content-list']/li
 # elements //li[HAS/class/feed-item-snippet]
 # elements //li[HAS/class/channels-content-item]
 header   //div[HAS/id/vm-video-actions-bar]
+header   //div[HAS/id/masthead-positioner]
 prefer   internal
 like     watch_popup
 
