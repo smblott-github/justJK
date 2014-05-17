@@ -37,6 +37,7 @@ elements //ul[@id='channels-browse-content-list']/li
 # elements //li[HAS/class/feed-item-snippet]
 # elements //li[HAS/class/channels-content-item]
 header   //div[HAS/id/vm-video-actions-bar]
+header   //div[HAS/id/masthead-positioner]
 prefer   internal
 like     watch_popup
 
@@ -207,9 +208,10 @@ header   //div[@id='pagelet_bluebar']/div[@id='blueBarHolder']/div['blueBar']
 header   //div[@id='timeline_sticky_header']
 header   //div[HAS/class/fbTimelineStickyHeader]
 header   //div[HAS/class/stickyHeaderWrap]
-elements //li[HAS/class/uiUnifiedStory]
-elements //li[HAS/class/fbTimelineUnit]
-elements //div[HAS/class/userContentWrapper]/..
+## elements //li[HAS/class/uiUnifiedStory]
+## elements //li[HAS/class/fbTimelineUnit]
+## elements //div[HAS/class/userContentWrapper]/..
+elements //div[@data-insertion-position]
 like     /video/video.php
 like     /video/video.php
 like     /photo.php?fbid=
