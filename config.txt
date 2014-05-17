@@ -70,6 +70,7 @@ site     twitter.com
 header   //div[HAS/class/topbar]/div[HAS/class/global-nav]
 elements //li[@data-item-type='tweet']
 elements //div[starts-with(@class,'new-tweets-bar')]
+elements //div[@data-component-term='tweet']
 # elements //li[starts-with(@id,'stream-item-tweet')]
 # elements //div[@id='stream-items-id']/div[@data-item-type='tweet']
 prefer   external
