@@ -71,6 +71,7 @@ site     twitter.com
 header   //div[HAS/class/topbar]/div[HAS/class/global-nav]
 elements //li[@data-item-type='tweet']
 elements //div[starts-with(@class,'new-tweets-bar')]
+elements //div[@data-component-term='tweet']
 # elements //li[starts-with(@id,'stream-item-tweet')]
 # elements //div[@id='stream-items-id']/div[@data-item-type='tweet']
 prefer   external
@@ -203,14 +204,14 @@ prefer   external
 # prefer   external
 
 site     www.facebook.com
-header   //div[@id='pagelet_bluebar']/div[@id='blueBarHolder']/div['blueBar']
-header   //div[@id='timeline_sticky_header']
-header   //div[HAS/class/fbTimelineStickyHeader]
-header   //div[HAS/class/stickyHeaderWrap]
-## elements //li[HAS/class/uiUnifiedStory]
-## elements //li[HAS/class/fbTimelineUnit]
-## elements //div[HAS/class/userContentWrapper]/..
-elements //div[@data-insertion-position]
+# header   //div[@id='pagelet_bluebar']/div[@id='blueBarHolder']/div['blueBar']
+# header   //div[@id='timeline_sticky_header']
+# header   //div[HAS/class/fbTimelineStickyHeader]
+# header   //div[HAS/class/stickyHeaderWrap]
+# elements //li[HAS/class/uiUnifiedStory]
+# elements //li[HAS/class/fbTimelineUnit]
+# elements //div[HAS/class/userContentWrapper]/..
+# elements //div[@data-insertion-position]
 like     /video/video.php
 like     /video/video.php
 like     /photo.php?fbid=

@@ -50,18 +50,12 @@ do ->
         if Dom.visible vimiumElement
           return true # Propagate.
       #
-      echo window.location.host
-      switch window.location.host
-        when "plus.google.com"
-          active = document.activeElement
-          if active.nodeName.toLowerCase() is 'div'
-            if active.attributes.getNamedItem 'g_editable'
-              return true # Propagate.
-        when "talkgadget.google.com"
-          active = document.activeElement
-          if active.nodeName.toLowerCase() is 'div'
-            if active.attributes.getNamedItem 'editable'
-              return true # Propagate.
+      active = document.activeElement
+      if active and active.nodeName.toLowerCase() is 'div'
+        # These attributes are used by Google (mainly), on some sites.
+        return true if active.attributes.getNamedItem 'g_editable'      # Propagate.
+        return true if active.attributes.getNamedItem 'editable'        # Propagate.
+        return true if active.attributes.getNamedItem 'contenteditable' # Propagate.
       #
       func args...
 
