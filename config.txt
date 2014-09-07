@@ -240,6 +240,9 @@ option   no-enter
 site     keep.google.com
 option   no-enter
 
+site     news.google.com
+# option   no-enter
+
 # ##############################################################################
 # Paths only (site must be included, but is left empty) ...
 
