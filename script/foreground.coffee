@@ -173,7 +173,7 @@ chrome.extension.sendMessage request, (response) ->
   config = response
   xPath  = config.xPath
   jump = 7
-  console.log "xpath: #{xPath}"
+  # console.log "xpath: #{xPath}"
   #
   switch xPath
     #

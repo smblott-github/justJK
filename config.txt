@@ -223,6 +223,7 @@ prefer   external
 
 # ##############################################################################
 # Native bindings and no enter key ... justJK is completely disabled.
+
 site     mail.google.com
 option   no-enter
 
