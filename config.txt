@@ -242,6 +242,9 @@ option   no-enter
 site     drive.google.com
 option   no-enter
 
+site     web.notablepdf.com
+option   no-enter
+
 site     keep.google.com
 option   no-enter
 
