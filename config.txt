@@ -233,6 +233,7 @@ option   no-enter
 
 site     groups.google.com
 path     ^/forum/
+path     ^/a/
 option   no-enter
 
 site     productforums.google.com
