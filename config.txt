@@ -227,6 +227,9 @@ prefer   external
 site     mail.google.com
 option   no-enter
 
+site     github.com
+option   no-enter
+
 site     www.google.com
 path     ^/calendar/
 option   no-enter
