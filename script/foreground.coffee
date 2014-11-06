@@ -180,26 +180,27 @@ chrome.extension.sendMessage request, (response) ->
     when Const.nativeBindings
       unless "no-enter" in config.option
         Util.keypress "enter", -> Dom.doUnlessInputActive -> followLink xPath
-        Util.keypress ";",     -> Dom.doUnlessInputActive -> Scroll.vanillaScroll 0
+        # Util.keypress ";",     -> Dom.doUnlessInputActive -> Scroll.vanillaScroll 0
     #
     when Const.simpleBindings
-      Util.keypress "j",       -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
-      Util.keypress "k",       -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
-      Util.keypress ";",       -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  0
-      Util.keypress "down",    -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
-      Util.keypress "up",      -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
-      Util.keypress "d",       -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  jump
-      Util.keypress "u",       -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -jump
+      # Util.keypress "j",       -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
+      # Util.keypress "k",       -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
+      # Util.keypress ";",       -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  0
+      # Util.keypress "down",    -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
+      # Util.keypress "up",      -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
+      # Util.keypress "d",       -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  jump
+      # Util.keypress "u",       -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -jump
+      true
     #
     else
-      Util.keypress "j",       -> Dom.doUnlessInputActive -> navigate xPath,  1
-      Util.keypress "k",       -> Dom.doUnlessInputActive -> navigate xPath, -1
-      Util.keypress ";",       -> Dom.doUnlessInputActive -> navigate xPath,  0
-      Util.keypress ":",       -> Dom.doUnlessInputActive -> navigate xPath,  Const.last
-      Util.keypress "down",    -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
-      Util.keypress "up",      -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
-      Util.keypress "d",       -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  jump
-      Util.keypress "u",       -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -jump
+      # Util.keypress "j",       -> Dom.doUnlessInputActive -> navigate xPath,  1
+      # Util.keypress "k",       -> Dom.doUnlessInputActive -> navigate xPath, -1
+      # Util.keypress ";",       -> Dom.doUnlessInputActive -> navigate xPath,  0
+      # Util.keypress ":",       -> Dom.doUnlessInputActive -> navigate xPath,  Const.last
+      # Util.keypress "down",    -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
+      # Util.keypress "up",      -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
+      # Util.keypress "d",       -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  jump
+      # Util.keypress "u",       -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -jump
       #
       unless "no-enter" in config.option
         Util.keypress "enter", -> Dom.doUnlessInputActive -> followLink xPath
