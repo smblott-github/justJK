@@ -221,14 +221,18 @@ dislike  apps.facebook.com
 dislike  fb_action_types=instapp
 prefer   external
 
+site     github.com
+path     ^/*/issues\?
+# elements //li
+elements //li[HAS/class/selectable]
+prefer   /pull/
+prefer   /issues/
+
 # ##############################################################################
 # Native bindings and no enter key ... justJK is completely disabled.
 
 site     mail.google.com
 option   no-enter
-
-# site     github.com
-# option   no-enter
 
 site     code.google.com
 option   no-enter
