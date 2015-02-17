@@ -141,10 +141,10 @@ elements //div[@id='official_site']
 elements //div[HAS/class/links_zero_click]
 prefer   external
 
-site     wikipedia.org
-elements //div[@id='bodyContent']/div[@id='mw-content-text']/p
-prefer   internal
-option   no-highlight
+# site     wikipedia.org
+# elements //div[@id='bodyContent']/div[@id='mw-content-text']/p
+# prefer   internal
+# option   no-highlight
 
 site     www.steephill.tv
 path     /photos/
