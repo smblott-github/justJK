@@ -32,10 +32,11 @@ Dom = justJK.Dom =
       for ele in @offsetParents(element)[1..]
         return false if ele.offsetHeight <= 0
       #
-      for ele in @parentNodes element
-        if style = window.getComputedStyle ele
-          return false if style.display    is "none"
-          return false if style.visibility is "hidden"
+      try
+        for ele in @parentNodes element
+          if style = window.getComputedStyle ele
+            return false if style.display    is "none"
+            return false if style.visibility is "hidden"
       #
       [ top, bottom ] = @offsetTopBottom element
       if bottom - top < 10 then false else true
