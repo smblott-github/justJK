@@ -116,13 +116,14 @@ Dom = justJK.Dom =
   # Is the position of element fixed?
   #
   isFixed: (element) ->
-    while element
-      if style = window.getComputedStyle element
-        switch style.position
-          when "fixed"    then return true
-          when "absolute" then return true
-      element = element.parentNode
-    #
+    try
+      while element
+        if style = window.getComputedStyle element
+          switch style.position
+            when "fixed"    then return true
+            when "absolute" then return true
+        element = element.parentNode
+      #
     false
 
   # Return largest position of the bottom of a fixed header element.
