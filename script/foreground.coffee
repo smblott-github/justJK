@@ -195,8 +195,8 @@ chrome.extension.sendMessage request, (response) ->
     else
       Util.keypress "j",       -> Dom.doUnlessInputActive -> navigate xPath,  1
       Util.keypress "k",       -> Dom.doUnlessInputActive -> navigate xPath, -1
-      Util.keypress ";",       -> Dom.doUnlessInputActive -> navigate xPath,  0
-      Util.keypress ":",       -> Dom.doUnlessInputActive -> navigate xPath,  Const.last
+      # Util.keypress ";",       -> Dom.doUnlessInputActive -> navigate xPath,  0
+      # Util.keypress ":",       -> Dom.doUnlessInputActive -> navigate xPath,  Const.last
       # Util.keypress "down",    -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  1
       # Util.keypress "up",      -> Dom.doUnlessInputActive -> Scroll.vanillaScroll -1
       # Util.keypress "d",       -> Dom.doUnlessInputActive -> Scroll.vanillaScroll  jump
